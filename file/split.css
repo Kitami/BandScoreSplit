@@ -1,0 +1,59 @@
+body {
+    background-color: #CCCCCC;
+}
+
+#topArea {
+    font-size: 12;
+}
+
+span {
+    width: 15px;
+}
+
+canvas {
+    border: solid 1px gray;
+}
+
+#in {
+    width: 707px;
+    height: 1000px
+}
+
+#out {
+    width: 707px;
+    height: 1000px
+}
+
+.canvasDiv {
+    background-color: white;
+    position: relative;
+}
+
+.trimArea {
+    border: solid 2px rgb(255, 0, 0,0.95);
+    position: absolute;
+}
+
+input[type=range] {
+    height: 15px;
+    padding: 0px;
+    margin: 0px;
+}
+
+input[type=number] {
+    width: 60px;
+}
+
+#title_text {
+    width: 20em;
+}
+
+input[type=range][orient=vertical] {
+    writing-mode: bt-lr;
+    /* IE */
+    -webkit-appearance: slider-vertical;
+    /* WebKit */
+    width: 8px;
+    margin: 0px;
+    padding: 0 8px;
+}
