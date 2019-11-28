@@ -3,7 +3,7 @@ body {
 }
 
 #topArea {
-    font-size: 12;
+    font-size: 14px;
 }
 
 span {
@@ -12,6 +12,16 @@ span {
 
 canvas {
     border: solid 1px gray;
+}
+
+#inputDiv {
+    margin: 0 0 0 8px;
+}
+
+#log {
+	width: 707px;
+	margin: 2px 0 0 48px;
+	background-color: white;
 }
 
 #in {
@@ -34,8 +44,12 @@ canvas {
     position: absolute;
 }
 
+.ocrText{
+    position: absolute;
+}
+
 input[type=range] {
-    height: 15px;
+    height: 10px;
     padding: 0px;
     margin: 0px;
 }
@@ -53,7 +67,7 @@ input[type=range][orient=vertical] {
     /* IE */
     -webkit-appearance: slider-vertical;
     /* WebKit */
-    width: 8px;
-    margin: 0px;
-    padding: 0 8px;
+    width: 10px;
+    margin: 0 5px;
+    padding: 0 0px;
 }
