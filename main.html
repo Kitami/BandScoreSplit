@@ -1,55 +1,59 @@
 <!DOCTYPE HTML>
 <html lang="ja">
-    <head>
-        <meta charset="UTF-8">
-        <title>Band Score Split</title>
-        <LINK href="file/split.css" rel="stylesheet" type="text/css">
-    </head>
-    <body>
-        <div style='display:flex;' id="topArea">
-            <div id="leftTopArea">
-                <input type="file" multiple id="selectFile">
-                <button onclick="Load_Pre('')">前</button>
-                <button onclick="Load_Next('')">次</button>
-                <span></span>
-                トリミング枠縦幅:<input type="number" step="2" id="tvHeight" min="10" onchange="tvHeightChange(value)"/>
-                <input type="checkbox" id="tvWidthLock" oninput="widthLockChange(this)"/>
-                横幅ロック
-<br>
-                <div style='margin: 5px 0 5px 0;display:flex;'>
-                    <div style='width: 50px'></div>
-                    <div>
-                        <input id='rangeInput_X1' type='range' value='' min='5' max='708' oninput="rangeXChange(1,value)" style='width: 707px'>
-                        <br>
-                        <input id='rangeInput_X2' type='range' value='' min='5' max='708' oninput="rangeXChange(2,value)" style='width: 707px'>
-                    </div>
-                </div>
-            </div>
-            <span></span>
-            <div id="rightTopArea">
-                <button onclick='doTrim()'>トリミング</button>
-                <button onclick="clean_img('')">出力区域クリア</button>
-                <button onclick="download('')">画像出力</button>
-                <br>
-                段間隔:<input type="number" step="1" id="Para_interval" min="0" oninput="paraIntervalChange(value)"/>
-                タイトル:<input type="text" id="title_text"/>
-                <br>
-                <a id="hiddenLink" download="download.png">ダウンロードされない場合、下図を右クリックして保存してください。</a>
-            </div>
-        </div>
-</div>
-<div style='display: flex;'>
-    <input id='rangeInput_Y1' type='range' orient="vertical" value='' min='5' max='1000' oninput="rangeYChange(1,value)" style='height: 1000px;'>
-    <br>
-    <input id='rangeInput_Y2' type='range' orient="vertical" value='' min='5' max='1000' oninput="rangeYChange(2,value)" style='height: 1000px;'>
-    <br>
-    <div id="inputDiv" class="canvasDiv">
-        <canvas id='in'></canvas>
-    </div>
-    <span></span>
-    <div id="outputDiv" class="canvasDiv">
-        <canvas id='out'></canvas>
-    </div>
-</div>
-<SCRIPT src="file/split.js"></SCRIPT>
-</body></html>
+<head>
+	<meta charset="UTF-8">
+	<title>Band Score Split</title>
+	<link href="file/split.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+	<div style='display:flex;' id="topArea">
+		<div id="leftTopArea">
+			<input type="file" multiple id="selectFile">
+			<button onclick="Load_Pre('')">前</button>
+			<button onclick="Load_Next('')">次</button>
+			<span></span>
+			トリミング枠縦幅:<input type="number" step="2" id="tvHeight" min="10" onchange="tvHeightChange(value)"/>
+			<input type="checkbox" id="tvWidthLock" oninput="widthLockChange(this)"/>
+			横幅ロック
+			<button onclick="startOCR()">自動認識</button>
+			<br>
+			<div style='margin: 5px 0 5px 0;display:flex;'>
+				<div style='width: 50px'></div>
+				<div>
+					<input id='rangeInput_X1' type='range' value='' min='5' max='708' oninput="rangeXChange(1,value)" style='width: 707px'>
+					<br>
+					<input id='rangeInput_X2' type='range' value='' min='5' max='708' oninput="rangeXChange(2,value)" style='width: 707px'>
+				</div>
+			</div>
+		</div>
+		<span></span>
+		<div id="rightTopArea">
+			<button onclick='doTrim()'>トリミング</button>
+			<button onclick="clean_img('')">出力区域クリア</button>
+			<button onclick="download('')">画像出力</button>
+			<!-- <a report="">BUG報告、FAQなど</a> -->
+			<br>
+			段間隔:<input type="number" step="1" id="Para_interval" min="0" oninput="paraIntervalChange(value)"/>
+			タイトル:<input type="text" id="title_text"/>
+			<br>
+			<a id="hiddenLink" download="download.png">ダウンロードされない場合、下図を右クリックして保存してください。</a>
+		</div>
+	</div>
+	<div style='display: flex;'>
+		<input id='rangeInput_Y1' type='range' orient="vertical" value='' min='5' max='1000' oninput="rangeYChange(1,value)" style='height: 1000px;'>
+		<br>
+		<input id='rangeInput_Y2' type='range' orient="vertical" value='' min='5' max='1000' oninput="rangeYChange(2,value)" style='height: 1000px;'>
+		<br>
+		<div id="inputDiv" class="canvasDiv">
+			<canvas id='in'></canvas>
+		</div>
+		<span></span>
+		<div id="outputDiv" class="canvasDiv">
+			<canvas id='out'></canvas>
+		</div>
+	</div>
+	<div id="log">log area</div>
+	<script src="https://unpkg.com/tesseract.js@2.0.0-beta.1/dist/tesseract.min.js"></script>
+	<script src="file/split.js"></script>
+</body>
+</html>
