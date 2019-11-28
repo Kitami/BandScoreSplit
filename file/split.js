@@ -68,7 +68,7 @@ window.onload = function() {
     document.getElementById('tvHeight').value = tvHeight;
     document.getElementById('Para_interval').value = Para_interval;
     document.getElementById('title_text').value = 'タイトル';
-    //load_img('./image/001.png');
+    load_img('./image/001.png');
     drawTrimArea();
 }
 
@@ -128,9 +128,10 @@ function download() {
  //画像トリミング
 function doTrim() {
     if (Para_num == 1) {
+        // 背景
         ctx_out.fillStyle = 'white'
         ctx_out.fillRect(0, 0, cWidth, cHeight)
-        // 背景を塗る
+        // 表題
         var titleText = document.getElementById('title_text').value;
         if (titleText != '') {
             ctx_out.font = cWidth / 25 + "px serif";
@@ -144,8 +145,8 @@ function doTrim() {
 
     for (var i = 0; i < para; i++) {
         console.log("描画回数:" + Para_num);
-        console.log("scale:" + scale);
-        console.log("cvRatio:" + cvRatio);
+        // console.log("scale:" + scale);
+        // console.log("cvRatio:" + cvRatio);
 
         var nextY = paraY1(Para_num) + tvHeight;
         if (nextY > vHeight) {
@@ -153,12 +154,16 @@ function doTrim() {
             break;
         }
         ;
-        sx = tvStartX / scale * cvRatio;
-        sy = Y1List[(Para_num - 1) % 2] / scale * cvRatio;
-        sWidth = tvWidth / scale * cvRatio;
-        sHeight = tvHeight * cvRatio;
-        dx = (vWidth - tvWidth) / 2 * cvRatio;
-        dy = paraY1(Para_num) * cvRatio;
+        //画面位置to実際位置座標変換係数　
+        rate = 1 / scale * cvRatio;
+        //入力部
+        sx = tvStartX * rate;
+        sy = Y1List[(Para_num - 1) % 2] * rate;
+        sWidth = tvWidth * rate;
+        sHeight = tvHeight * rate;
+        //出力部
+        dx = (vWidth - tvWidth) / 2 * scale;
+        dy = paraY1(Para_num) * scale;
         dWidth = sWidth * scale;
         dHeight = sHeight * scale;
 
@@ -171,7 +176,7 @@ function paraY1(n) {
     if (n == 1)
         return Top_margin + title_h
     else
-        return Top_margin + title_h + (n - 1) * Para_interval + (n - 1) * tvHeight
+        return Top_margin + title_h + n*Para_interval + (n - 1) * tvHeight
 }
 
 var TrimAreaList = document.getElementsByClassName('trimArea');
@@ -180,25 +185,25 @@ function rangeXChange(Xn,val) {
     for (var i in TrimAreaList) {
         if (isNaN(i))
             break;
-		//左端変更時
-		if(Xn==1){
-			tvStartX = val;
-			TrimAreaList[i].style.left = tvStartX + 'px';
-			if(!widthLock){
-				tvWidth = (tvEndX - val);
-				TrimAreaList[i].style.width = tvWidth + 'px';
-			}
-		}
-		//右端変更時
-		if(Xn==2){
-			tvEndX = val;
-			if(widthLock){
-				TrimAreaList[i].style.left = (val-tvWidth) + 'px';
-			} else {
-				tvWidth = (val - tvStartX);
-				TrimAreaList[i].style.width = tvWidth + 'px';
-			}
-		}
+        //左端変更時
+        if(Xn==1){
+            tvStartX = val;
+            TrimAreaList[i].style.left = tvStartX + 'px';
+            if(!widthLock){
+                tvWidth = (tvEndX - val);
+                TrimAreaList[i].style.width = tvWidth + 'px';
+            }
+        }
+        //右端変更時
+        if(Xn==2){
+            tvEndX = val;
+            if(widthLock){
+                TrimAreaList[i].style.left = (val-tvWidth) + 'px';
+            } else {
+                tvWidth = (val - tvStartX);
+                TrimAreaList[i].style.width = tvWidth + 'px';
+            }
+        }
     }
 }
 
@@ -224,13 +229,13 @@ function paraIntervalChange(val) {
     Para_interval = val;
 }
 function widthLockChange(elem) {
-	
+    
     if(elem.checked)
-		widthLock = true;
-	else
-		widthLock = false;
+        widthLock = true;
+    else
+        widthLock = false;
 
-	//console.log("widthLock:" + widthLock);
+    //console.log("widthLock:" + widthLock);
 }
  //出力区域クリア
 function clean_img() {
