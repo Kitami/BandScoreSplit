@@ -3,6 +3,9 @@
 「バンドスコアをパート譜に分割するツールです。」  
 これ以上の説明がいらないかな、、、
 
+使い方：下記リンクから直接使える  
+https://kitami.github.io/BandScoreSplit/main.html
+
 現段階処理できるのは画像ファイル（JPG,PNG）のみ  
 
 自分用メモ：  
