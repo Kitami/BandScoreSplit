@@ -9,7 +9,9 @@ body {
 span {
     width: 15px;
 }
-
+#progressbar{
+width : 100%;
+}
 canvas {
     border: solid 1px gray;
 }

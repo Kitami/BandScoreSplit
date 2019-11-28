@@ -71,13 +71,13 @@ window.onload = function() {
     document.getElementById('tvHeight').value = tvHeight;
     document.getElementById('Para_interval').value = Para_interval;
     document.getElementById('title_text').value = 'タイトル';
-    load_img('./image/001.png'); //DEBUG用
+    //load_img('./image/001.png'); //DEBUG用
     drawTrimArea();
 }
 
 img.onload = function(_ev) {
     // 画像が読み込まれた
-    scale = parseInt(cWidth / img.width)
+    scale = cWidth / img.width
     draw_canvas()
     // 画像更新
     //console.log("load complete, scaling:"+ scale);
@@ -94,7 +94,7 @@ function draw_canvas() {
     //inエリア背景
     ctx_in.fillRect(0, 0, cWidth, cHeight)
     // 背景を塗る
-    ctx_in.drawImage(img, 0, 0, img.width, img.height, 0, 0, img.width * scale, img.height * scale)
+    ctx_in.drawImage(img,0,0,img.width,img.height,0,0,img.width*scale,img.height*scale)
     ctx_in.lineWidth = 2;
 }
  //トリミング領域描画
@@ -194,13 +194,14 @@ function rangeXChange(Xn,val) {
         //左端変更時
         if(Xn==1){
             tvStartX = parseInt(val);
-			tvEndX = tvStartX+tvWidth;
-            TrimAreaList[i].style.left = tvStartX + 'px';
-            if(!widthLock){
-                tvWidth = (tvEndX - val);
-                TrimAreaList[i].style.width = tvWidth + 'px';
-            } else {
+			TrimAreaList[i].style.left = tvStartX + 'px';
+
+            if(widthLock){
+				tvEndX = tvStartX+tvWidth;
 				document.getElementById('rangeInput_X2').value = tvEndX;
+            } else {
+				tvWidth = (tvEndX - tvStartX);
+                TrimAreaList[i].style.width = tvWidth + 'px';
 			}
         }
         //右端変更時
@@ -260,25 +261,20 @@ var worker = new Tesseract.createWorker({
 function getInputCanvas() {
     var canvas = document.createElement('canvas');
     var ctx = canvas.getContext('2d');
-	var useWidth = img.Width / 2;
+	var useWidth = img.width * tvStartX/vWidth;
     canvas.width = useWidth;
     canvas.height = img.height;
-    ctx.drawImage(img,0, 0, useWidth, img.height);
+    ctx.drawImage(img,0,0,useWidth,img.height,0,0,useWidth,img.height);
+    //document.getElementById('log').appendChild(canvas);
     return canvas;
 }
 
 async function startOCR(){
-	//var input = ctx_in.getImageData(0, 0, tvStartX*cvRatio, img.height*scale);
 	var input = getInputCanvas();
-
-	//demo_instructions.style.display = 'none'
-	//output_text.style.display = 'block'
-	//output_text.innerHTML = ''
-
 	await worker.load();
 	await worker.loadLanguage(language);
 	await worker.initialize(language);
-	const { data } = await worker.recognize(cvs);
+	const { data } = await worker.recognize(input);
 	result(data);
 }
 
@@ -289,11 +285,12 @@ var divbox = {
 
 	draw: function(x,y,width,height) {
 	var elem = document.createElement('div');
+			var imgToView = 1*scale/cvRatio;
 			elem.className = this.className;
-			elem.style.left = x/cvRatio + 'px';
-			elem.style.top = y/cvRatio + 'px';
-			elem.style.width = width/cvRatio + 'px';
-			elem.style.height = height/cvRatio + 'px';
+			elem.style.left = x*imgToView + 'px';
+			elem.style.top = y*imgToView + 'px';
+			elem.style.width = width*imgToView + 'px';
+			elem.style.height = height*imgToView + 'px';
 			elem.style.border = this.borderWidth+'px solid '+this.borderColor;
 			document.getElementById('inputDiv').appendChild(elem);
 	}
@@ -307,27 +304,31 @@ function result(res){
 	//結果配列から単語単位で取り出す
 	res.words.forEach(function(w){
 		var b = w.bbox;
-
-		divbox.borderWidth = 2
-		divbox.borderColor = 'red'
-		divbox.className = 'ocrText'
-		divbox.draw(b.x0, b.y0, b.x1-b.x0, b.y1-b.y0)
-
-		//ioctx.beginPath()
-		//ioctx.moveTo(w.baseline.x0, w.baseline.y0)
-		//ioctx.lineTo(w.baseline.x1, w.baseline.y1)
-		// ioctx.strokeStyle = 'green'
-		// ioctx.stroke()
+		isWord = w.text.match(/[a-z]/gi);
+		if(isWord){
+			divbox.borderWidth = 2
+			divbox.borderColor = 'red'
+			divbox.className = 'ocrText'
+			divbox.draw(b.x0, b.y0, b.x1-b.x0, b.y1-b.y0)
+		}
 	})
 }
 
 function progressUpdate(packet){
+	var statusText = document.getElementById('statusText');
+	var progressbar = document.getElementById('progressbar');
 	var log = document.getElementById('log');
 
+	statusText.innerHTML = packet.status
+	if('progress' in packet){
+		progressbar.value = packet.progress
+	}
+
+/*
 	if(log.firstChild && log.firstChild.status === packet.status){
 		if('progress' in packet){
 			var progress = log.firstChild.querySelector('progress')
-			progress.value = packet.progress
+			
 		}
 	}else{
 		var line = document.createElement('div');
@@ -335,23 +336,22 @@ function progressUpdate(packet){
 		var status = document.createElement('div')
 		status.className = 'status'
 		status.appendChild(document.createTextNode(packet.status))
-		line.appendChild(status)
+		//line.appendChild(status)
 
 		if('progress' in packet){
 			var progress = document.createElement('progress')
 			progress.value = packet.progress
 			progress.max = 1
-			line.appendChild(progress)
+			//line.appendChild(progress)
 		}
-
 
 		if(packet.status == 'done'){
 			var pre = document.createElement('pre')
 			pre.appendChild(document.createTextNode(packet.data.text))
 			line.innerHTML = ''
-			line.appendChild(pre)
+			log.appendChild(pre)
 		}
-
-		log.insertBefore(line, log.firstChild)
-	}
+*/
+	
+		//log.insertBefore(line, log.firstChild)
 }
