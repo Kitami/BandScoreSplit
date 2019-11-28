@@ -68,7 +68,7 @@ window.onload = function() {
     document.getElementById('tvHeight').value = tvHeight;
     document.getElementById('Para_interval').value = Para_interval;
     document.getElementById('title_text').value = 'タイトル';
-    load_img('./image/001.png');
+    load_img('./image/001.png'); //DEBUG用
     drawTrimArea();
 }
 
@@ -162,8 +162,8 @@ function doTrim() {
         sWidth = tvWidth * rate;
         sHeight = tvHeight * rate;
         //出力部
-        dx = (vWidth - tvWidth) / 2 * scale;
-        dy = paraY1(Para_num) * scale;
+        dx = (vWidth - tvWidth) / 2 * cvRatio;
+        dy = paraY1(Para_num) * cvRatio;
         dWidth = sWidth * scale;
         dHeight = sHeight * scale;
 
