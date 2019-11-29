@@ -3,51 +3,85 @@ body {
 }
 
 #topArea {
+	width : 1479px;
     font-size: 14px;
+    display:flex;
+}
+#topLeftArea {
+	width : 750px;
+}
+#topRightArea {
+	width : 708px;
 }
 
-span {
-    width: 15px;
+.setting{
+    width : 50%;
+    border: solid 1px white;
+    padding: 3px;
+    margin-top: 2px;
+    margin-right: 1px;
+}
+.setting-right{
+    width : 100%;
+    height: 95%;
+    padding: 3px;
+    border: solid 1px white;
+}
+#title_text {
+    width: 20em;
+}
+#log {
+	width: 100%;
+	background-color: white;
 }
 #progressbar{
 width : 100%;
+}
+#topSidebar{
+	display:flex;
+    margin-top: 6px;
+    margin-bottom: 3px;
+}
+
+#canvasArea {
+	display:flex;
+    margin-top: 2px;
+    height: 1000px;
+}
+.canvasDiv {
+    background-color: white;
+    position: relative;
+    height: 1000px;
+    margin-top: 2px;
 }
 canvas {
     border: solid 1px gray;
 }
 
-#inputDiv {
-    margin: 0 0 0 8px;
-}
-
-#log {
-	width: 707px;
-	margin: 2px 0 0 48px;
-	background-color: white;
-}
-
 #in {
     width: 707px;
-    height: 1000px
+    height: 1000px;
 }
-
 #out {
     width: 707px;
-    height: 1000px
-}
-
-.canvasDiv {
-    background-color: white;
-    position: relative;
+    height: 1000px;
 }
 
 .trimArea {
-    border: solid 2px rgb(255, 0, 0,0.95);
+    border: solid 2px rgb(250, 100, 100,0.6);
     position: absolute;
 }
 
-.ocrText{
+.OCRText{
     position: absolute;
+}
+
+input[type=file] {
+    background-color: white;
+    width:50%;
+}
+input[type=number] {
+    width: 60px;
 }
 
 input[type=range] {
@@ -56,20 +90,15 @@ input[type=range] {
     margin: 0px;
 }
 
-input[type=number] {
-    width: 60px;
-}
-
-#title_text {
-    width: 20em;
-}
-
 input[type=range][orient=vertical] {
-    writing-mode: bt-lr;
-    /* IE */
-    -webkit-appearance: slider-vertical;
-    /* WebKit */
-    width: 10px;
-    margin: 0 5px;
-    padding: 0 0px;
+    writing-mode: bt-lr;/* IE */
+    -webkit-appearance: slider-vertical;/* WebKit */
+    width: 20px;
+    margin: 0px;
+}
+
+.guide.v {
+    border: solid 1px rgb(0, 0, 255,0.5);
+    cursor: col-resize;
+    position: absolute;
 }
