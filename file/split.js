@@ -1,5 +1,5 @@
 //Band Score Split.js
-//Copyright © 2019 kitami.hibiki. All rights reserved.
+//Copyright © 2019 kitami.hibiki All rights reserved.
 const vWidth = 708; //画像表示サイズ幅
 const vHeight = 1000; //画像表示サイズ幅
 const cWidth = 4248; //画像処理時サイズ幅
@@ -63,16 +63,29 @@ function Load_Next() {
     }
 }
 
+rangeInput_X1 = document.getElementById('rangeInput_X1');
+rangeInput_X2 = document.getElementById('rangeInput_X2');
+rangeInput_Y1 = document.getElementById('rangeInput_Y1');
+rangeInput_Y2 = document.getElementById('rangeInput_Y2');
+
 window.onload = function() {
-    document.getElementById('rangeInput_X1').value = tvStartX;
-    document.getElementById('rangeInput_X2').value = tvEndX;
-    document.getElementById('rangeInput_Y1').value = vHeight - trimboxY1List[0] - tvHeight / 2;
-    document.getElementById('rangeInput_Y2').value = vHeight - trimboxY1List[1] - tvHeight / 2;
+	rangeInput_X1.max = vWidth/2;
+	rangeInput_X2.min = vWidth/2;
+	rangeInput_X2.max = vWidth;
+	rangeInput_Y1.max = vHeight;
+	rangeInput_Y2.max = vHeight;
+
+	rangeInput_X1.value = tvStartX;
+	rangeInput_X2.value = tvEndX;
+	rangeInput_Y1.value = vHeight - trimboxY1List[0] - tvHeight / 2;
+	rangeInput_Y2.value = vHeight - trimboxY1List[1] - tvHeight / 2;
     document.getElementById('tvHeight').value = tvHeight;
     document.getElementById('Para_interval').value = Para_interval;
     document.getElementById('title_text').value = 'タイトル';
     //load_img('./image/001.png'); //DEBUG用
     drawTrimArea();
+    drawGuideLine('guide_left','v',tvStartX+3);
+    drawGuideLine('guide_right','v',tvEndX-3);
 }
 
 img.onload = function(_ev) {
@@ -97,17 +110,40 @@ function draw_canvas() {
     ctx_in.drawImage(img,0,0,img.width,img.height,0,0,img.width*scale,img.height*scale)
     ctx_in.lineWidth = 2;
 }
+
+var divbox = {
+	borderWidth : 0,
+	borderColor : 'aqua',
+	className : 'divbox',
+	id : '',
+
+	draw: function(x,y,width,height) {
+	var elem = document.createElement('div');
+			elem.className = this.className;
+			elem.style.left = x + 'px';
+			elem.style.top = y + 'px';
+			elem.style.width = width + 'px';
+			elem.style.height = height + 'px';
+			if(this.id !='') elem.id = this.id;
+			if(this.borderWidth > 0) elem.style.border = this.borderWidth+'px solid '+this.borderColor;
+			document.getElementById('inputDiv').appendChild(elem);
+	}
+}
+
  //トリミング領域描画
 function drawTrimArea() {
-    for (var i in trimboxY1List) {
-        var elem = document.createElement('div');
-        elem.className = 'trimArea';
-        elem.style.left = tvStartX + 'px';
-        elem.style.width = tvWidth + 'px';
-        elem.style.height = tvHeight + 'px';
-        elem.style.top = trimboxY1List[i] + 'px';
-        document.getElementById('inputDiv').appendChild(elem);
-    }
+	divbox.className = 'trimArea'
+	tvStartY =  trimboxY1List[0];
+	divbox.draw(tvStartX, tvStartY,tvWidth,tvHeight)
+}
+
+function drawGuideLine(id,type,positon) {
+	divbox.className = 'guide ' + type
+	divbox.id = id
+	if (type == 'h')
+		divbox.draw(0,positon,vWidth,0)
+	else
+		divbox.draw(positon,0,0,vHeight)
 }
 
  //トリミング領域削除/追加
@@ -188,6 +224,11 @@ function paraY1(n) {
 var TrimAreaList = document.getElementsByClassName('trimArea');
 
 function rangeXChange(Xn,val) {
+	if(Xn==1)
+		document.getElementById('guide_left').style.left = parseInt(val)+3 + 'px';
+	else
+		document.getElementById('guide_right').style.left = parseInt(val)-3 + 'px';
+
     for (var i in TrimAreaList) {
         if (isNaN(i))
             break;
@@ -195,7 +236,6 @@ function rangeXChange(Xn,val) {
         if(Xn==1){
             tvStartX = parseInt(val);
 			TrimAreaList[i].style.left = tvStartX + 'px';
-
             if(widthLock){
 				tvEndX = tvStartX+tvWidth;
 				document.getElementById('rangeInput_X2').value = tvEndX;
@@ -204,11 +244,13 @@ function rangeXChange(Xn,val) {
                 TrimAreaList[i].style.width = tvWidth + 'px';
 			}
         }
-        //右端変更時
-        if(Xn==2){
+      //右端変更時
+        if (Xn == 2) {
             tvEndX = parseInt(val);
-            if(widthLock){
-                TrimAreaList[i].style.left = (tvEndX - tvWidth) + 'px';
+            if (widthLock) {
+                tvStartX = tvEndX - tvWidth;
+                TrimAreaList[i].style.left = tvStartX + 'px';
+                document.getElementById('rangeInput_X1').value = tvStartX;
             } else {
                 tvWidth = (val - tvStartX);
                 TrimAreaList[i].style.width = tvWidth + 'px';
@@ -254,6 +296,7 @@ function clean_img() {
 
 //以下、OCR関連
 var language = "eng";
+var instList = new Array();
 var worker = new Tesseract.createWorker({
   logger: progressUpdate,
 });
@@ -274,26 +317,11 @@ async function startOCR(){
 	await worker.load();
 	await worker.loadLanguage(language);
 	await worker.initialize(language);
+	await worker.setParameters({
+	    tessedit_char_whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-.{()',
+	  });
 	const { data } = await worker.recognize(input);
 	result(data);
-}
-
-var divbox = {
-	borderWidth : 0,
-    borderColor : 'red',
-	className : 'divbox',
-
-	draw: function(x,y,width,height) {
-	var elem = document.createElement('div');
-			var imgToView = 1*scale/cvRatio;
-			elem.className = this.className;
-			elem.style.left = x*imgToView + 'px';
-			elem.style.top = y*imgToView + 'px';
-			elem.style.width = width*imgToView + 'px';
-			elem.style.height = height*imgToView + 'px';
-			elem.style.border = this.borderWidth+'px solid '+this.borderColor;
-			document.getElementById('inputDiv').appendChild(elem);
-	}
 }
 
 function result(res){
@@ -302,14 +330,25 @@ function result(res){
 	progressUpdate({ status: 'done', data: res })
 
 	//結果配列から単語単位で取り出す
+	var index = 1;
 	res.words.forEach(function(w){
 		var b = w.bbox;
 		isWord = w.text.match(/[a-z]/gi);
 		if(isWord){
-			divbox.borderWidth = 2
-			divbox.borderColor = 'red'
-			divbox.className = 'ocrText'
-			divbox.draw(b.x0, b.y0, b.x1-b.x0, b.y1-b.y0)
+			divbox.id = "instList_" + index
+			instList.push(w.text)
+			divbox.borderWidth = 1
+			divbox.borderColor = 'rgb(0, 255, 255,0.95)'
+			divbox.className = 'OCRText'
+			index++
+
+			var imgToView = 1*scale/cvRatio;
+			var x =(b.x0)*imgToView
+			var y =(b.y0)*imgToView
+			var width = (b.x1-b.x0)*imgToView
+			var hieght = (b.y1-b.y0)*imgToView
+
+			divbox.draw(x, y, width, hieght)
 		}
 	})
 }
@@ -324,34 +363,24 @@ function progressUpdate(packet){
 		progressbar.value = packet.progress
 	}
 
+	if(packet.status == 'done'){
+		resultArea = document.getElementById('result');
+		instList.forEach(
+				function (value, index){
+				var chkboxstr = '<input type="checkbox" name="ckbox" value="' + index + '" id="ckbox_' + index + '">'
+				+ '<label>' + value + '</label>';
+				resultArea.insertAdjacentHTML('beforeend',chkboxstr);
+						}
+				);
+	}
+
 /*
-	if(log.firstChild && log.firstChild.status === packet.status){
-		if('progress' in packet){
-			var progress = log.firstChild.querySelector('progress')
-			
-		}
-	}else{
-		var line = document.createElement('div');
-		line.status = packet.status;
-		var status = document.createElement('div')
-		status.className = 'status'
-		status.appendChild(document.createTextNode(packet.status))
-		//line.appendChild(status)
-
-		if('progress' in packet){
-			var progress = document.createElement('progress')
-			progress.value = packet.progress
-			progress.max = 1
-			//line.appendChild(progress)
-		}
-
-		if(packet.status == 'done'){
-			var pre = document.createElement('pre')
-			pre.appendChild(document.createTextNode(packet.data.text))
-			line.innerHTML = ''
-			log.appendChild(pre)
-		}
+	if(packet.status == 'done'){
+		var pre = document.createElement('pre')
+		pre.appendChild(document.createTextNode(packet.data.text))
+		line.innerHTML = ''
+		log.appendChild(pre)
+	}
 */
-	
-		//log.insertBefore(line, log.firstChild)
+
 }
