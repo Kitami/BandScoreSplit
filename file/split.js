@@ -20,11 +20,10 @@ var scale = 1.0 // 拡大率(初期値)
 
 var tboxNum = 0 //トリミング枠数
 var tvHeight = vHeight * 0.1 //トリミング枠縦幅(初期値)
-var tvX = vWidth * 0.05; //トリミング開始位置X(初期値)
-var tvWidth = vWidth - 2*tvX //トリミング枠横幅(描画値、初期値)
-var tvEndX = vWidth - tvX; //トリミング終了位置X(初期値)
+var guideX1 = vWidth * 0.05; //トリミング開始位置X(初期値)
+var tvWidth = vWidth - 2*guideX1 //ガイド線間幅(初期値)
+var guideX2 = vWidth - guideX1; //トリミング終了位置X(初期値)
 var widthLock = false; //横幅ロックフラグ
-var guideX1 = 0; //左側ガイド線の位置
 var guideLeft = 10; //ガイド線左側のスペース
 var Top_margin = vHeight * 0.05; //描画開始位置X（上部余白）
 
@@ -63,7 +62,7 @@ function Load_Next() {
 
 var rangeInput_X1 = document.getElementById('rangeInput_X1');
 var rangeInput_X2 = document.getElementById('rangeInput_X2');
-var rangeInput_Y1 = document.getElementById('rangeInput_Y1');
+var rangeInput_Y = document.getElementById('rangeInput_Y1');
 var trimBoxList = document.getElementsByClassName('trimArea');
 var OCRTextList = document.getElementsByClassName('OCRText');
 
@@ -71,21 +70,20 @@ window.onload = function() {
 	rangeInput_X1.max = vWidth/2;
 	rangeInput_X2.min = vWidth/2;
 	rangeInput_X2.max = vWidth;
-	rangeInput_Y1.max = vHeight;
 
-	rangeInput_X1.value = tvX;
-	rangeInput_X2.value = tvEndX;
-	rangeInput_Y1.value = vHeight*0.1;
-	document.getElementById('tvX').value = tvX;
-	//document.getElementById('tvY').value = tvY;
+	rangeInput_X1.value = guideX1;
+	rangeInput_X2.value = guideX2;
+
+	document.getElementById('tboxX').value = guideX1;
+	document.getElementById('tboxY').value = 0;
 	document.getElementById('tvWidth').value = tvWidth;
     document.getElementById('tvHeight').value = tvHeight;
     document.getElementById('Para_interval').value = Para_interval;
     document.getElementById('title_text').value = 'タイトル';
     load_img('./image/001.jpg'); //DEBUG用
     //drawTrimBox('tbox_0',vHeight*0.1);
-    drawGuideLine('guide_left','v',tvX + 3);
-    drawGuideLine('guide_right','v',tvEndX - 3);
+    drawGuideLine('guide_left','v',guideX1 + 5);
+    drawGuideLine('guide_right','v',guideX2 - 5);
 }
 
 img.onload = function(_ev) {
@@ -135,7 +133,7 @@ var divbox = {
 function drawTrimBox(id,PositionY) {
 	divbox.id = id
 	divbox.className = 'trimArea'
-	divbox.draw(tvX-guideLeft,PositionY,tvWidth+guideLeft,tvHeight)
+	divbox.draw(guideX1-guideLeft,PositionY,tvWidth + guideLeft,tvHeight)
 }
 
 //ガイド線描画
@@ -225,10 +223,10 @@ function paraY1(n) {
 
 function rangeXChange(Xn,val) {
 	if(Xn==1){
-		tvX = parseInt(val);
+		guideX1 = parseInt(val);
 		document.getElementById('guide_left').style.left = parseInt(val)+3 + 'px';
 	} else {
-		tvWidth = parseInt(val) - tvX;
+		tvWidth = parseInt(val) - guideX1;
 		document.getElementById('guide_right').style.left = parseInt(val)-3 + 'px';
 	}
 	
@@ -236,26 +234,27 @@ function rangeXChange(Xn,val) {
         if (isNaN(i)) continue;
         //左端変更時
         if(Xn==1){
-            tvX = parseInt(val);
-			trimBoxList[i].style.left = tvX + 'px';
+            guideX1 = parseInt(val);
+			trimBoxList[i].style.left = guideX1 + 'px';
             if(widthLock){
-				tvEndX = tvX+tvWidth;
-				document.getElementById('rangeInput_X2').value = tvEndX;
+				guideX2 = guideX1+tvWidth;
+				document.getElementById('rangeInput_X2').value = guideX2;
             } else {
-				tvWidth = tvEndX - tvX;
+				tvWidth = guideX2 - guideX1;
                 trimBoxList[i].style.width = tvWidth + 'px';
 			}
         }
       //右端変更時
         if (Xn == 2) {
-            tvEndX = parseInt(val);
+            guideX2 = parseInt(val);
             if (widthLock) {
-                tvX = tvEndX - tvWidth;
-                trimBoxList[i].style.left = tvX + 'px';
-                document.getElementById('rangeInput_X1').value = tvX;
+                guideX1 = guideX2 - tvWidth;
+                trimBoxList[i].style.left = guideX1 + 'px';
+                document.getElementById('rangeInput_X1').value = guideX1;
             } else {
-                tvWidth = tvEndX - tvX + guideLeft;
-                trimBoxList[i].style.width = tvWidth + 'px';
+                tvWidth = guideX2 - guideX1;
+				realWidth = tvWidth + guideLeft
+                trimBoxList[i].style.width = realWidth + 'px';
             }
         }
 	}
@@ -263,8 +262,7 @@ function rangeXChange(Xn,val) {
 
 function rangeYChange(trimboxId, val) {
     var tboxElem = document.getElementById(trimboxId)
-    var changedY = vHeight - parseInt(val) - tvHeight / 2;
-    tboxElem.style.top = changedY + 'px';
+    tboxElem.style.top = parseInt(val) + 'px';
 }
 
 function tvHeightChange(val) {
@@ -342,7 +340,7 @@ function instSelect(elem){
 function getInputCanvas() {
     var canvas = document.createElement('canvas');
     var ctx = canvas.getContext('2d');
-	var useWidth = img.width * tvX/vWidth;
+	var useWidth = img.width * guideX1/vWidth;
     canvas.width = useWidth;
     canvas.height = img.height;
     ctx.drawImage(img,0,0,useWidth,img.height,0,0,useWidth,img.height);
