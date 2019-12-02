@@ -1,17 +1,21 @@
 body {
     background-color: #CCCCCC;
 }
-
 #topArea {
 	width : 1450px;
-    font-size: 14px;
+    font-size: 13.5px;
     display:flex;
 }
 #topLeftArea {
-	width : 710px;
+	width : 709px;
 }
 #topRightArea {
-	width : 708px;
+	width : 700px;
+}
+#canvasArea {
+	display:flex;
+    margin-top: 2px;
+    height: 1000px;
 }
 .setting {
     border: solid 1px white;
@@ -47,11 +51,6 @@ width : 100%;
     margin-bottom: 3px;
 }
 
-#canvasArea {
-	display:flex;
-    margin-top: 2px;
-    height: 1000px;
-}
 .canvasDiv {
     background-color: white;
     position: relative;
@@ -61,7 +60,6 @@ width : 100%;
 canvas {
     border: solid 1px gray;
 }
-
 #in {
     width: 707px;
     height: 1000px;
@@ -81,17 +79,21 @@ canvas {
 	border: solid 1px rgb(0, 255, 255,0.95)
 }
 
-input[type=file] {
-    background-color: white;
-    width:50%;
-}
-
 .tboxSetting{
     width: 5em;
 	}
 .tboxBtn{
     width: 6em;
 }
+
+input[type=file] {
+    background-color: white;
+    width:280px;
+}
+.fileChangeBtn{
+    width: 33px;
+}
+
 input[type=range] {
     height: 10px;
     padding: 0px;
