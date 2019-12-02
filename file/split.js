@@ -1,28 +1,22 @@
 //Band Score Split.js
-//Copyright © 2019 kitami.hibiki All rights reserved.
+//Copyright © 2019 kitami.hibiki. All rights reserved.
 const vWidth = 708; //画像表示サイズ幅
 const vHeight = 1000; //画像表示サイズ幅
 const cWidth = 4248; //画像処理時サイズ幅
 const cHeight = 6000; //画像処理時サイズ高
 const cvRatio = cHeight / vHeight; //cavasサイズ/表示サイズ係数
 
-const cvs = document.getElementById('in'); //inエリアcanvas
-cvs.width = cWidth;
-cvs.height = cHeight;
-let out = document.getElementById('out'); //outエリアcanvas
-out.width = cWidth;
-out.height = cHeight;
-
-const ctx_in = cvs.getContext('2d')
-const ctx_out = out.getContext('2d')
-
 var scale = 1.0 // 拡大率(初期値)
 
 var tboxNum = 0 //トリミング枠数
+var guide_L = vWidth * 0.05; //左側ガイド線位置(初期値)
+var guide_R = vWidth - guide_L; //右側ガイド線位置(初期値)
+
 var tvHeight = vHeight * 0.1 //トリミング枠縦幅(初期値)
-var guideX1 = vWidth * 0.05; //トリミング開始位置X(初期値)
-var tvWidth = vWidth - 2*guideX1 //ガイド線間幅(初期値)
-var guideX2 = vWidth - guideX1; //トリミング終了位置X(初期値)
+var tvWidth = guide_R - guide_L //ガイド線間幅(初期値)
+var offset_Y = 0;
+var offset_X = 0;
+
 var widthLock = false; //横幅ロックフラグ
 var guideLeft = 10; //ガイド線左側のスペース
 var Top_margin = vHeight * 0.05; //描画開始位置X（上部余白）
@@ -31,6 +25,22 @@ var title_h = 0;
 var Para_interval = 15; //段落間隔
 var outParaNum = 1; //出力領域段落カウント
 
+const cvs = document.getElementById('in'); //inエリアcanvas
+cvs.width = cWidth;
+cvs.height = cHeight;
+let out = document.getElementById('out'); //outエリアcanvas
+out.width = cWidth;
+out.height = cHeight;
+const ctx_in = cvs.getContext('2d');
+const ctx_out = out.getContext('2d');
+
+var rangeInput_X1 = document.getElementById('rangeInput_X1');
+var rangeInput_X2 = document.getElementById('rangeInput_X2');
+var rangeInput_Y = document.getElementById('rangeInput_Y1');
+var trimBoxList = document.getElementsByClassName('trimArea');
+var OCRTextList = document.getElementsByClassName('OCRText');
+
+//File input
 var reader;
 var file;
 var fileNo = 0;
@@ -60,21 +70,15 @@ function Load_Next() {
     }
 }
 
-var rangeInput_X1 = document.getElementById('rangeInput_X1');
-var rangeInput_X2 = document.getElementById('rangeInput_X2');
-var rangeInput_Y = document.getElementById('rangeInput_Y1');
-var trimBoxList = document.getElementsByClassName('trimArea');
-var OCRTextList = document.getElementsByClassName('OCRText');
-
 window.onload = function() {
 	rangeInput_X1.max = vWidth/2;
 	rangeInput_X2.min = vWidth/2;
 	rangeInput_X2.max = vWidth;
 
-	rangeInput_X1.value = guideX1;
-	rangeInput_X2.value = guideX2;
+	rangeInput_X1.value = guide_L;
+	rangeInput_X2.value = guide_R;
 
-	document.getElementById('tboxX').value = guideX1;
+	document.getElementById('tboxX').value = guide_L;
 	document.getElementById('tboxY').value = 0;
 	document.getElementById('tvWidth').value = tvWidth;
     document.getElementById('tvHeight').value = tvHeight;
@@ -82,14 +86,14 @@ window.onload = function() {
     document.getElementById('title_text').value = 'タイトル';
     load_img('./image/001.jpg'); //DEBUG用
     //drawTrimBox('tbox_0',vHeight*0.1);
-    drawGuideLine('guide_left','v',guideX1 + 5);
-    drawGuideLine('guide_right','v',guideX2 - 5);
+    drawGuideLine('guide_left','v',guide_L + 5);
+    drawGuideLine('guide_right','v',guide_R - 5);
 }
 
 img.onload = function(_ev) {
     // 画像が読み込まれた
-    scale = cWidth / img.width
-    draw_canvas()
+    scale = cWidth / img.width;
+    draw_canvas();
     // 画像更新
     //console.log("load complete, scaling:"+ scale);
 }
@@ -133,7 +137,7 @@ var divbox = {
 function drawTrimBox(id,PositionY) {
 	divbox.id = id
 	divbox.className = 'trimArea'
-	divbox.draw(guideX1-guideLeft,PositionY,tvWidth + guideLeft,tvHeight)
+	divbox.draw(guide_L-guideLeft,PositionY,tvWidth+guideLeft,tvHeight)
 }
 
 //ガイド線描画
@@ -223,36 +227,37 @@ function paraY1(n) {
 
 function rangeXChange(Xn,val) {
 	if(Xn==1){
-		guideX1 = parseInt(val);
+		guide_L = parseInt(val);
 		document.getElementById('guide_left').style.left = parseInt(val)+3 + 'px';
 	} else {
-		tvWidth = parseInt(val) - guideX1;
-		document.getElementById('guide_right').style.left = parseInt(val)-3 + 'px';
+		guide_R = parseInt(val);
+		document.getElementById('guide_right').style.left = parseInt(val)-4 + 'px';
 	}
-	
+	tvWidth = guide_R - guide_L;
+
     for (var i in trimBoxList) {
         if (isNaN(i)) continue;
         //左端変更時
         if(Xn==1){
-            guideX1 = parseInt(val);
-			trimBoxList[i].style.left = guideX1 + 'px';
+            guide_L = parseInt(val);
+			trimBoxList[i].style.left = guide_L + 'px';
             if(widthLock){
-				guideX2 = guideX1+tvWidth;
-				document.getElementById('rangeInput_X2').value = guideX2;
+				guide_R = guide_L+tvWidth;
+				document.getElementById('rangeInput_X2').value = guide_R;
             } else {
-				tvWidth = guideX2 - guideX1;
+				tvWidth = guide_R - guide_L;
                 trimBoxList[i].style.width = tvWidth + 'px';
 			}
         }
       //右端変更時
         if (Xn == 2) {
-            guideX2 = parseInt(val);
+            guide_R = parseInt(val);
             if (widthLock) {
-                guideX1 = guideX2 - tvWidth;
-                trimBoxList[i].style.left = guideX1 + 'px';
-                document.getElementById('rangeInput_X1').value = guideX1;
+                guide_L = guide_R - tvWidth;
+                trimBoxList[i].style.left = guide_L + 'px';
+                document.getElementById('rangeInput_X1').value = guide_L;
             } else {
-                tvWidth = guideX2 - guideX1;
+                tvWidth = guide_R - guide_L;
 				realWidth = tvWidth + guideLeft
                 trimBoxList[i].style.width = realWidth + 'px';
             }
@@ -260,9 +265,15 @@ function rangeXChange(Xn,val) {
 	}
 }
 
-function rangeYChange(trimboxId, val) {
-    var tboxElem = document.getElementById(trimboxId)
-    tboxElem.style.top = parseInt(val) + 'px';
+
+function rangeYChange(val) {
+	for (var i in trimBoxList) {
+	    var tboxElem = trimBoxList[i];
+	    var origin_Y = parseInt(tboxElem.style.top) + offset_Y;
+	    offset_Y = parseInt(val);
+	    var topVal = origin_Y - offset_Y;
+	    tboxElem.style.top = topVal+'px';
+	}
 }
 
 function tvHeightChange(val) {
@@ -295,16 +306,16 @@ function clean_img() {
 }
  //入力領域クリア
 function clean_input() {
-	
+
 	for (var i in trimBoxList) {
-		if (isNaN(i)) continue
-		elem = trimBoxList[i]
+		if (isNaN(i)) continue;
+		elem = trimBoxList[i];
 		elem.parentNode.removeChild(elem);
 	}
-		
+
 	for (var i in OCRTextList) {
-		if (isNaN(i)) continue
-		elem = OCRTextList[i]
+		if (isNaN(i)) continue;
+		elem = OCRTextList[i];
 		elem.parentNode.removeChild(elem);
 	}
 
@@ -316,7 +327,7 @@ var instList = new Array();
 var checkedList = new Array();
 
 var worker = new Tesseract.createWorker({
-  logger: progressUpdate,
+  logger: progressUpdate
 });
 
 function instSelect(elem){
@@ -328,7 +339,7 @@ function instSelect(elem){
 		tboxId = 'tbox_instNo_'+ instNo
 		drawTrimBox(tboxId,y)
 		checkedList.push(instNo)
-	} 
+	}
 	if(!elem.checked && checkedList.includes(instNo)){
 		index = checkedList.indexOf(instNo)
 		checkedList.splice(index,1)
@@ -340,7 +351,7 @@ function instSelect(elem){
 function getInputCanvas() {
     var canvas = document.createElement('canvas');
     var ctx = canvas.getContext('2d');
-	var useWidth = img.width * guideX1/vWidth;
+	var useWidth = img.width * guide_L / vWidth;
     canvas.width = useWidth;
     canvas.height = img.height;
     ctx.drawImage(img,0,0,useWidth,img.height,0,0,useWidth,img.height);
@@ -354,7 +365,7 @@ async function startOCR(){
 	await worker.loadLanguage(language);
 	await worker.initialize(language);
 	await worker.setParameters({
-	    tessedit_char_whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-.{()',
+	    tessedit_char_whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-.{()'
 	  });
 	const { data } = await worker.recognize(input);
 	result(data);
@@ -382,13 +393,13 @@ function result(res){
 			var width = (b.x1-b.x0)*imgToView
 			var hieght = (b.y1-b.y0)*imgToView
 
-			if(guideLeft<width) 
+			if(guideLeft<width)
 				guideLeft = width
 
 			divbox.draw(x, y, width, hieght)
 		}
 	})
-	
+
 	if(instList.length > 0){
 		resultArea = document.getElementById('result');
 		resultArea.innerHTML='認識結果:';
@@ -407,9 +418,9 @@ function progressUpdate(packet){
 	var progressbar = document.getElementById('progressbar');
 	var log = document.getElementById('log');
 
-	statusText.innerHTML = packet.status
+	statusText.innerHTML = packet.status;
 	if('progress' in packet){
-		progressbar.value = packet.progress
+		progressbar.value = packet.progress;
 	}
 
 /*
