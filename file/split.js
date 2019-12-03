@@ -8,7 +8,7 @@ const cvRatio = cHeight / vHeight; //cavasサイズ/表示サイズ係数
 
 var scale = 1.0 // 拡大率(初期値)
 
-var tboxNum = 0 //トリミング枠数
+
 var guide_L = vWidth * 0.05; //左側ガイド線位置(初期値)
 var guide_R = vWidth - guide_L; //右側ガイド線位置(初期値)
 
@@ -39,6 +39,8 @@ var rangeInput_X2 = document.getElementById('rangeInput_X2');
 var rangeInput_Y = document.getElementById('rangeInput_Y1');
 var trimBoxList = document.getElementsByClassName('trimArea');
 var OCRTextList = document.getElementsByClassName('OCRText');
+var tboxNum = document.getElementById('trimboxNum'); //トリミング枠数
+var selectingID = '';
 
 //File input
 var reader;
@@ -78,10 +80,12 @@ window.onload = function() {
 	rangeInput_X1.value = guide_L;
 	rangeInput_X2.value = guide_R;
 
-	document.getElementById('tboxX').value = guide_L;
+	document.getElementById('tboxX').value = 0;
 	document.getElementById('tboxY').value = 0;
 	document.getElementById('tvWidth').value = tvWidth;
     document.getElementById('tvHeight').value = tvHeight;
+    tboxNum.value = 0;
+
     document.getElementById('Para_interval').value = Para_interval;
     document.getElementById('title_text').value = 'タイトル';
     load_img('./image/001.jpg'); //DEBUG用
@@ -129,8 +133,14 @@ var divbox = {
 			elem.style.height = height + 'px';
 			if(this.id !='') elem.id = this.id;
 			if(this.className == '') elem.style.border = this.borderWidth+'px solid '+this.borderColor;
+			if(this.className == 'trimArea') elem.addEventListener('click', selectTrimArea, false);
 			document.getElementById('inputDiv').appendChild(elem);
 	}
+}
+
+function selectTrimArea(e) {
+	console.log("selectTrimArea:"+ e.target.id);
+	selectingID = e.target.id;
 }
 
  //トリミング領域描画
@@ -138,6 +148,8 @@ function drawTrimBox(id,PositionY) {
 	divbox.id = id
 	divbox.className = 'trimArea'
 	divbox.draw(guide_L-guideLeft,PositionY,tvWidth+guideLeft,tvHeight)
+	selectingID = id;
+	tboxNum.value ++;
 }
 
 //ガイド線描画
@@ -151,11 +163,17 @@ function drawGuideLine(id,type,positon) {
 }
 
  //トリミング領域削除/追加
-function deleTrimBox(tboxId) {
-	elem = document.getElementById(tboxId)
+function deleTrimBox(deleID) {
+	if(!deleID)
+		deleID = selectingID
+
+	elem = document.getElementById(deleID)
 	elem.parentNode.removeChild(elem)
+	tboxNum.value --
 }
-function addTrimBox() {//TO-DO
+function addTrimBox() {
+	drawTrimBox('trimArea_'+ tboxNum.value,vHeight*0.1);
+	selectingID = 'trimArea_'+ tboxNum.value;
 }
 
  //画像出力
@@ -190,7 +208,7 @@ function doTrim() {
         }
     }
 
-    for (var i = 0; i < trimBoxList.length; i++) {
+    for (var elem of trimBoxList) {
         //console.log("描画回数:" + outParaNum);
 
         var nextY = paraY1(outParaNum) + tvHeight;
@@ -198,10 +216,8 @@ function doTrim() {
             window.alert('ページ末尾に到達しました');
             break;
         }
-        ;
         //画面位置to実際位置座標変換係数　
 		rate = 1 / scale * cvRatio;
-		elem = trimBoxList[i]
         //入力部
         sx = parseInt(elem.style.left) * rate;
         sy = parseInt(elem.style.top) * rate;
@@ -235,18 +251,18 @@ function rangeXChange(Xn,val) {
 	}
 	tvWidth = guide_R - guide_L;
 
-    for (var i in trimBoxList) {
-        if (isNaN(i)) continue;
+	for (var elem of trimBoxList) {
         //左端変更時
         if(Xn==1){
             guide_L = parseInt(val);
-			trimBoxList[i].style.left = guide_L + 'px';
+            elem.style.left = guide_L + 'px';
             if(widthLock){
 				guide_R = guide_L+tvWidth;
 				document.getElementById('rangeInput_X2').value = guide_R;
             } else {
 				tvWidth = guide_R - guide_L;
-                trimBoxList[i].style.width = tvWidth + 'px';
+				elem.style.width = tvWidth + 'px';
+				guideLeft = 0;
 			}
         }
       //右端変更時
@@ -254,12 +270,12 @@ function rangeXChange(Xn,val) {
             guide_R = parseInt(val);
             if (widthLock) {
                 guide_L = guide_R - tvWidth;
-                trimBoxList[i].style.left = guide_L + 'px';
+                elem.style.left = guide_L + 'px';
                 document.getElementById('rangeInput_X1').value = guide_L;
             } else {
                 tvWidth = guide_R - guide_L;
 				realWidth = tvWidth + guideLeft
-                trimBoxList[i].style.width = realWidth + 'px';
+				elem.style.width = realWidth + 'px';
             }
         }
 	}
@@ -267,24 +283,24 @@ function rangeXChange(Xn,val) {
 
 
 function rangeYChange(val) {
-	for (var i in trimBoxList) {
-	    var tboxElem = trimBoxList[i];
-	    var origin_Y = parseInt(tboxElem.style.top) + offset_Y;
-	    offset_Y = parseInt(val);
-	    var topVal = origin_Y - offset_Y;
-	    tboxElem.style.top = topVal+'px';
+	trimBoxList_now = document.querySelectorAll('.trimArea');
+	for (var elem of trimBoxList_now) {
+		// console.log("tboxElem:"+ elem.id);
+	    var origin_Y = parseInt(elem.style.top) + offset_Y;
+	    var topVal = origin_Y - parseInt(val);
+	    elem.style.top = topVal + 'px';
 	}
+	offset_Y = parseInt(val);
 }
 
 function tvHeightChange(val) {
-    for (var i in trimBoxList) {
-		if (isNaN(i)) break;
-		tboxElem = trimBoxList[i]
-		var topVal = parseInt(tboxElem.style.top)
+	trimBoxList_now = document.querySelectorAll('.trimArea');
+	for (var elem of trimBoxList_now) {
+		var topVal = parseInt(elem.style.top)
         var hChange = parseInt(val - tvHeight) / 2;
-        tboxElem.style.height = parseInt(val) + 'px';
-        tboxElem.style.top = topVal-hChange + 'px';
-    }
+		elem.style.height = parseInt(val) + 'px';
+		elem.style.top = topVal-hChange + 'px';
+	}
     tvHeight = parseInt(val);
 }
 
@@ -306,19 +322,18 @@ function clean_img() {
 }
  //入力領域クリア
 function clean_input() {
+	clean_img();
 
-	for (var i in trimBoxList) {
-		if (isNaN(i)) continue;
-		elem = trimBoxList[i];
+	trimBoxList_now = document.querySelectorAll('.trimArea');
+	for (var elem of trimBoxList_now) {
 		elem.parentNode.removeChild(elem);
 	}
+	tboxNum.value = 0;
 
-	for (var i in OCRTextList) {
-		if (isNaN(i)) continue;
-		elem = OCRTextList[i];
+	OCRTextList_now = document.querySelectorAll('.OCRText');
+	for (var elem of OCRTextList_now) {;
 		elem.parentNode.removeChild(elem);
 	}
-
 }
 
 //以下、OCR関連
