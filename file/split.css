@@ -1,112 +1,131 @@
 body {
-    background-color: #CCCCCC;
+	background-color: #CCCCCC;
+}
+canvas {
+	border: solid 1px gray;
 }
 
+input[type=file] {
+	background-color: white;
+	width: 280px;
+}
+
+input[type=range] {
+	height: 10px;
+	padding: 0px;
+	margin: 0px;
+}
+
+input[type=range][orient=vertical] {
+	writing-mode: bt-lr; /* IE */
+	-webkit-appearance: slider-vertical; /* WebKit */
+	width: 20px;
+	margin: 0px;
+}
+select {
+	width: 33%;
+}
 #topArea {
-	width : 1450px;
-    font-size: 14px;
-    display:flex;
+	width: 1450px;
+	font-size: 13.5px;
+	display: flex;
 }
+
 #topLeftArea {
-	width : 730px;
+	width: 709px;
 }
+
 #topRightArea {
-	width : 708px;
+	width: 700px;
 }
+
+#canvasArea {
+	display: flex;
+	margin-top: 2px;
+	height: 1000px;
+}
+
 .setting {
-    border: solid 1px white;
-    padding: 3px;
+	border: solid 1px white;
+	padding: 3px;
 }
-.rightSide{
-    width : 100%;
-    height: 95%;
-    padding: 3px;
+
+.rightSide {
+	width: 100%;
+	height: 95%;
+	padding: 3px;
 }
-.leftSide{
-    width : 50%;
-    margin-top: 2px;
-    margin-right: 1px;
+
+.leftSide {
+	width: 50%;
+	margin-top: 2px;
+	margin-right: 1px;
 }
-#result{
+
+#result {
 	padding: 3px;
 	margin-top: 2px;
 }
-.titleText {
-    width: 15em;
+
+#statusText {
+	padding-left: 3px;
 }
+
+.titleText {
+	width: 15em;
+}
+
 #log {
 	width: 100%;
 	background-color: white;
 }
-#progressbar{
-width : 100%;
-}
-#topSidebar{
-	display:flex;
-    margin-top: 6px;
-    margin-bottom: 3px;
+
+#progressbar {
+	width: 100%;
 }
 
-#canvasArea {
-	display:flex;
-    margin-top: 2px;
-    height: 1000px;
+#topSidebar {
+	display: flex;
+	margin-top: 6px;
+	margin-bottom: 3px;
 }
+
 .canvasDiv {
-    background-color: white;
-    position: relative;
-    height: 1000px;
-    margin-top: 2px;
-}
-canvas {
-    border: solid 1px gray;
+	background-color: white;
+	position: relative;
+	height: 1000px;
+	margin-top: 2px;
 }
 
 #in {
-    width: 707px;
-    height: 1000px;
+	width: 707px;
+	height: 1000px;
 }
+
 #out {
-    width: 707px;
-    height: 1000px;
+	width: 707px;
+	height: 1000px;
 }
 
-.trimArea {
-    border: solid 2px rgb(250, 100, 100,0.6);
-    position: absolute;
-}
-
-.OCRText{
+.trimBox {
+	border: solid 2px rgb(250, 100, 100, 0.8);
 	position: absolute;
-	border: solid 1px rgb(0, 255, 255,0.95)
+}
+.trimBox.selecting{
+	border: solid 2px rgb(255, 0, 0, 0.8);
 }
 
-input[type=file] {
-    background-color: white;
-    width:50%;
+.OCRText {
+	position: absolute;
+	border: solid 1px rgb(0, 255, 255, 0.95)
 }
 
-.tboxSetting{
-    width: 5em;
-	}
-.tboxBtn{
-    width: 6em;
-}
-input[type=range] {
-    height: 10px;
-    padding: 0px;
-    margin: 0px;
-}
-
-input[type=range][orient=vertical] {
-    writing-mode: bt-lr;/* IE */
-    -webkit-appearance: slider-vertical;/* WebKit */
-    width: 20px;
-    margin: 0px;
+.tboxSetting {
+	width: 5em;
 }
 
 .guide.v {
-    border: solid 1px rgb(0, 0, 255,0.5);
-    cursor: col-resize;
-    position: absolute;
+	border: solid 1px rgb(0, 0, 255, 0.5);
+	cursor: col-resize;
+	position: absolute;
 }

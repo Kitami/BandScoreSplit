@@ -10,29 +10,30 @@
 <div id="topArea">
 	<div id="topLeftArea">
 			<input type="file" multiple id="selectFile">
-			<button onclick="Load_Pre('')">前</button>
-			<button onclick="Load_Next('')">次</button>
-			Band Score Split v0.1 beta 自動識別開発中
+			<button class="fileChangeBtn" onclick="Load_Pre('')">前</button>
+			<button class="fileChangeBtn" onclick="Load_Next('')">次</button>
+			<button class="fileChangeBtn" onclick="Input_Clear('')">クリア</button>
+			Band Score Split v0.11 beta 自動認識開発中
 			<br>
 		<div style='display:flex;'>
 			<div class="setting leftSide">トリミング枠設定
-
 			<br>
-			X:<input type="number" id="tvX" class="tboxSetting"/>
-			Y:<input type="number" id="tvY" class="tboxSetting"/>
-			横幅:<input type="number" id="tvWidth" class="tboxSetting"/>
+			Ⅹ軸:<input type="number" id="tboxX" class="tboxSetting"/>
+			Ｙ軸:<input type="number" id="tboxY" class="tboxSetting" onchange="rangeYChange(value)"/>
+			(オフセット)
+			<br>横幅:<input type="number" id="tvWidth" class="tboxSetting"/>
 			縦幅:<input type="number"id="tvHeight" class="tboxSetting" step="2" onchange="tvHeightChange(value)"/>
-						
-			<br><input type="checkbox" id="tvWidthLock" oninput="widthLockChange(this)"/>横幅固定
-			
-			<br>個数:<input type="number" id="trimboxNum" class="tboxSetting" />
-			<button class="tboxBtn" onclick="changeTrimboxNum()">追加</button>
-			<button class="tboxBtn" onclick="changeTrimboxNum()">削除</button>
-			
+<!-- 			<input type="checkbox" id="tvWidthLock" oninput="widthLockChange(this)"/>横幅固定 -->
+			<br>個数:<input type="number" id="trimboxNum" disabled="disabled" class="tboxSetting" />
+			<div style="display: inline-block;padding-top:1px;margin-bottom:-1px;">
+			<button class="tboxBtn" onclick="addTrimBox()">追加</button>
+			<button class="tboxBtn" onclick="deleTrimBox()">削除</button>
+			<button class="tboxBtn" onclick="clearTrimBox()">全削除</button>
+			</div>
 			</div>
 
 			<div class="setting leftSide">自動認識設定
-			<br>楽器名称:<input type="text" id="searchText"/>
+			<br>検索対象:<input type="text" id="searchText"/>
 			<button onclick="startOCR()">自動認識開始</button>
 			<div id="log">
 				<div id="statusText">status</div>
@@ -40,11 +41,10 @@
 			</div>
 			</div>
 		</div>
-	
-	<div id="result" class="setting">ガイド線左側のみ認識される</div>
-	
+
+	<div id="result" style="padding: 3px;">ガイド線左側のみ認識される</div>
+
 	<div id= "topSidebar">
-		<div style='width: 20px'></div>
 		<input id='rangeInput_X1' type='range' min=0 oninput="rangeXChange(1,value)" style='width: 354px'>
 		<input id='rangeInput_X2' type='range' min=0 oninput="rangeXChange(2,value)" style='width: 354px'>
 	</div>
@@ -58,18 +58,22 @@
 			<button onclick="clean_img('')">出力領域クリア</button>
 			<button onclick="download('')">画像出力</button>
 			<!-- <a report="">BUG報告、FAQなど</a> -->
+			<br>出力画像サイズ<select name="output_size">
+				<option value="B4_600">B4 600DPI</option>
+				<option value="B4_300">B4 300DPI</option>
+				<option value="A4_600">A4 600DPI</option>
+				<option value="A4_300">A4 300DPI</option>
+			</select>
 			<br>段落間隔:<input type="number" step="1" id="Para_interval" min="0" oninput="paraIntervalChange(value)"/>
-			
-			<br><a id="hiddenLink" download="download.png">ダウンロードされない場合、下図を右クリックして保存してください。</a>
 			<br>曲　名:<input type="text" id="title_text" class="titleText"/>
 			<br>作曲者:<input type="text" id="title_text2" class="titleText"/>
+			<br><a id="hiddenLink" download="download.png">ダウンロードされない場合、下図を右クリックして保存してください。</a>
 		</div>
 
 		</div>
 	</div>
 
 	<div id="canvasArea">
-		<input id='rangeInput_Y1' type='range' min=0 max=1000 orient="vertical" oninput="rangeYChange(1,value)" style='height: 1000px;'>
 		<div id='inputDiv' class="canvasDiv"><canvas id='in'></canvas> </div>
 		<div style='width: 15px'></div>
 		<div id='outputDiv' class="canvasDiv"> <canvas id='out'></canvas> </div>
