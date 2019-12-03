@@ -18,16 +18,18 @@
 			<div class="setting leftSide">トリミング枠設定
 
 			<br>
-			左側:<input type="number" id="tboxX" class="tboxSetting"/>
-			上側:<input type="number" id="tboxY" class="tboxSetting" onchange="rangeYChange(value)"/>
+			Ⅹ軸:<input type="number" id="tboxX" class="tboxSetting"/>
+			Ｙ軸:<input type="number" id="tboxY" class="tboxSetting" onchange="rangeYChange(value)"/>
 			(オフセット)
 			<br>横幅:<input type="number" id="tvWidth" class="tboxSetting"/>
 			縦幅:<input type="number"id="tvHeight" class="tboxSetting" step="2" onchange="tvHeightChange(value)"/>
-			<input type="checkbox" id="tvWidthLock" oninput="widthLockChange(this)"/>横幅固定
-			<br>個数:<input type="number" id="trimboxNum" class="tboxSetting" />
-			<button class="tboxBtn" onclick="changeTrimboxNum()">追加</button>
-			<button class="tboxBtn" onclick="changeTrimboxNum()">削除</button>
-
+<!-- 			<input type="checkbox" id="tvWidthLock" oninput="widthLockChange(this)"/>横幅固定 -->
+			<br>個数:<input type="number" id="trimboxNum" disabled="disabled" class="tboxSetting" />
+			<div style="display: inline-block;padding-top:1px;margin-bottom:-1px;">
+			<button class="tboxBtn" onclick="addTrimBox()">追加</button>
+			<button class="tboxBtn" onclick="deleTrimBox()">削除</button>
+			<button class="tboxBtn" onclick="clean_input()">初期化</button>
+			</div>
 			</div>
 
 			<div class="setting leftSide">自動認識設定
