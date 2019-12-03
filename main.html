@@ -12,11 +12,11 @@
 			<input type="file" multiple id="selectFile">
 			<button class="fileChangeBtn" onclick="Load_Pre('')">前</button>
 			<button class="fileChangeBtn" onclick="Load_Next('')">次</button>
+			<button class="fileChangeBtn" onclick="Input_Clear('')">クリア</button>
 			Band Score Split v0.1 beta 自動認識開発中
 			<br>
 		<div style='display:flex;'>
 			<div class="setting leftSide">トリミング枠設定
-
 			<br>
 			Ⅹ軸:<input type="number" id="tboxX" class="tboxSetting"/>
 			Ｙ軸:<input type="number" id="tboxY" class="tboxSetting" onchange="rangeYChange(value)"/>
@@ -28,7 +28,7 @@
 			<div style="display: inline-block;padding-top:1px;margin-bottom:-1px;">
 			<button class="tboxBtn" onclick="addTrimBox()">追加</button>
 			<button class="tboxBtn" onclick="deleTrimBox()">削除</button>
-			<button class="tboxBtn" onclick="clean_input()">初期化</button>
+			<button class="tboxBtn" onclick="clearTrimBox()">全削除</button>
 			</div>
 			</div>
 
@@ -58,11 +58,16 @@
 			<button onclick="clean_img('')">出力領域クリア</button>
 			<button onclick="download('')">画像出力</button>
 			<!-- <a report="">BUG報告、FAQなど</a> -->
+			<br>出力画像サイズ<select name="output_size">
+				<option value="B4_600">B4 600DPI</option>
+				<option value="B4_300">B4 300DPI</option>
+				<option value="A4_600">A4 600DPI</option>
+				<option value="A4_300">A4 300DPI</option>
+			</select>
 			<br>段落間隔:<input type="number" step="1" id="Para_interval" min="0" oninput="paraIntervalChange(value)"/>
-
-			<br><a id="hiddenLink" download="download.png">ダウンロードされない場合、下図を右クリックして保存してください。</a>
 			<br>曲　名:<input type="text" id="title_text" class="titleText"/>
 			<br>作曲者:<input type="text" id="title_text2" class="titleText"/>
+			<br><a id="hiddenLink" download="download.png">ダウンロードされない場合、下図を右クリックして保存してください。</a>
 		</div>
 
 		</div>
