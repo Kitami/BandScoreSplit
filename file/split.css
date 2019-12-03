@@ -1,7 +1,30 @@
 body {
 	background-color: #CCCCCC;
 }
+canvas {
+	border: solid 1px gray;
+}
 
+input[type=file] {
+	background-color: white;
+	width: 280px;
+}
+
+input[type=range] {
+	height: 10px;
+	padding: 0px;
+	margin: 0px;
+}
+
+input[type=range][orient=vertical] {
+	writing-mode: bt-lr; /* IE */
+	-webkit-appearance: slider-vertical; /* WebKit */
+	width: 20px;
+	margin: 0px;
+}
+select {
+	width: 33%;
+}
 #topArea {
 	width: 1450px;
 	font-size: 13.5px;
@@ -74,10 +97,6 @@ body {
 	margin-top: 2px;
 }
 
-canvas {
-	border: solid 1px gray;
-}
-
 #in {
 	width: 707px;
 	height: 1000px;
@@ -88,9 +107,12 @@ canvas {
 	height: 1000px;
 }
 
-.trimArea {
-	border: solid 2px rgb(255, 0, 0, 0.6);
+.trimBox {
+	border: solid 2px rgb(250, 100, 100, 0.8);
 	position: absolute;
+}
+.trimBox.selecting{
+	border: solid 2px rgb(255, 0, 0, 0.8);
 }
 
 .OCRText {
@@ -100,24 +122,6 @@ canvas {
 
 .tboxSetting {
 	width: 5em;
-}
-
-input[type=file] {
-	background-color: white;
-	width: 280px;
-}
-
-input[type=range] {
-	height: 10px;
-	padding: 0px;
-	margin: 0px;
-}
-
-input[type=range][orient=vertical] {
-	writing-mode: bt-lr; /* IE */
-	-webkit-appearance: slider-vertical; /* WebKit */
-	width: 20px;
-	margin: 0px;
 }
 
 .guide.v {
