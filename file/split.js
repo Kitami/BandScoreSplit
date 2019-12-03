@@ -2,8 +2,8 @@
 //Copyright © 2019 kitami.hibiki. All rights reserved.
 const vWidth = 708; //画像表示サイズ幅
 const vHeight = 1000; //画像表示サイズ幅
-const cWidth = 4248; //画像処理時サイズ幅
-const cHeight = 6000; //画像処理時サイズ高
+const cWidth = 4299; //画像処理時サイズ幅
+const cHeight = 6071; //画像処理時サイズ高
 const cvRatio = cHeight / vHeight; //cavasサイズ/表示サイズ係数
 
 var scale = 1.0 // 拡大率(初期値)
@@ -109,7 +109,7 @@ img.onload = function(_ev) {
 
 function load_img(dataUrl) {
 	// 画像の読み込み
-	clearTrimBox()
+	//clearTrimBox()
 	img.src = dataUrl
 }
 
@@ -226,10 +226,34 @@ function download() {
         var blob = out.msToBlob();
         window.navigator.msSaveBlob(blob, filename);
     } else {
-        downloadLink.href = out.toDataURL('image/png');
-        downloadLink.download = filename;
-        downloadLink.click();
+		//downloadLink.href = out.toDataURL('image/png');
+		dataURI = out.toDataURL('image/png');
+		download2(dataURI,filename);
+		
+        //downloadLink.download = filename;
+        //downloadLink.click();
     }
+}
+
+function dataURItoBlob(dataURI) {
+	const b64 = atob(dataURI.split(',')[1])
+	const u8 = Uint8Array.from(b64.split(""), e => e.charCodeAt())
+	return new Blob([u8], {type: "image/png"})
+}
+
+function download2(dataURI, filename){
+	const blob = dataURItoBlob(dataURI)
+	const url = URL.createObjectURL(blob)
+	const a = document.createElement("a")
+	a.download = filename
+	a.href = url
+	a.click()
+	
+	// ダウンロードの時間がわからないので多めに 最低 3s,  1MiB / sec として
+	// 終わった頃に revoke する
+	setTimeout(() => {
+		URL.revokeObjectURL(url)
+	}, Math.max(5000, 1000 * dataURI.length / 1024 * 1024))
 }
 
  //画像トリミング
@@ -241,13 +265,15 @@ function doTrim() {
         ctx_out.fillRect(0, 0, cWidth, cHeight);
         // 表題
         var titleText = document.getElementById('title_text').value;
-        if (titleText != '') {
+        if (titleText.length > 0) {
             ctx_out.font = cWidth / 25 + "px serif";
             ctx_out.fillStyle = 'black';
             var textWidth = ctx_out.measureText(titleText).width;
             ctx_out.fillText(titleText, (cWidth - textWidth) / 2, Top_margin * cvRatio);
             title_h = 20;
-        }
+		} else {
+			title_h = 0;
+		}
     }
 
     for (var elem of trimBoxList) {
@@ -373,7 +399,7 @@ function clearTrimBox() {
 	tboxNum.value = 0;
 
 	OCRTextList_now = document.querySelectorAll('.OCRText');
-	for (var elem of OCRTextList_now) {;
+	for (var elem of OCRTextList_now) {
 		elem.parentNode.removeChild(elem);
 	}
 }
