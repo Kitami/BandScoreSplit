@@ -2,8 +2,8 @@
 //Copyright © 2019 kitami.hibiki. All rights reserved.
 const vWidth = 708; //画像表示サイズ幅
 const vHeight = 1000; //画像表示サイズ幅
-const cWidth = 4299; //画像処理時サイズ幅
-const cHeight = 6071; //画像処理時サイズ高
+const cWidth = 708; //画像処理時サイズ幅
+const cHeight = 1000; //画像処理時サイズ高
 const cvRatio = cHeight / vHeight; //cavasサイズ/表示サイズ係数
 
 var scale = 1.0 // 拡大率(初期値)
@@ -229,7 +229,7 @@ function download() {
 		//downloadLink.href = out.toDataURL('image/png');
 		dataURI = out.toDataURL('image/png');
 		download2(dataURI,filename);
-		
+
         //downloadLink.download = filename;
         //downloadLink.click();
     }
@@ -248,7 +248,7 @@ function download2(dataURI, filename){
 	a.download = filename
 	a.href = url
 	a.click()
-	
+
 	// ダウンロードの時間がわからないので多めに 最低 3s,  1MiB / sec として
 	// 終わった頃に revoke する
 	setTimeout(() => {
@@ -515,4 +515,87 @@ function progressUpdate(packet){
 	}
 */
 
+}
+
+//以下傾き補正関連
+//radian = degree * ( Math.PI / 180 ) 計算用係数
+const TO_RADIANS = Math.PI/180;
+/**
+ * 回転させた画像を表示する
+ * @param {object} image - Imageオブジェクト
+ * @param {number} x - 画像の中心となるX座標
+ * @param {number} y - 画像の中心となるY座標
+ * @param {number} angle - 回転する角度[度]
+ */
+const drawRotatedImage = (image, x, y, angle) => {
+    // コンテキストを保存する
+    context.save();
+    // 回転の中心に原点を移動する
+    context.translate(x, y);
+    // canvasを回転する
+    context.rotate(angle * TO_RADIANS);
+    // 画像サイズの半分だけずらして画像を描画する
+    context.drawImage(image, -(image.width/2), -(image.height/2));
+    // コンテキストを元に戻す
+    context.restore();
+}
+
+function getInputCanvas2() {
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+    canvas.id
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img,0,0,img.width,img.height);
+    //document.getElementById('outputDiv').appendChild(canvas);
+    return canvas;
+}
+var LinesArray = new Array();
+function lineDetect(){
+	let src = cv.imread(getInputCanvas2());
+	let dst = cv.Mat.zeros(src.rows, src.cols, cv.CV_8UC3);
+	let lines = new cv.Mat();
+	let color = new cv.Scalar(255, 0, 0);
+	cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+	cv.Canny(src, src, 50, 200, 3);
+	// You can try more different parameters
+	// threshold は、直線を動かして、その直線状に乗ってきた点の数がこの値を超えたら線とみなす
+	// minLineLength は、ここに指定された値以上の長さを持つ線の候補が見つかったら、それを線として検出する
+	// maxLineGapは、2つの点が1つ線上にある場合に、点と点の間の間隔がここに指定した数より小さければ、同一の線とみなす
+	//cv.HoughLinesP (image, lines, rho, theta, threshold, minLineLength = 0, maxLineGap = 0)
+	rho = 3;
+	theta = Math.PI / 180;
+	threshold = img.width / 4;
+	minLineLength = 80;
+	maxLineGap = 3;
+	cv.HoughLinesP(src, lines, rho, theta, threshold, minLineLength, maxLineGap);
+	// draw lines
+	for (let i = 0; i < lines.rows; ++i) {
+	    let startPoint = new cv.Point(lines.data32S[i * 4], lines.data32S[i * 4 + 1]);
+	    let endPoint = new cv.Point(lines.data32S[i * 4 + 2], lines.data32S[i * 4 + 3]);
+	    var angle = Math.atan2( endPoint.y - startPoint.y, endPoint.x - startPoint.x ) ;
+	    LinesArray.push({"startPoint":startPoint,"endPoint":endPoint,"angle":angle});
+	    cv.line(dst, startPoint, endPoint, color);
+	}
+	findLeftStart();
+	//ctx_out.fillStyle = 'white';
+	cv.imshow('out', dst);
+	//src.delete();
+	dst.delete();
+	//lines.delete();
+}
+function findLeftStart() {
+	var x1_Array = new Array();
+	var x2_Array = new Array();
+	for (L of LinesArray){
+		if(L.angle < 0.2){
+			var s = L.startPoint.x
+			var e = L.endPoint.x
+
+			if( s < img.width/4 ) x1_Array.push(s)
+			if( e > img.width/4 ) x2_Array.push(e)
+		}
+	}
+	console.log('x1_Array was:', x1_Array)
+	console.log('x2_Array was:', x2_Array)
 }
