@@ -2,12 +2,11 @@
 //Copyright © 2019 kitami.hibiki. All rights reserved.
 const vWidth = 708; //画像表示サイズ幅
 const vHeight = 1000; //画像表示サイズ幅
-const cWidth = 708; //画像処理時サイズ幅
-const cHeight = 1000; //画像処理時サイズ高
+const cWidth = 2832; //画像処理時サイズ幅
+const cHeight = 4000; //画像処理時サイズ高
 const cvRatio = cHeight / vHeight; //cavasサイズ/表示サイズ係数
-
 var scale = 1.0 // 拡大率(初期値)
-
+var imgToView = 1*scale/cvRatio;
 
 var guide_L = vWidth * 0.05; //左側ガイド線位置(初期値)
 var guide_R = vWidth - guide_L; //右側ガイド線位置(初期値)
@@ -102,6 +101,7 @@ window.onload = function() {
 img.onload = function(_ev) {
     // 画像が読み込まれた
     scale = cWidth / img.width;
+    imgToView = 1*scale/cvRatio;
     draw_canvas();
     // 画像更新
     //console.log("load complete, scaling:"+ scale);
@@ -443,6 +443,9 @@ function getInputCanvas() {
 }
 
 async function startOCR(){
+	//譜表領域検出
+	await lineDetect();
+
 	var input = getInputCanvas();
 	await worker.load();
 	await worker.loadLanguage(language);
@@ -453,7 +456,13 @@ async function startOCR(){
 	const { data } = await worker.recognize(input);
 	result(data);
 }
-
+function fixWord(text){
+	var fix = text
+	switch(text) {
+		case 'Yo': fix = 'Vo';
+	}
+	return fix;
+}
 function result(res){
 	console.log('result was:', res)
 	progressUpdate({ status: 'done', data: res })
@@ -466,11 +475,11 @@ function result(res){
 		isWord = w.text.match(/[a-z]/gi);
 		if(isWord){
 			divbox.id = "instList_" + index
-			instList.push(w.text)
+			instList.push(fixWord(w.text))
 			divbox.className = 'OCRText'
 			index++
 
-			var imgToView = 1*scale/cvRatio;
+			imgToView = 1*scale/cvRatio;
 			var x =(b.x0)*imgToView
 			var y =(b.y0)*imgToView
 			var width = (b.x1-b.x0)*imgToView
@@ -551,23 +560,28 @@ function getInputCanvas2() {
     return canvas;
 }
 var LinesArray = new Array();
+//openCV
 function lineDetect(){
+	progressUpdate({status: '譜表領域検出'});
+
 	let src = cv.imread(getInputCanvas2());
 	let dst = cv.Mat.zeros(src.rows, src.cols, cv.CV_8UC3);
 	let lines = new cv.Mat();
 	let color = new cv.Scalar(255, 0, 0);
 	cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+	//cv.threshold(src, dst, 177, 200, cv.THRESH_BINARY);
+	//cv.imshow('out', dst);
 	cv.Canny(src, src, 50, 200, 3);
 	// You can try more different parameters
 	// threshold は、直線を動かして、その直線状に乗ってきた点の数がこの値を超えたら線とみなす
 	// minLineLength は、ここに指定された値以上の長さを持つ線の候補が見つかったら、それを線として検出する
 	// maxLineGapは、2つの点が1つ線上にある場合に、点と点の間の間隔がここに指定した数より小さければ、同一の線とみなす
 	//cv.HoughLinesP (image, lines, rho, theta, threshold, minLineLength = 0, maxLineGap = 0)
-	rho = 3;
+	rho = 2;
 	theta = Math.PI / 180;
-	threshold = img.width / 4;
-	minLineLength = 80;
-	maxLineGap = 3;
+	threshold = parseInt(img.width / 5);
+	minLineLength = parseInt(img.width / 5);
+	maxLineGap = parseInt(img.width / 300);
 	cv.HoughLinesP(src, lines, rho, theta, threshold, minLineLength, maxLineGap);
 	// draw lines
 	for (let i = 0; i < lines.rows; ++i) {
@@ -579,23 +593,43 @@ function lineDetect(){
 	}
 	findLeftStart();
 	//ctx_out.fillStyle = 'white';
-	cv.imshow('out', dst);
-	//src.delete();
+	//cv.imshow('out', dst);
+	src.delete();
 	dst.delete();
-	//lines.delete();
+	lines.delete();
 }
+
+
 function findLeftStart() {
 	var x1_Array = new Array();
 	var x2_Array = new Array();
 	for (L of LinesArray){
-		if(L.angle < 0.2){
+		//横線
+		if(L.angle < 0.1){
 			var s = L.startPoint.x
 			var e = L.endPoint.x
 
-			if( s < img.width/4 ) x1_Array.push(s)
-			if( e > img.width/4 ) x2_Array.push(e)
+			if( s < img.width / 4 ) x1_Array.push(s)
+			if( e > img.width / 4 ) x2_Array.push(e)
 		}
+		/*
+		else ( 1.5 < L.angle && L.angle < 1.6){
+			//縦線
+
+		}*/
 	}
+    mathematics = new Mathematics();
+	left = mathematics.mode(x1_Array);
+	right = mathematics.mode(x2_Array);
+
 	console.log('x1_Array was:', x1_Array)
+	console.log('左側最頻値 :' + left);
 	console.log('x2_Array was:', x2_Array)
+	console.log('右側最頻値 :' + right);
+
+    imgToView = 1*scale/cvRatio;
+	rangeInput_X1.value = left*imgToView
+	rangeInput_X2.value = right*imgToView + 5
+	rangeXChange(1,rangeInput_X1.value)
+	rangeXChange(2,rangeInput_X2.value)
 }
