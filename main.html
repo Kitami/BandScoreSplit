@@ -56,7 +56,7 @@
 			<button onclick='doTrim()'>トリミング</button>
 			<button onclick="clean_img()">出力領域クリア</button>
 			<button onclick="download()">画像出力</button>
-<!-- 			<button onclick="lineDetect()">直線検出</button> -->
+			<button onclick="lineDetectLSD()">直線検出</button>
 			<!-- <a report="">BUG報告、FAQなど</a> -->
 			<br>出力画像サイズ<select name="output_size">
 				<option value="B4_600">B4 600DPI</option>
@@ -83,6 +83,9 @@
 	<!-- 	<script src="https://docs.opencv.org/4.1.2/opencv.js"></script> -->
 	<script src="file/opencv.js"></script>
 	<script src="file/Mathematics.js"></script>
+	<script src="file/lsd.js"></script>
+<!-- 	<script src="file/funcs.js"></script> -->
+<!-- 	<script src="file/types.js"></script> -->
 	<script src="file/split.js"></script>
 </body>
 </html>
