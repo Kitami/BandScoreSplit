@@ -42,8 +42,6 @@ select {
 #canvasArea {
 	display: flex;
 	margin-top: 2px;
-	height: 700px;
-	overflow: scroll;
 }
 
 .setting {
