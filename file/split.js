@@ -614,12 +614,12 @@ function lineDetectLSD(){
 	 console.log('lines: ' + lines.length.toString());
 
 	// draw lines
-	for (var i in lines) {
-	    var startPoint = new cv.Point(lines[i].x1, lines[i].y1);
-	    var endPoint = new cv.Point(lines[i].x2, lines[i].y2);
+	for (var L of lines) {
+	    var startPoint = {'x':Math.floor(L.x1), 'y':Math.floor(L.y1)};
+	    var endPoint = {'x':Math.floor(L.x2), 'y':Math.floor(L.y2)};
 	    var angle = Math.atan2( endPoint.y - startPoint.y, endPoint.x - startPoint.x ) ;
-	    LinesArray.push({"startPoint":startPoint,"endPoint":endPoint,"angle":angle});
-	    //cv.line(dst, startPoint, endPoint, color);
+	    var distance = Math.sqrt( Math.pow( L.x2-L.x1, 2 ) + Math.pow( L.y2-L.y1, 2 ) ) ;
+	    LinesArray.push({"startPoint":startPoint,"endPoint":endPoint,"angle":angle,'distance':distance});
 	}
 	findLeftStart();
 	out.width = img.width;
@@ -630,32 +630,81 @@ function lineDetectLSD(){
 function findLeftStart() {
 	var x1_Array = new Array();
 	var x2_Array = new Array();
+	var center = img.width / 2;
+	var center_v = img.height / 2;
+
+	var hMap_Array = new Array(); //横線Map
+	var hMap_Array_B = new Array(); //横線Map 下部
+	var vMap_Array = new Array(); //縦線Map
+	var vMap_Array_R = new Array(); //縦線Map 右部
+
 	for (L of LinesArray){
-		//横線
+		if(L.distance > img.width/10){
 		if(L.angle < 0.1){
-			var s = Math.floor(L.startPoint.x*10)/10
-			var e = Math.floor(L.endPoint.x*10)/10
+			//横線端点検出方式
+			/*
+			var s = L.startPoint.x
+			var e = L.endPoint.x
+			if( s < center ) x1_Array.push(s)
+			if( e > center ) x2_Array.push(e)
+			*/
+			//横線合計長さ集計
+			var y = L.startPoint.y
+			var d = parseInt(L.distance)
+			if(y < center_v/2 && hMap_Array[y]) hMap_Array[y] += d; else hMap_Array[y] = d;
+			if(y > center_v*1.5 && hMap_Array_B[y]) hMap_Array_B[y] += d; else hMap_Array_B[y] = d;
 
-			if( s < img.width / 2 ) x1_Array.push(s)
-			if( e > img.width / 2 ) x2_Array.push(e)
+		} else if ( 1.5 < L.angle && L.angle < 1.6){
+			//縦線合計長さ集計
+			var x = L.startPoint.x
+			var d = parseInt(L.distance)
+			if(x < center && vMap_Array[x]) vMap_Array[x] += d; else vMap_Array[x] = d;
+			if(x > center && vMap_Array_R[x]) vMap_Array_R[x] += d; else vMap_Array_R[x] = d;
 		}
-		/*
-		else ( 1.5 < L.angle && L.angle < 1.6){
-			//縦線
-
-		}*/
+		}
 	}
     mathematics = new Mathematics();
-	var left = Math.min.apply(null, mathematics.mode(x1_Array));
-	var right = Math.max.apply(null, mathematics.mode(x2_Array));
+	//var left = Math.min.apply(null, mathematics.mode(x1_Array));
+	//var right = Math.max.apply(null, mathematics.mode(x2_Array));
+	var left = maxIndex(vMap_Array)
+	var right = maxIndex(vMap_Array_R)
+
+	var top_v = findTopEdge(hMap_Array)
+	var bot_v = maxIndex(hMap_Array_B)
 
 	console.log('LinesArray was:', LinesArray)
-	console.log('左側最頻値 :' + left);
-	console.log('右側最頻値 :' + right);
+	//console.log('左側最頻値 :' + left);
+	//console.log('右側最頻値 :' + right);
+	//vMap_Array.sort(function(a,b){ return (a < b ? 1 : -1); });
+	console.log('上側横線Map :', hMap_Array);
+	console.log('縦線Map :', vMap_Array);
+	console.log('縦線Map2 :', vMap_Array_R);
+	console.log('左側縦線Map最大値 :', maxIndex(vMap_Array))
+	console.log('右側縦線Map最大値 :', maxIndex(vMap_Array_R))
+	console.log('上側横線Map最大値 :', findTopEdge(hMap_Array))
+	console.log('下側横線Map最大値 :', maxIndex(hMap_Array_B))
 
     imgToView = 1*scale/cvRatio;
-	rangeInput_X1.value = left*imgToView - 5
-	rangeInput_X2.value = right*imgToView + 10
+	rangeInput_X1.value = left*imgToView
+	rangeInput_X2.value = right*imgToView + 5
 	rangeXChange(1,rangeInput_X1.value)
 	rangeXChange(2,rangeInput_X2.value)
+	divbox.className = 'trimBox';
+	divbox.draw(rangeInput_X1.value,top_v*imgToView,(right-left)*imgToView+5,(bot_v-top_v)*imgToView+5)
+}
+function maxIndex(a) {
+	let index = 0
+	let value = -Infinity
+	for (i in a) {
+		if (value < a[i]) {	value = a[i]; index = i	}
+	}
+	return index
+}
+function findTopEdge(a) {
+	let index = 0
+	let value = -Infinity
+	for (var i=1;i< img.height/2;i++) {
+		if (a[i]>img.height/2) { value = a[i]; index = i;break;}
+	}
+	return index
 }
