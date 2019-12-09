@@ -2,11 +2,9 @@
 //Copyright © 2019 kitami.hibiki. All rights reserved.
 const vWidth = 708; //画像表示サイズ幅
 const vHeight = 1000; //画像表示サイズ幅
-const cWidth = 2832; //画像処理時サイズ幅
-const cHeight = 4000; //画像処理時サイズ高
-const cvRatio = cHeight / vHeight; //cavasサイズ/表示サイズ係数
+var proportion =Math.SQRT2;
+var rate = 1; //画面位置to実際位置座標変換係数
 var scale = 1.0 // 拡大率(初期値)
-var imgToView = 1*scale/cvRatio;
 
 var guide_L = vWidth * 0.05; //左側ガイド線位置(初期値)
 var guide_R = vWidth - guide_L; //右側ガイド線位置(初期値)
@@ -25,11 +23,7 @@ var Para_interval = 15; //段落間隔
 var outParaNum = 1; //出力領域段落カウント
 
 const cvs = document.getElementById('in'); //inエリアcanvas
-cvs.width = cWidth;
-cvs.height = cHeight;
 let out = document.getElementById('out'); //outエリアcanvas
-out.width = cWidth;
-out.height = cHeight;
 const ctx_in = cvs.getContext('2d');
 const ctx_out = out.getContext('2d');
 
@@ -73,7 +67,7 @@ function Load_Next() {
 function Input_Clear(){
 	clearTrimBox();
 	clearOCRTextBox();
-	ctx_in.clearRect(0, 0, cWidth, cHeight)
+	ctx_in.clearRect(0, 0, cvs.width, cvs.height)
 	objFile.value = '';
 }
 
@@ -101,8 +95,11 @@ window.onload = function() {
 
 img.onload = function(_ev) {
     // 画像が読み込まれた
-    scale = cWidth / img.width;
-    imgToView = 1*scale/cvRatio;
+    //scale = cvs.width / img.width;
+	scale = 1;
+	cvs.width = img.width;
+	cvs.height = img.width*proportion;
+
     draw_canvas();
     // 画像更新
     //console.log("load complete, scaling:"+ scale);
@@ -118,7 +115,7 @@ function draw_canvas() {
     // 画像更新
     ctx_in.fillStyle = 'rgb(255, 255, 255)'
     //inエリア背景
-    ctx_in.fillRect(0, 0, cWidth, cHeight)
+    ctx_in.fillRect(0, 0, cvs.width, cvs.height)
     // 背景を塗る
     ctx_in.drawImage(img,0,0,img.width,img.height,0,0,img.width*scale,img.height*scale)
     ctx_in.lineWidth = 2;
@@ -143,7 +140,13 @@ var divbox = {
 				elem.addEventListener('click', selectTrimBox, false);
 				elem.addEventListener('mousedown', initMove, false);
 			}
-			document.getElementById('inputDiv').appendChild(elem);
+			referenceElement = (function(){
+				for (e of trimBoxList){
+					if(y < parseInt(e.style.top)) return e
+				}
+			})();
+			//document.getElementById('inputDiv').appendChild(elem);
+			document.getElementById('inputDiv').insertBefore(elem, referenceElement);
 	}
 }
 
@@ -208,11 +211,13 @@ function deleTrimBox(deleID) {
 		deleID = selectingID
 
 	elem = document.getElementById(deleID)
-	elem.parentNode.removeChild(elem)
-	tboxNum.value --
+	if(elem){
+		elem.parentNode.removeChild(elem)
+		tboxNum.value --
 
-	if(selectingID==deleID)
-		selectingID = ''
+		if(selectingID==deleID)
+			selectingID = ''
+	}
 }
 function addTrimBox() {
 	drawTrimBox('trimBox_'+ tboxNum.value,vHeight*0.1);
@@ -259,18 +264,22 @@ function download2(dataURI, filename){
 
  //画像トリミング
 function doTrim() {
+	out.width = img.width;
+	out.height = img.width*proportion;
+	rate = img.width / vWidth; //画面位置to実際位置座標変換係数
+
     if (outParaNum == 1) {
         // 背景
         ctx_out.fillStyle = 'white';
 		//ctx_out.fillStyle = '#f1f1f1' //DEBUG用
-        ctx_out.fillRect(0, 0, cWidth, cHeight);
+        ctx_out.fillRect(0, 0, cvs.width, cvs.height);
         // 表題
         var titleText = document.getElementById('title_text').value;
         if (titleText.length > 0) {
-            ctx_out.font = cWidth / 25 + "px serif";
+            ctx_out.font = cvs.width / 25 + "px serif";
             ctx_out.fillStyle = 'black';
             var textWidth = ctx_out.measureText(titleText).width;
-            ctx_out.fillText(titleText, (cWidth - textWidth) / 2, Top_margin * cvRatio);
+            ctx_out.fillText(titleText, (cvs.width - textWidth) / 2, Top_margin * rate);
             title_h = 20;
 		} else {
 			title_h = 0;
@@ -279,24 +288,23 @@ function doTrim() {
 
     for (var elem of trimBoxList) {
         //console.log("描画回数:" + outParaNum);
-
         var nextY = paraY1(outParaNum) + tvHeight;
         if (nextY > vHeight) {
             window.alert('ページ末尾に到達しました');
             break;
         }
-        //画面位置to実際位置座標変換係数　
-		rate = 1 / scale * cvRatio;
+
+
         //入力部
         sx = parseInt(elem.style.left) * rate;
         sy = parseInt(elem.style.top) * rate;
         sWidth = parseInt(elem.style.width) * rate;
         sHeight = parseInt(elem.style.height) * rate;
         //出力部
-        dx = (vWidth-tvWidth -guideLeft) / 2 * cvRatio;
-        dy = paraY1(outParaNum) * cvRatio;
-        dWidth = sWidth * scale;
-        dHeight = sHeight * scale;
+        dx = (vWidth-tvWidth-guideLeft) / 2 * rate;
+        dy = paraY1(outParaNum) * rate;
+        dWidth = sWidth;
+        dHeight = sHeight;
 
         ctx_out.drawImage(img, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
         outParaNum++;
@@ -385,13 +393,12 @@ function widthLockChange(elem) {
 }
  //出力領域クリア
 function clean_img() {
-    ctx_out.clearRect(0, 0, cWidth, cHeight)
+    ctx_out.clearRect(0, 0, out.width, out.height)
     outParaNum = 1
 	title_h = 0
 }
  //トリミング枠全削除
 function clearTrimBox() {
-	//ctx_in.clearRect(0, 0, cWidth, cHeight);
 	trimBoxList_now = document.querySelectorAll('.trimBox');
 	for (var elem of trimBoxList_now) {
 		elem.parentNode.removeChild(elem);
@@ -423,14 +430,14 @@ function instSelect(elem){
 
 	if(elem.checked && !checkedList.includes(instNo)) {
 		var y = parseInt(instElem.style.top) + parseInt(instElem.style.height)/2 - tvHeight/2
-		tboxId = 'tbox_instNo_'+ instNo
+		tboxId = 'trimBox_instNo_'+ instNo
 		drawTrimBox(tboxId,y)
 		checkedList.push(instNo)
 	}
 	if(!elem.checked && checkedList.includes(instNo)){
 		index = checkedList.indexOf(instNo)
 		checkedList.splice(index,1)
-		tboxId = 'tbox_instNo_'+ instNo
+		tboxId = 'trimBox_instNo_'+ instNo
 		deleTrimBox(tboxId)
 	}
 }
@@ -448,7 +455,7 @@ function getInputCanvas() {
 
 async function startOCR(){
 	//譜表領域検出
-	await lineDetectLSD();
+	//await lineDetectLSD();
 
 	var input = getInputCanvas();
 	await worker.load();
@@ -464,6 +471,7 @@ function fixWord(text){
 	var fix = text
 	switch(text) {
 		case 'Yo': fix = 'Vo';
+		case 'Yo.': fix = 'Vo.';
 	}
 	return fix;
 }
@@ -484,7 +492,7 @@ function result(res){
 			divbox.className = 'OCRText'
 			index++
 
-			imgToView = 1*scale/cvRatio;
+			imgToView = vWidth/img.width;
 			var x =(b.x0)*imgToView
 			var y =(b.y0)*imgToView
 			var width = (b.x1-b.x0)*imgToView
@@ -624,7 +632,14 @@ function lineDetectLSD(){
 	findLeftStart();
 	out.width = img.width;
 	out.height = img.height;
-	detector.drawSegments(ctx_out, lines);
+	//detector.drawSegments(ctx_out, lines);
+}
+
+function isHLine(angle){
+	return (-0.1 < angle && angle < 0.1)
+}
+function isVLine(angle){
+	return (1.5 < angle && angle < 1.6)
 }
 
 function findLeftStart() {
@@ -637,10 +652,12 @@ function findLeftStart() {
 	var hMap_Array_B = new Array(); //横線Map 下部
 	var vMap_Array = new Array(); //縦線Map
 	var vMap_Array_R = new Array(); //縦線Map 右部
+	var sumAngle=0;
+	var sumAngleL=0;
 
 	for (L of LinesArray){
-		if(L.distance > img.width/10){
-		if(L.angle < 0.1){
+		if(L.distance > img.width/100+10){
+		if(isHLine(L.angle)){
 			//横線端点検出方式
 			/*
 			var s = L.startPoint.x
@@ -651,46 +668,74 @@ function findLeftStart() {
 			//横線合計長さ集計
 			var y = L.startPoint.y
 			var d = parseInt(L.distance)
-			if(y < center_v/2 && hMap_Array[y]) hMap_Array[y] += d; else hMap_Array[y] = d;
-			if(y > center_v*1.5 && hMap_Array_B[y]) hMap_Array_B[y] += d; else hMap_Array_B[y] = d;
 
-		} else if ( 1.5 < L.angle && L.angle < 1.6){
-			//縦線合計長さ集計
-			var x = L.startPoint.x
-			var d = parseInt(L.distance)
-			if(x < center && vMap_Array[x]) vMap_Array[x] += d; else vMap_Array[x] = d;
-			if(x > center && vMap_Array_R[x]) vMap_Array_R[x] += d; else vMap_Array_R[x] = d;
-		}
+			if(d>=img.width*0.3){
+				sumAngle = sumAngle + L.angle;
+				sumAngleL++;
+			}
+
+			if(y < center_v) {  //上側
+				if(hMap_Array[y])
+					hMap_Array[y] += d;
+				else
+					hMap_Array[y] = d;
+			}
+			if(y > center_v) {  //下側
+				if(hMap_Array_B[y])
+					hMap_Array_B[y] += d;
+				else
+					hMap_Array_B[y] = d;
+			}
+		} else if (isVLine(L.angle)){
+				//縦線合計長さ集計
+				var x = L.startPoint.x
+				var d = parseInt(L.distance)
+				if(x < center) {  //左側
+					if(vMap_Array[x])
+						vMap_Array[x] += d;
+					else
+						vMap_Array[x] = d;
+				}
+				if(x > center) {  //右側
+					if(vMap_Array_R[x])
+						vMap_Array_R[x] += d;
+					else
+						vMap_Array_R[x] = d;
+				}
+			}
+
 		}
 	}
-    mathematics = new Mathematics();
+	var vAngle = sumAngle / sumAngleL;
+	console.log('横線平均角度 :', vAngle);
+    //mathematics = new Mathematics();
 	//var left = Math.min.apply(null, mathematics.mode(x1_Array));
 	//var right = Math.max.apply(null, mathematics.mode(x2_Array));
+	var threshold = img.height*0.3
+
 	var left = maxIndex(vMap_Array)
 	var right = maxIndex(vMap_Array_R)
+	var top_v = findEdge(hMap_Array,1,center_v,threshold)
+	var bot_v = findEdge(hMap_Array_B,img.height,center_v,threshold)
 
-	var top_v = findTopEdge(hMap_Array)
-	var bot_v = maxIndex(hMap_Array_B)
-
-	console.log('LinesArray was:', LinesArray)
-	//console.log('左側最頻値 :' + left);
-	//console.log('右側最頻値 :' + right);
-	//vMap_Array.sort(function(a,b){ return (a < b ? 1 : -1); });
+	//console.log('LinesArray was:', LinesArray)
 	console.log('上側横線Map :', hMap_Array);
 	console.log('縦線Map :', vMap_Array);
-	console.log('縦線Map2 :', vMap_Array_R);
-	console.log('左側縦線Map最大値 :', maxIndex(vMap_Array))
-	console.log('右側縦線Map最大値 :', maxIndex(vMap_Array_R))
-	console.log('上側横線Map最大値 :', findTopEdge(hMap_Array))
-	console.log('下側横線Map最大値 :', maxIndex(hMap_Array_B))
+	//console.log('縦線Map2 :', vMap_Array_R);
+	console.log('左側縦線Map最大値 :', left)
+	console.log('右側縦線Map最大値 :', right)
+	console.log('上側横線Map最大値 :', top_v)
+	console.log('下側横線Map最大値 :', bot_v)
 
-    imgToView = 1*scale/cvRatio;
-	rangeInput_X1.value = left*imgToView
+    imgToView = vWidth/img.width;
+	rangeInput_X1.value = left*imgToView-3
 	rangeInput_X2.value = right*imgToView + 5
 	rangeXChange(1,rangeInput_X1.value)
 	rangeXChange(2,rangeInput_X2.value)
-	divbox.className = 'trimBox';
-	divbox.draw(rangeInput_X1.value,top_v*imgToView,(right-left)*imgToView+5,(bot_v-top_v)*imgToView+5)
+	divbox.id = 'edgeBox';
+	divbox.className = 'edgeBox';
+	progressUpdate({status: '譜表領域検出完了'});
+	//divbox.draw(rangeInput_X1.value,top_v*imgToView,(right-left)*imgToView,(bot_v-top_v)*imgToView)
 }
 function maxIndex(a) {
 	let index = 0
@@ -700,11 +745,16 @@ function maxIndex(a) {
 	}
 	return index
 }
-function findTopEdge(a) {
+function findEdge(a,From,To,threshold) {
 	let index = 0
-	let value = -Infinity
-	for (var i=1;i< img.height/2;i++) {
-		if (a[i]>img.height/2) { value = a[i]; index = i;break;}
+	if(From<To){
+		for (var i=From;i<To;i++) {
+			if (a[i] && a[i]>threshold) {index = i;break;}
+		}
+	} else {
+		for (var i=From;i>To;i--) {
+			if (a[i] && a[i]>threshold) {index = i;break;}
+		}
 	}
 	return index
 }
