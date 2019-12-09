@@ -34,7 +34,8 @@
 
 			<div class="setting leftSide">自動認識設定
 			<br>検索対象:<input type="text" id="searchText"/>
-			<button onclick="startOCR()">自動認識開始</button>
+			<button onclick="lineDetectLSD()">直線検出</button>
+			<button onclick="startOCR()">文字認識</button>
 			<div id="log">
 				<div id="statusText">status</div>
 				<progress id="progressbar" value="0" max="1"></progress>
@@ -56,17 +57,17 @@
 			<button onclick='doTrim()'>トリミング</button>
 			<button onclick="clean_img()">出力領域クリア</button>
 			<button onclick="download()">画像出力</button>
-			<button onclick="lineDetectLSD()">直線検出</button>
 			<!-- <a report="">BUG報告、FAQなど</a> -->
-			<br>出力画像サイズ<select name="output_size">
+			<br>出力画像サイズ<select name="output_size" disabled="disabled" >
+				<option value="origin">入力サイズと同じ幅</option>
 				<option value="B4_600">B4 600DPI</option>
 				<option value="B4_300">B4 300DPI</option>
 				<option value="A4_600">A4 600DPI</option>
 				<option value="A4_300">A4 300DPI</option>
 			</select>
-			<br>段落間隔:<input type="number" step="1" id="Para_interval" min="0" oninput="paraIntervalChange(value)"/>
+			<br>段落間隔:<input type="number" step="1" id="Para_interval" min="0" oninput="paraIntervalChange(value)" style="width: 40px"/>
 			<br>曲　名:<input type="text" id="title_text" class="titleText"/>
-			<br>作曲者:<input type="text" id="title_text2" class="titleText"/>
+			<br>作曲者:<input type="text" id="title_text2" class="titleText" disabled="disabled" />
 			<br><a id="hiddenLink" download="download.png">ダウンロードされない場合、下図を右クリックして保存してください。</a>
 		</div>
 
@@ -82,7 +83,7 @@
 	<script src="https://unpkg.com/tesseract.js@2.0.0-beta.1/dist/tesseract.min.js"></script>
 	<!-- 	<script src="https://docs.opencv.org/4.1.2/opencv.js"></script> -->
 	<script src="file/opencv.js"></script>
-	<script src="file/Mathematics.js"></script>
+<!-- 	<script src="file/Mathematics.js"></script> -->
 	<script src="file/lsd.js"></script>
 <!-- 	<script src="file/funcs.js"></script> -->
 <!-- 	<script src="file/types.js"></script> -->
