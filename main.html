@@ -13,16 +13,16 @@
 			<button class="fileChangeBtn" onclick="Load_Pre('')">前</button>
 			<button class="fileChangeBtn" onclick="Load_Next('')">次</button>
 			<button class="fileChangeBtn" onclick="Input_Clear('')">クリア</button>
-			Band Score Split v0.11 beta 自動認識開発中
-			<br>
+			Band Score Split v0.12 beta 自動認識開発中
+			<br><span id="FileName"></span>
 		<div style='display:flex;'>
 			<div class="setting leftSide">トリミング枠設定
 			<br>
 			Ⅹ軸:<input type="number" id="tboxX" class="tboxSetting"/>
-			Ｙ軸:<input type="number" id="tboxY" class="tboxSetting" onchange="rangeYChange(value)"/>
+			Ｙ軸:<input type="number" id="tboxY" class="tboxSetting" oninput="rangeYChange(value)"/>
 			(オフセット)
-			<br>横幅:<input type="number" id="tvWidth" class="tboxSetting"/>
-			縦幅:<input type="number"id="tvHeight" class="tboxSetting" step="2" onchange="tvHeightChange(value)"/>
+			<br>横幅:<input type="number" id=trimboxWidth class="tboxSetting"/>
+			縦幅:<input type="number"id="trimboxHeight" class="tboxSetting" step="2" oninput="tvHeightChange(value)"/>
 <!-- 			<input type="checkbox" id="tvWidthLock" oninput="widthLockChange(this)"/>横幅固定 -->
 			<br>個数:<input type="number" id="trimboxNum" disabled="disabled" class="tboxSetting" />
 			<div style="display: inline-block;padding-top:1px;margin-bottom:-1px;">
@@ -34,7 +34,9 @@
 
 			<div class="setting leftSide">自動認識設定
 			<br>検索対象:<input type="text" id="searchText"/>
-			<button onclick="startOCR()">自動認識開始</button>
+			<button onclick="lineDetectLSD()">直線検出</button>
+			<button onclick="startOCR()">文字認識</button>
+<!-- 			傾き角度:<button onclick="fix()">補正</button> -->
 			<div id="log">
 				<div id="statusText">status</div>
 				<progress id="progressbar" value="0" max="1"></progress>
@@ -50,23 +52,24 @@
 	</div>
 
 	</div>
-
 		<div style='width: 15px'></div>
 		<div id="topRightArea">
 		<div class="setting rightSide">
 			<button onclick='doTrim()'>トリミング</button>
-			<button onclick="clean_img('')">出力領域クリア</button>
-			<button onclick="download('')">画像出力</button>
+			<button onclick='cancel()'>元に戻す</button>
+			<button onclick="clean_img()">出力領域クリア</button>
+			<button onclick="download()">画像出力</button>
 			<!-- <a report="">BUG報告、FAQなど</a> -->
-			<br>出力画像サイズ<select name="output_size">
+			<br>出力画像サイズ<select name="output_size" disabled="disabled" >
+				<option value="origin">入力サイズと同じ幅</option>
 				<option value="B4_600">B4 600DPI</option>
 				<option value="B4_300">B4 300DPI</option>
 				<option value="A4_600">A4 600DPI</option>
 				<option value="A4_300">A4 300DPI</option>
 			</select>
-			<br>段落間隔:<input type="number" step="1" id="Para_interval" min="0" oninput="paraIntervalChange(value)"/>
+			<br>段落間隔:<input type="number" step="1" id="Para_interval" min="0" oninput="paraIntervalChange(value)" style="width: 40px"/>
 			<br>曲　名:<input type="text" id="title_text" class="titleText"/>
-			<br>作曲者:<input type="text" id="title_text2" class="titleText"/>
+			<br>作曲者:<input type="text" id="title_text2" class="titleText" disabled="disabled" />
 			<br><a id="hiddenLink" download="download.png">ダウンロードされない場合、下図を右クリックして保存してください。</a>
 		</div>
 
@@ -80,6 +83,13 @@
 	</div>
 
 	<script src="https://unpkg.com/tesseract.js@2.0.0-beta.1/dist/tesseract.min.js"></script>
+	<!-- 	<script src="https://docs.opencv.org/4.1.2/opencv.js"></script> -->
+	<script src="file/opencv.js"></script>
+<!-- 	<script src="file/Mathematics.js"></script> -->
+<!-- 	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> -->
+	<script src="file/lsd.js"></script>
+<!-- 	<script src="file/funcs.js"></script> -->
+<!-- 	<script src="file/types.js"></script> -->
 	<script src="file/split.js"></script>
 </body>
 </html>
