@@ -111,10 +111,12 @@ select {
 .trimBox {
 	border: solid 2px rgb(250, 100, 100, 0.8);
 	position: absolute;
+	z-index: 10;
 }
 .edgeBox {
-	border: solid 2px rgb(255, 0, 0, 0.8);
+	border: solid 2px rgb(0, 190, 255, 0.8);
 	position: absolute;
+	z-index: 0;
 }
 .trimBox.selecting{
 	border: solid 2px rgb(255, 0, 0, 0.8);
