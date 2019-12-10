@@ -14,15 +14,15 @@
 			<button class="fileChangeBtn" onclick="Load_Next('')">次</button>
 			<button class="fileChangeBtn" onclick="Input_Clear('')">クリア</button>
 			Band Score Split v0.12 beta 自動認識開発中
-			<br>
+			<br><span id="FileName"></span>
 		<div style='display:flex;'>
 			<div class="setting leftSide">トリミング枠設定
 			<br>
 			Ⅹ軸:<input type="number" id="tboxX" class="tboxSetting"/>
 			Ｙ軸:<input type="number" id="tboxY" class="tboxSetting" oninput="rangeYChange(value)"/>
 			(オフセット)
-			<br>横幅:<input type="number" id="tvWidth" class="tboxSetting"/>
-			縦幅:<input type="number"id="tvHeight" class="tboxSetting" step="2" oninput="tvHeightChange(value)"/>
+			<br>横幅:<input type="number" id=trimboxWidth class="tboxSetting"/>
+			縦幅:<input type="number"id="trimboxHeight" class="tboxSetting" step="2" oninput="tvHeightChange(value)"/>
 <!-- 			<input type="checkbox" id="tvWidthLock" oninput="widthLockChange(this)"/>横幅固定 -->
 			<br>個数:<input type="number" id="trimboxNum" disabled="disabled" class="tboxSetting" />
 			<div style="display: inline-block;padding-top:1px;margin-bottom:-1px;">
@@ -36,6 +36,7 @@
 			<br>検索対象:<input type="text" id="searchText"/>
 			<button onclick="lineDetectLSD()">直線検出</button>
 			<button onclick="startOCR()">文字認識</button>
+<!-- 			傾き角度:<button onclick="fix()">補正</button> -->
 			<div id="log">
 				<div id="statusText">status</div>
 				<progress id="progressbar" value="0" max="1"></progress>
@@ -55,6 +56,7 @@
 		<div id="topRightArea">
 		<div class="setting rightSide">
 			<button onclick='doTrim()'>トリミング</button>
+			<button onclick='cancel()'>元に戻す</button>
 			<button onclick="clean_img()">出力領域クリア</button>
 			<button onclick="download()">画像出力</button>
 			<!-- <a report="">BUG報告、FAQなど</a> -->
@@ -84,6 +86,7 @@
 	<!-- 	<script src="https://docs.opencv.org/4.1.2/opencv.js"></script> -->
 	<script src="file/opencv.js"></script>
 <!-- 	<script src="file/Mathematics.js"></script> -->
+<!-- 	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> -->
 	<script src="file/lsd.js"></script>
 <!-- 	<script src="file/funcs.js"></script> -->
 <!-- 	<script src="file/types.js"></script> -->
