@@ -11,6 +11,6 @@ https://kitami.github.io/BandScoreSplit/main.html
 自分用メモ：  
 開発中機能  
 1.自動化の複数ページ処理  
-2.OpenCVやtesseractによる譜表の自動認識、位置特定
+2.OpenCVやtesseractによる譜表の自動認識、位置特定  
 3.スキャンした画像の傾きを自動補正、これもOpenCVの直線検出が必要  
 4.結合してPDF生成
