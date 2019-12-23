@@ -489,14 +489,14 @@ function result(res){
 	var index = 0;
 	res.words.forEach(function(w){
 		var b = w.bbox;
-		isWord = w.text.match(/[a-z]/gi);
+		var isWord = w.text.match(/[a-z]/gi);
 		if(isWord){
 			divbox.id = "instList_" + index
 			instList.push(fixWord(w.text))
 			divbox.className = 'OCRText'
 			index++;
 
-			imgToView = VISIBLE_WIDTH/img.width;
+			var imgToView = VISIBLE_WIDTH/img.width;
 			var x =(b.x0)*imgToView
 			var y =(b.y0)*imgToView
 			var width = (b.x1-b.x0)*imgToView
@@ -732,7 +732,7 @@ function findLeftStart() {
 	console.log('上側横線Map最大値 :', top_v);
 	console.log('下側横線Map最大値 :', bot_v);
 
-    imgToView = VISIBLE_WIDTH/img.width;
+    var imgToView = VISIBLE_WIDTH/img.width;
 	rangeInput_L.value = left*imgToView-3;
 	rangeInput_R.value = right*imgToView + 5;
 	rangeXChange(1,rangeInput_L.value);
@@ -745,7 +745,7 @@ function findLeftStart() {
 function maxIndex(a) {
 	var index = 0;
 	var value = -1;
-	for (i in a) {
+	for (var i in a) {
 		if (value < a[i]) {	value = a[i]; index = i	}
 	}
 	return index;
