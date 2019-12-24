@@ -733,8 +733,8 @@ function findLeftStart() {
 	console.log('下側横線Map最大値 :', bot_v);
 
     var imgToView = VISIBLE_WIDTH/img.width;
-	rangeInput_L.value = left*imgToView-3;
-	rangeInput_R.value = right*imgToView + 5;
+	rangeInput_L.value = left*imgToView;
+	rangeInput_R.value = right*imgToView;
 	rangeXChange(1,rangeInput_L.value);
 	rangeXChange(2,rangeInput_R.value);
 	divbox.id = 'edgeBox';
