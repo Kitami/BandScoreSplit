@@ -433,14 +433,14 @@ function instSelect(elem){
 
 	if(elem.checked && !checkedList.includes(instNo)) {
 		var y = parseInt(instElem.style.top) + parseInt(instElem.style.height)/2 - trimboxHeight/2
-		tboxId = 'trimBox_instNo_'+ instNo
+		var tboxId = 'trimBox_instNo_'+ instNo
 		drawTrimBox(tboxId,y)
 		checkedList.push(instNo)
 	}
 	if(!elem.checked && checkedList.includes(instNo)){
-		index = checkedList.indexOf(instNo)
+		var index = checkedList.indexOf(instNo)
 		checkedList.splice(index,1)
-		tboxId = 'trimBox_instNo_'+ instNo
+		var tboxId = 'trimBox_instNo_'+ instNo
 		deleTrimBox(tboxId)
 	}
 }
@@ -656,9 +656,9 @@ function findLeftStart() {
 	var center_v = img.height / 2;
 
 	var hMap_Array = new Array(); //横線Map
-	var hMap_Array_B = new Array(); //横線Map 下部
+	//var hMap_Array_B = new Array(); //横線Map 下部
 	var vMap_Array = new Array(); //縦線Map
-	var vMap_Array_R = new Array(); //縦線Map 右部
+	//var vMap_Array_R = new Array(); //縦線Map 右部
 	var sumAngle=0;
 	var sumAngleN=0;
 
@@ -673,6 +673,7 @@ function findLeftStart() {
 			if( s < center ) x1_Array.push(s)
 			if( e > center ) x2_Array.push(e)
 			*/
+//合計長さ集計方式
 			//横線合計長さ集計
 			var y = L.startPoint.y
 			var d = parseInt(L.distance)
@@ -682,34 +683,21 @@ function findLeftStart() {
 				sumAngleN++;
 			}
 
-			if(y < center_v) {  //上側
 				if(hMap_Array[y])
 					hMap_Array[y] += d;
 				else
 					hMap_Array[y] = d;
-			}
-			if(y > center_v) {  //下側
-				if(hMap_Array_B[y])
-					hMap_Array_B[y] += d;
-				else
-					hMap_Array_B[y] = d;
-			}
+
 		} else if (isVLine(L.angle)){
 				//縦線合計長さ集計
 				var x = L.startPoint.x
 				var d = parseInt(L.distance)
-				if(x < center) {  //左側
+
 					if(vMap_Array[x])
 						vMap_Array[x] += d;
 					else
 						vMap_Array[x] = d;
-				}
-				if(x > center) {  //右側
-					if(vMap_Array_R[x])
-						vMap_Array_R[x] += d;
-					else
-						vMap_Array_R[x] = d;
-				}
+
 			}
 
 		}
@@ -718,19 +706,20 @@ function findLeftStart() {
 	//var left = Math.min.apply(null, mathematics.mode(x1_Array));
 	//var right = Math.max.apply(null, mathematics.mode(x2_Array));
 	var threshold = img.height*0.3;
-	var left = maxIndex(vMap_Array);
-	var right = maxIndex(vMap_Array_R);
-	var top_v = findEdge(hMap_Array,1,center_v,threshold);
-	var bot_v = findEdge(hMap_Array_B,img.height,center_v,threshold);
+	var threshold_H = img.width*0.3;
+	var left = findEdge(vMap_Array,0,img.width,threshold);
+	var right = findEdge(vMap_Array,img.width,img.width/3,threshold);
+	var top_v = findEdge(hMap_Array,1,center_v,threshold_H);
+	var bot_v = findEdge(hMap_Array,img.height,center_v,threshold_H);
 	var vAngle = sumAngle / sumAngleN;
 
 	console.log('横線平均角度 :', vAngle);
 	console.log('横線Map :', hMap_Array);
 	console.log('縦線Map :', vMap_Array);
-	console.log('左側縦線Map最大値 :', left);
-	console.log('右側縦線Map最大値 :', right);
-	console.log('上側横線Map最大値 :', top_v);
-	console.log('下側横線Map最大値 :', bot_v);
+//	console.log('左側縦線Map最大値 :', left);
+//	console.log('右側縦線Map最大値 :', right);
+//	console.log('上側横線Map最大値 :', top_v);
+//	console.log('下側横線Map最大値 :', bot_v);
 
     var imgToView = VISIBLE_WIDTH/img.width;
 	rangeInput_L.value = left*imgToView;
@@ -742,24 +731,21 @@ function findLeftStart() {
 	progressUpdate({status: '譜表領域検出完了'});
 	divbox.draw(rangeInput_L.value,top_v*imgToView,(right-left)*imgToView,(bot_v-top_v)*imgToView);
 }
-function maxIndex(a) {
+function maxIndex(a,start,end) {
 	var index = 0;
 	var value = -1;
-	for (var i in a) {
+
+	var increase = start<end ? 1 : -1 ;
+	for (var i=start;!(start<end^i<end);i=i+increase) {
 		if (value < a[i]) {	value = a[i]; index = i	}
 	}
 	return index;
 }
-function findEdge(a,From,To,threshold) {
-	let index = 0;
-	if(From<To){
-		for (var i=From;i<To;i++) {
-			if (a[i] && a[i]>threshold) {index = i;break;}
-		}
-	} else {
-		for (var i=From;i>To;i--) {
-			if (a[i] && a[i]>threshold) {index = i;break;}
-		}
+function findEdge(a,start,end,threshold) {
+	var index = 0;
+	var increase = start<end ? 1 : -1 ;
+	for (var i=start;!(start<end^i<end);i=i+increase) {
+		if (a[i] && a[i]>threshold) {index = i;break;}
 	}
 	return index;
 }
