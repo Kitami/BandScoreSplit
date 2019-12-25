@@ -21,8 +21,8 @@
 			Ⅹ軸:<input type="number" id="tboxX" class="tboxSetting"/>
 			Ｙ軸:<input type="number" id="tboxY" class="tboxSetting" oninput="rangeYChange(value)"/>
 			(オフセット)
-			<br>横幅:<input type="number" id=trimboxWidth class="tboxSetting"/>
-			縦幅:<input type="number"id="trimboxHeight" class="tboxSetting" step="2" oninput="tvHeightChange(value)"/>
+			<br>横幅:<input type="number" id=trim_W class="tboxSetting"/>
+			縦幅:<input type="number"id="trim_H" class="tboxSetting" step="2" oninput="tvHeightChange(value)"/>
 <!-- 			<input type="checkbox" id="tvWidthLock" oninput="widthLockChange(this)"/>横幅固定 -->
 			<br>個数:<input type="number" id="trimboxNum" disabled="disabled" class="tboxSetting" />
 			<div style="display: inline-block;padding-top:1px;margin-bottom:-1px;">
@@ -72,7 +72,6 @@
 			<br>作曲者:<input type="text" id="title_text2" class="titleText" disabled="disabled" />
 			<br><a id="hiddenLink" download="download.png">ダウンロードされない場合、下図を右クリックして保存してください。</a>
 		</div>
-
 		</div>
 	</div>
 
@@ -81,15 +80,15 @@
 		<div style='width: 15px'></div>
 		<div id='outputDiv' class="canvasDiv"> <canvas id='out'></canvas> </div>
 	</div>
-
-	<script src="https://unpkg.com/tesseract.js@2.0.0-beta.1/dist/tesseract.min.js"></script>
-	<script src="https://docs.opencv.org/4.1.2/opencv.js"></script>
-<!--	<script src="file/opencv.js"></script>-->
+	<script src='https://unpkg.com/tesseract.js@v2.0.1/dist/tesseract.min.js'></script>
+<!-- 	<script src='file/tesseract/tesseract.min.js'></script> -->
+<!-- 	<script src='file/tesseract/tesseract-core.wasm.js'></script> -->
+<!-- 	<script src='file/tesseract/worker.min.js'></script> -->
+	<!-- 	<script src="https://docs.opencv.org/4.1.2/opencv.js"></script> -->
+	<script src="file/opencv.js"></script>
 <!-- 	<script src="file/Mathematics.js"></script> -->
-<!-- 	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> -->
+
 	<script src="file/lsd.js"></script>
-<!-- 	<script src="file/funcs.js"></script> -->
-<!-- 	<script src="file/types.js"></script> -->
 	<script src="file/split.js"></script>
 </body>
 </html>
