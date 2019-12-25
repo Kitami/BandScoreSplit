@@ -6,8 +6,8 @@ const VISIBLE_HEIGHT = 1000; //画像表示サイズ幅
 const ASPECT_R =Math.SQRT2; //出力用紙アスペクト比
 var guide_L = VISIBLE_WIDTH * 0.05; //左側ガイド線位置(初期値)
 var guide_R = VISIBLE_WIDTH - guide_L; //右側ガイド線位置(初期値)
-var trimboxHeight = VISIBLE_HEIGHT * 0.1; //トリミング枠縦幅(初期値)
-var trimboxWidth = guide_R - guide_L; //ガイド線間幅(初期値)
+var trim_H = VISIBLE_HEIGHT * 0.1; //トリミング枠縦幅(初期値)
+var trim_W = guide_R - guide_L; //ガイド線間距離(初期値)
 var offset_Y = 0;
 var offset_X = 0;
 var guideLeft = 10; //ガイド線左側のスペース
@@ -95,8 +95,8 @@ window.onload = function() {
 
 	document.getElementById('tboxX').value = 0;
 	document.getElementById('tboxY').value = 0;
-	document.getElementById('trimboxWidth').value = trimboxWidth;
-    document.getElementById('trimboxHeight').value = trimboxHeight;
+	document.getElementById('trim_W').value = trim_W;
+    document.getElementById('trim_H').value = trim_H;
     document.getElementById('Para_interval').value = Para_interval;
     document.getElementById('title_text').value = 'タイトル';
     drawGuideLine('guide_left','v',guide_L + 5);
@@ -178,7 +178,7 @@ function stopMove(e) {
 function drawTrimBox(id,PositionY) {
 	divbox.id = id;
 	divbox.className = 'trimBox';
-	divbox.draw(guide_L-guideLeft,PositionY,trimboxWidth+guideLeft,trimboxHeight);
+	divbox.draw(guide_L-guideLeft,PositionY,trim_W+guideLeft,trim_H);
 	selectingID = id;
 	tboxNum.value ++;
 }
@@ -274,7 +274,7 @@ function doTrim() {
     //for (var elem of trimBoxList) {
 	for (var i=0;i<trimBoxList.length;i++){ var elem = trimBoxList[i];
         //console.log("描画回数:" + ParaNo);
-        var paraStart = paraStartPosition(ParaNo) + trimboxHeight;
+        var paraStart = paraStartPosition(ParaNo) + trim_H;
         if (paraStart > VISIBLE_HEIGHT) {
             window.alert('ページ末尾に到達しました');
             break;
@@ -286,7 +286,7 @@ function doTrim() {
         var sWidth = parseInt(elem.style.width) * rate;
         var sHeight = parseInt(elem.style.height) * rate;
         //出力部
-        var dx = (VISIBLE_WIDTH-trimboxWidth-guideLeft) / 2 * rate_out;
+        var dx = (VISIBLE_WIDTH-trim_W-guideLeft) / 2 * rate_out;
         var dy = paraStartPosition(ParaNo) * rate_out;
         var dWidth = sWidth;
         var dHeight = sHeight;
@@ -306,7 +306,7 @@ function cancel(){
 }
  //n段目から描画位置Y1を計算
 function paraStartPosition(n) {
-        return Top_margin + title_h + (n-1)*Para_interval + (n-1) * trimboxHeight
+        return Top_margin + title_h + (n-1)*Para_interval + (n-1) * trim_H
 }
 
 function rangeXChange(n,val) {
@@ -317,7 +317,7 @@ function rangeXChange(n,val) {
 		guide_R = parseInt(val);
 		document.getElementById('guide_right').style.left = parseInt(val)+ 'px';
 	}
-	trimboxWidth = guide_R - guide_L;
+	trim_W = guide_R - guide_L;
 
 	//for (var elem of trimBoxList) {
 	if(trimBoxList.length>0)
@@ -325,13 +325,13 @@ function rangeXChange(n,val) {
         if(n==1){ //左端変更時
             guide_L = parseInt(val);
             elem.style.left = guide_L + 'px';
-			trimboxWidth = guide_R - guide_L;
-			elem.style.width = trimboxWidth + 'px';
+			trim_W = guide_R - guide_L;
+			elem.style.width = trim_W + 'px';
 			guideLeft = 0;
 		} else { //右端変更時
             guide_R = parseInt(val);
-            trimboxWidth = guide_R - guide_L;
-			var realWidth = trimboxWidth + guideLeft
+            trim_W = guide_R - guide_L;
+			var realWidth = trim_W + guideLeft
 			elem.style.width = realWidth + 'px';
 		}
 	}
@@ -354,11 +354,11 @@ function tvHeightChange(val) {
 	//for (var elem of trimBoxList_now) {
 	for (var i=0;i<trimBoxList_now.length;i++){ var elem = trimBoxList_now[i];
 		var topVal = parseInt(elem.style.top)
-        var hChange = parseInt(val - trimboxHeight) / 2;
+        var hChange = parseInt(val - trim_H) / 2;
 		elem.style.height = parseInt(val) + 'px';
 		elem.style.top = topVal-hChange + 'px';
 	}
-    trimboxHeight = parseInt(val);
+    trim_H = parseInt(val);
 }
 function getInputCanvas3() {
     var canvas = document.createElement('canvas');
@@ -421,6 +421,7 @@ function clearOCRTextBox() {
 var language = "eng";
 var instList = new Array();
 var checkedList = new Array();
+var LinesArray = new Array();
 const resultArea = document.getElementById('result');
 
 var worker = new Tesseract.createWorker({
@@ -432,7 +433,7 @@ function instSelect(elem){
 	var instElem = document.getElementById('instList_'+instNo)
 
 	if(elem.checked && !checkedList.includes(instNo)) {
-		var y = parseInt(instElem.style.top) + parseInt(instElem.style.height)/2 - trimboxHeight/2
+		var y = parseInt(instElem.style.top) + parseInt(instElem.style.height)/2 - trim_H/2
 		var tboxId = 'trimBox_instNo_'+ instNo
 		drawTrimBox(tboxId,y)
 		checkedList.push(instNo)
@@ -454,30 +455,6 @@ function getInputCanvas() {
     ctx.drawImage(img,0,0,useWidth,img.height,0,0,useWidth,img.height);
     //document.getElementById('outputDiv').appendChild(canvas);
     return canvas;
-}
-
-async function startOCR(){
-	//譜表領域検出
-	//await lineDetectLSD();
-
-	var input = getInputCanvas();
-	await worker.load();
-	await worker.loadLanguage(language);
-	await worker.initialize(language);
-	await worker.setParameters({
-	    tessedit_char_whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-.{()'
-	  });
-	const {data} = await worker.recognize(input);
-	result(data);
-}
-
-function fixWord(text){
-	var fix = text;
-	switch(text) {
-		case 'Yo': fix = 'Vo';
-		case 'Yo.': fix = 'Vo.';
-	}
-	return fix;
 }
 
 function result(res){
@@ -568,15 +545,15 @@ const drawRotatedImage = function (image, x, y, angle) {
 function getInputCanvas2() {
     var canvas = document.createElement('canvas');
     var ctx = canvas.getContext('2d');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    ctx.drawImage(img,0,0,img.width,img.height);
+    var Ratio = VISIBLE_WIDTH / img.width;
+    canvas.width = img.width*Ratio;
+    canvas.height = img.height*Ratio;
+    ctx.drawImage(img,0,0,img.width,img.height,0,0,img.width*Ratio,img.height*Ratio);
     //document.getElementById('outputDiv').appendChild(canvas);
     return canvas;
 }
-var LinesArray = new Array();
 
-//openCV
+//openCV HoughLinesP
 function lineDetect(){
 	progressUpdate({status: '譜表領域検出'});
 	let src = cv.imread(getInputCanvas2());
@@ -606,7 +583,6 @@ function lineDetect(){
 	    cv.line(dst, startPoint, endPoint, color);
 	}
 	findLeftStart();
-
 	cv.imshow('out', dst);
 	//src.delete();
 	//dst.delete();
@@ -621,7 +597,7 @@ function lineDetectLSD(){
 	let src = cv.imread(canvas);
 	cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
 	var context = canvas.getContext('2d');
-	 const imageData = context.getImageData(0, 0, img.width, img.height);
+	 const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
 	 const detector = new LSD();
 	 const lines = detector.detect(imageData);
 	 console.log('lines: ' + lines.length.toString());
@@ -637,9 +613,9 @@ function lineDetectLSD(){
 	    LinesArray.push({"startPoint":startPoint,"endPoint":endPoint,"angle":angle,'distance':distance});
 	}
 	findLeftStart();
-	out.width = img.width;
-	out.height = img.height;
-	//detector.drawSegments(ctx_out, lines);
+	out.width = canvas.width;
+	out.height = canvas.height;
+	detector.drawSegments(ctx_out, lines);
 }
 
 function isHLine(angle){
@@ -652,19 +628,17 @@ function isVLine(angle){
 function findLeftStart() {
 	var x1_Array = new Array();
 	var x2_Array = new Array();
-	var center = img.width / 2;
-	var center_v = img.height / 2;
+	var center = VISIBLE_WIDTH / 2;
+	var center_v = VISIBLE_HEIGHT / 2;
 
 	var hMap_Array = new Array(); //横線Map
-	//var hMap_Array_B = new Array(); //横線Map 下部
 	var vMap_Array = new Array(); //縦線Map
-	//var vMap_Array_R = new Array(); //縦線Map 右部
 	var sumAngle=0;
 	var sumAngleN=0;
 
 	//for (L of LinesArray){
 	for (var i in LinesArray){var L =  LinesArray[i];
-		if(L.distance > img.width/100+10){
+		if(L.distance > VISIBLE_WIDTH /100+10){
 		if(isHLine(L.angle)){
 			//横線端点検出方式
 			/*
@@ -705,12 +679,12 @@ function findLeftStart() {
     //mathematics = new Mathematics();
 	//var left = Math.min.apply(null, mathematics.mode(x1_Array));
 	//var right = Math.max.apply(null, mathematics.mode(x2_Array));
-	var threshold = img.height*0.3;
-	var threshold_H = img.width*0.3;
-	var left = findEdge(vMap_Array,0,img.width,threshold);
-	var right = findEdge(vMap_Array,img.width,img.width/3,threshold);
+	var threshold = VISIBLE_HEIGHT*0.3;
+	var threshold_H = VISIBLE_WIDTH*0.3;
+	var left = findEdge(vMap_Array,0,VISIBLE_WIDTH,threshold);
+	var right = findEdge(vMap_Array,VISIBLE_WIDTH,VISIBLE_WIDTH/3,threshold);
 	var top_v = findEdge(hMap_Array,1,center_v,threshold_H);
-	var bot_v = findEdge(hMap_Array,img.height,center_v,threshold_H);
+	var bot_v = findEdge(hMap_Array,VISIBLE_HEIGHT,center_v,threshold_H);
 	var vAngle = sumAngle / sumAngleN;
 
 	console.log('横線平均角度 :', vAngle);
@@ -721,7 +695,8 @@ function findLeftStart() {
 //	console.log('上側横線Map最大値 :', top_v);
 //	console.log('下側横線Map最大値 :', bot_v);
 
-    var imgToView = VISIBLE_WIDTH/img.width;
+    //var imgToView = VISIBLE_WIDTH/img.width;
+	var imgToView = 1;
 	rangeInput_L.value = left*imgToView;
 	rangeInput_R.value = right*imgToView;
 	rangeXChange(1,rangeInput_L.value);
@@ -748,4 +723,28 @@ function findEdge(a,start,end,threshold) {
 		if (a[i] && a[i]>threshold) {index = i;break;}
 	}
 	return index;
+}
+
+async function startOCR(){
+	//譜表領域検出
+	//await lineDetectLSD();
+
+	var input = getInputCanvas();
+	await worker.load();
+	await worker.loadLanguage(language);
+	await worker.initialize(language);
+	await worker.setParameters({
+	    tessedit_char_whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-.{()'
+	  });
+	const {data} = await worker.recognize(input);
+	result(data);
+}
+
+function fixWord(text){
+	var fix = text;
+	switch(text) {
+		case 'Yo': fix = 'Vo';
+		case 'Yo.': fix = 'Vo.';
+	}
+	return fix;
 }
