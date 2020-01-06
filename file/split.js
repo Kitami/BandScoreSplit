@@ -248,7 +248,6 @@ function download2(dataURI, filename){
 }
 
  //画像トリミング
-var drawArea = {x:0,y:0,width:0,height:0};
 var ParaList = new Array();
 function doTrim() {
 	var rate = img.width / VISIBLE_WIDTH; //画面位置to入力画像位置変換係数
@@ -296,7 +295,7 @@ function doTrim() {
         var dHeight = sHeight;
 
         out_ctx.drawImage(img, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
-        drawArea = {x:dx,y:dy,w:dWidth,h:dHeight};
+        var drawArea = {x:dx,y:dy,w:dWidth,h:dHeight};
         ParaList.push(drawArea);
         ParaNo++;
     }
@@ -330,8 +329,8 @@ function rangeXChange(n,val) {
 	for (var i=0;i<trimBoxList.length;i++){ var elem = trimBoxList[i];
         if(n==1){ //左端変更時
             guide_L = parseInt(val);
-            elem.style.left = (guide_L-leftSpace) + 'px';
-			trim_W = guide_R - guide_L;
+            elem.style.left = (guide_L - leftSpace) + 'px';
+			trim_W = guide_R - guide_L + leftSpace;
 			elem.style.width = trim_W + 'px';
 			//leftSpace = 0;
 		} else { //右端変更時
