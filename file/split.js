@@ -10,7 +10,7 @@ var trim_H = VISIBLE_HEIGHT * 0.1; //トリミング枠縦幅(初期値)
 var trim_W = guide_R - guide_L; //ガイド線間距離(初期値)
 var offset_Y = 0;
 var offset_X = 0;
-var guideLeft = 10; //ガイド線左側のスペース
+var leftSpace = 10; //ガイド線左側のスペース
 var Top_margin = VISIBLE_HEIGHT * 0.05; //描画開始位置X（上部余白）
 var title_h = 0;
 var Para_interval = 15; //段落間隔
@@ -19,8 +19,8 @@ var selectingID = '';
 
 const cvs = document.getElementById('in'); //inエリアcanvas
 const out = document.getElementById('out'); //outエリアcanvas
-const ctx_in = cvs.getContext('2d');
-const ctx_out = out.getContext('2d');
+const in_ctx = cvs.getContext('2d');
+const out_ctx = out.getContext('2d');
 const rangeInput_L = document.getElementById('rangeInput_L');
 const rangeInput_R = document.getElementById('rangeInput_R');
 const trimBoxList = document.getElementsByClassName('trimBox');
@@ -59,9 +59,9 @@ img.onload = function(_ev) {
 		FileName.innerHTML=file[fileNo].name+' ('+(fileNo+1)+' / '+file.length+')';
 	cvs.width = img.width;
 	cvs.height = img.width*ASPECT_R;
-    ctx_in.fillStyle = 'white';
-    ctx_in.fillRect(0, 0, cvs.width, cvs.height);
-    ctx_in.drawImage(img,0,0,img.width,img.height);
+    in_ctx.fillStyle = 'white';
+    in_ctx.fillRect(0, 0, cvs.width, cvs.height);
+    in_ctx.drawImage(img,0,0,img.width,img.height);
 }
 
 function Load_Pre() {
@@ -79,7 +79,7 @@ function Load_Next() {
 function Input_Clear(){
 	clearTrimBox();
 	clearOCRTextBox();
-	ctx_in.clearRect(0, 0, cvs.width, cvs.height);
+	in_ctx.clearRect(0, 0, cvs.width, cvs.height);
 	deleTrimBox('edgeBox');
 	objFile.value = '';
 	FileName.innerHTML = '';
@@ -178,7 +178,7 @@ function stopMove(e) {
 function drawTrimBox(id,PositionY) {
 	divbox.id = id;
 	divbox.className = 'trimBox';
-	divbox.draw(guide_L-guideLeft,PositionY,trim_W+guideLeft,trim_H);
+	divbox.draw(guide_L-leftSpace,PositionY,trim_W+leftSpace,trim_H);
 	selectingID = id;
 	tboxNum.value ++;
 }
@@ -256,23 +256,27 @@ function doTrim() {
 		out.width = img.width;
 		out.height = img.width*ASPECT_R;
         // 背景
-        ctx_out.fillStyle = 'white';  //DEBUG用 '#f1f1f1'
-        ctx_out.fillRect(0, 0, cvs.width, cvs.height);
+        out_ctx.fillStyle = 'white';  //DEBUG用 '#f1f1f1'
+        out_ctx.fillRect(0, 0, cvs.width, cvs.height);
         // 表題
         var titleText = document.getElementById('title_text').value;
         if (titleText.length > 0) {
-            ctx_out.font = cvs.width / 25 + "px serif";
-            ctx_out.fillStyle = 'black';
-            var textWidth = ctx_out.measureText(titleText).width;
-            var textHeight = ctx_out.measureText(titleText).height;
-            ctx_out.fillText(titleText, (cvs.width - textWidth) / 2, Top_margin * rate);
+            out_ctx.font = cvs.width / 25 + "px serif";
+            out_ctx.fillStyle = 'black';
+            var textWidth = out_ctx.measureText(titleText).width;
+            var textHeight = out_ctx.measureText(titleText).height;
+            out_ctx.fillText(titleText, (cvs.width - textWidth) / 2, Top_margin * rate);
             title_h = 20;
 		} else title_h = 0;
     }
 
 	var rate_out = out.width / VISIBLE_WIDTH; //画面位置to出力位置変換係数
+	var trimBoxList_now = document.querySelectorAll('.trimBox');
+	var trimBoxListArray = Array.from( trimBoxList_now ) ;// 配列に変換
+	trimBoxListArray.sort(function (a,b){ return parseInt(a.style.top) - parseInt(b.style.top); })
+
     //for (var elem of trimBoxList) {
-	for (var i=0;i<trimBoxList.length;i++){ var elem = trimBoxList[i];
+	for (var i=0;i<trimBoxListArray.length;i++){ var elem = trimBoxListArray[i];
         //console.log("描画回数:" + ParaNo);
         var paraStart = paraStartPosition(ParaNo) + trim_H;
         if (paraStart > VISIBLE_HEIGHT) {
@@ -286,27 +290,29 @@ function doTrim() {
         var sWidth = parseInt(elem.style.width) * rate;
         var sHeight = parseInt(elem.style.height) * rate;
         //出力部
-        var dx = (VISIBLE_WIDTH-trim_W-guideLeft) / 2 * rate_out;
+        var dx = (VISIBLE_WIDTH-trim_W-leftSpace) / 2 * rate_out;
         var dy = paraStartPosition(ParaNo) * rate_out;
         var dWidth = sWidth;
         var dHeight = sHeight;
 
-        ctx_out.drawImage(img, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
-        drawArea = {x:dx,y:dy,width:dWidth,height:dHeight};
+        out_ctx.drawImage(img, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
+        drawArea = {x:dx,y:dy,w:dWidth,h:dHeight};
         ParaList.push(drawArea);
         ParaNo++;
     }
 }
+
 function cancel(){
     if(ParaList.length>0){
     	var a = ParaList.pop();
-    	ctx_out.clearRect(a.x, a.y, a.width, a.height);
+    	out_ctx.clearRect(a.x, a.y, a.w, a.h);
     	ParaNo--;
     }
 }
+
  //n段目から描画位置Y1を計算
 function paraStartPosition(n) {
-        return Top_margin + title_h + (n-1)*Para_interval + (n-1) * trim_H
+        return Top_margin + title_h + (n-1)*Para_interval + (n-1) * trim_H;
 }
 
 function rangeXChange(n,val) {
@@ -324,14 +330,14 @@ function rangeXChange(n,val) {
 	for (var i=0;i<trimBoxList.length;i++){ var elem = trimBoxList[i];
         if(n==1){ //左端変更時
             guide_L = parseInt(val);
-            elem.style.left = guide_L + 'px';
+            elem.style.left = (guide_L-leftSpace) + 'px';
 			trim_W = guide_R - guide_L;
 			elem.style.width = trim_W + 'px';
-			guideLeft = 0;
+			//leftSpace = 0;
 		} else { //右端変更時
             guide_R = parseInt(val);
             trim_W = guide_R - guide_L;
-			var realWidth = trim_W + guideLeft
+			var realWidth = trim_W + leftSpace
 			elem.style.width = realWidth + 'px';
 		}
 	}
@@ -360,32 +366,16 @@ function tvHeightChange(val) {
 	}
     trim_H = parseInt(val);
 }
-function getInputCanvas3() {
-    var canvas = document.createElement('canvas');
-    var ctx = canvas.getContext('2d');
-    canvas.width = out.width;
-    canvas.height = out.height;
-    ctx.drawImage(out,0,0,out.width,out.height);
-    return canvas;
-}
+
+
 function paraIntervalChange(val) {
 
-	/*var changed = parseInt(val) - Para_interval;
-	var workCanvas = getInputCanvas3();
-	ctx_out.clearRect(0, 0, out.width, out.height)
-	var pageEnd = changed*(ParaNo-1)
-	if( pageEnd < VISIBLE_HEIGHT ) {
-	    ParaList.forEach( function(a,index) {
-	    	if(index > 0){
-	    		pre_y = a.y + changed*(index-1)
-	    	    new_y = a.y + changed*(index)
-		    	ctx_out.drawImage(workCanvas, a.x, pre_y, a.width, a.height, a.x, new_y, a.width, a.height);
-	    	}
-	    });
-	}*/
+	Para_interval = parseInt(val);
 
-    Para_interval = parseInt(val);
+	clean_img();
+	doTrim();
 }
+
 function widthLockChange(elem) {
     if(elem.checked)
         widthLock = true;
@@ -395,7 +385,7 @@ function widthLockChange(elem) {
 }
  //出力領域クリア
 function clean_img() {
-    ctx_out.clearRect(0, 0, out.width, out.height)
+    out_ctx.clearRect(0, 0, out.width, out.height)
     ParaNo = 1
 	title_h = 0
 }
@@ -423,10 +413,6 @@ var instList = new Array();
 var checkedList = new Array();
 var LinesArray = new Array();
 const resultArea = document.getElementById('result');
-
-var worker = new Tesseract.createWorker({
-  logger: progressUpdate
-});
 
 function instSelect(elem){
 	var instNo = elem.value
@@ -479,8 +465,8 @@ function result(res){
 			var width = (b.x1-b.x0)*imgToView
 			var hieght = (b.y1-b.y0)*imgToView
 
-			if(guideLeft<width)
-				guideLeft = width
+			if(leftSpace<width)
+				leftSpace = width
 
 			divbox.draw(x, y, width, hieght)
 		}
@@ -615,7 +601,7 @@ function lineDetectLSD(){
 	findLeftStart();
 	out.width = canvas.width;
 	out.height = canvas.height;
-	detector.drawSegments(ctx_out, lines);
+	//detector.drawSegments(out_ctx, lines);
 }
 
 function isHLine(angle){
@@ -725,6 +711,31 @@ function findEdge(a,start,end,threshold) {
 	return index;
 }
 
+//CDN worker
+var worker = new Tesseract.createWorker({
+	  logger: progressUpdate
+	});
+
+//Local worker 
+/*
+const worker = new Tesseract.createWorker({
+		workerPath: './file/tesseract/worker.min.js',
+		langPath: './file/traineddata/',
+		corePath: './file/tesseract/tesseract-core.wasm.js',
+		logger: progressUpdate
+});
+*/
+
+function fixWord(text){
+	var fix = text;
+	switch(text) {
+		case 'Yo': fix = 'Vo';
+		case 'Yo.': fix = 'Vo.';
+	}
+	return fix;
+}
+
+//以降、ES2017必須
 async function startOCR(){
 	//譜表領域検出
 	//await lineDetectLSD();
@@ -738,13 +749,4 @@ async function startOCR(){
 	  });
 	const {data} = await worker.recognize(input);
 	result(data);
-}
-
-function fixWord(text){
-	var fix = text;
-	switch(text) {
-		case 'Yo': fix = 'Vo';
-		case 'Yo.': fix = 'Vo.';
-	}
-	return fix;
 }
