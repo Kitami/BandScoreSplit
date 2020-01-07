@@ -16,6 +16,7 @@ var title_h = 0;
 var Para_interval = 15; //段落間隔
 var ParaNo = 1; //出力領域段落カウント
 var selectingID = '';
+var tiltCorrected = false;
 
 const cvs = document.getElementById('in'); //inエリアcanvas
 const out = document.getElementById('out'); //outエリアcanvas
@@ -27,6 +28,7 @@ const trimBoxList = document.getElementsByClassName('trimBox');
 const OCRTextList = document.getElementsByClassName('OCRText');
 const tboxNum = document.getElementById('trimboxNum'); //トリミング枠数
 const FileName = document.getElementById('FileName');
+const Image_Tilt = document.getElementById('Image_Tilt');
 
 //File input
 var reader;
@@ -51,6 +53,7 @@ function Load_Image(dataUrl) {
 	// 画像の読み込み
 	clearOCRTextBox();
 	img.src = dataUrl;
+	tiltCorrected = false;
 }
 
 img.onload = function(_ev) {
@@ -80,7 +83,7 @@ function Input_Clear(){
 	clearTrimBox();
 	clearOCRTextBox();
 	in_ctx.clearRect(0, 0, cvs.width, cvs.height);
-	deleTrimBox('edgeBox');
+	removeTrimBox('edgeBox');
 	objFile.value = '';
 	FileName.innerHTML = '';
 }
@@ -194,7 +197,7 @@ function drawGuideLine(id,type,positon) {
 }
 
  //トリミング領域削除
-function deleTrimBox(elemID) {
+function removeTrimBox(elemID) {
 	if(!elemID)
 		elemID = selectingID;
 	var elem = document.getElementById(elemID);
@@ -390,22 +393,25 @@ function clean_img() {
 }
  //トリミング枠全削除
 function clearTrimBox() {
-	var trimBoxList_now = document.querySelectorAll('.trimBox');
-	//for (var elem of trimBoxList_now) {
-	for (var i=0;i<trimBoxList_now.length;i++){ var elem = trimBoxList_now[i];
-		elem.parentNode.removeChild(elem);
-	}
+	removeByClassName('trimBox');
 	tboxNum.value = 0;
 }
 //OCR識別枠全削除
 function clearOCRTextBox() {
 	resultArea.innerHTML='認識結果:';
-	var OCRTextList_now = document.querySelectorAll('.OCRText');
-	//for (var elem of OCRTextList_now) {
-	for (var i=0;i<OCRTextList_now.length;i++){ var elem = OCRTextList_now[i];
+	removeByClassName('OCRText');
+	removeByClassName('edgeBox');
+}
+
+//ClassNameで要素削除
+function removeByClassName(ClassName) {
+	var elemList = document.querySelectorAll('.'+ClassName);
+	for (var i=0;i < elemList.length; i++){
+		var elem = elemList[i];
 		elem.parentNode.removeChild(elem);
 	}
 }
+
 //以下、OCR関連
 var language = "eng";
 var instList = new Array();
@@ -427,7 +433,7 @@ function instSelect(elem){
 		var index = checkedList.indexOf(instNo)
 		checkedList.splice(index,1)
 		var tboxId = 'trimBox_instNo_'+ instNo
-		deleTrimBox(tboxId)
+		removeTrimBox(tboxId)
 	}
 }
 
@@ -504,36 +510,28 @@ function progressUpdate(packet){
 
 }
 
-//以下傾き補正関連
-//radian = degree * ( Math.PI / 180 ) 計算用係数
-const TO_RADIANS = Math.PI/180;
-/**
- * 回転させた画像を表示する
- * @param {object} image - Imageオブジェクト
- * @param {number} x - 画像の中心となるX座標
- * @param {number} y - 画像の中心となるY座標
- * @param {number} angle - 回転する角度[度]
+/*
+ * 以下傾き補正関連
  */
-const drawRotatedImage = function (image, x, y, angle) {
-    // コンテキストを保存する
-    context.save();
-    // 回転の中心に原点を移動する
-    context.translate(x, y);
-    // canvasを回転する
-    context.rotate(angle * TO_RADIANS);
-    // 画像サイズの半分だけずらして画像を描画する
-    context.drawImage(image, -(image.width/2), -(image.height/2));
-    // コンテキストを元に戻す
-    context.restore();
-}
+var horizontal_lines = new Array();
+const TO_DEG = 1/Math.PI*180; //計算用係数
+const TO_RAD = Math.PI/180; //計算用係数
 
 function getInputCanvas2() {
     var canvas = document.createElement('canvas');
     var ctx = canvas.getContext('2d');
-    var Ratio = VISIBLE_WIDTH / img.width;
-    canvas.width = img.width*Ratio;
-    canvas.height = img.height*Ratio;
-    ctx.drawImage(img,0,0,img.width,img.height,0,0,img.width*Ratio,img.height*Ratio);
+
+    if(tiltCorrected){
+    	var Ratio = VISIBLE_WIDTH / cvs.width;
+	    canvas.width = cvs.width*Ratio;
+	    canvas.height = cvs.height*Ratio;
+	    ctx.drawImage(cvs,0,0,cvs.width,cvs.height,0,0,cvs.width*Ratio,cvs.height*Ratio);
+    }else{
+        var Ratio = VISIBLE_WIDTH / img.width;
+	    canvas.width = img.width*Ratio;
+	    canvas.height = img.height*Ratio;
+	    ctx.drawImage(img,0,0,img.width,img.height,0,0,img.width*Ratio,img.height*Ratio);
+    }
     //document.getElementById('outputDiv').appendChild(canvas);
     return canvas;
 }
@@ -546,8 +544,6 @@ function lineDetect(){
 	let lines = new cv.Mat();
 	let color = new cv.Scalar(255, 0, 0);
 	cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
-	//cv.threshold(src, dst, 177, 200, cv.THRESH_BINARY);
-	//cv.imshow('out', dst);
 	cv.Canny(src, src, 50, 200, 3);
 
 	//HoughLinesP
@@ -567,7 +563,7 @@ function lineDetect(){
 	    LinesArray.push({"startPoint":startPoint,"endPoint":endPoint,"angle":angle});
 	    cv.line(dst, startPoint, endPoint, color);
 	}
-	findLeftStart();
+	blockAnalysis();
 	cv.imshow('out', dst);
 	//src.delete();
 	//dst.delete();
@@ -594,23 +590,52 @@ function lineDetectLSD(){
 	    var startPoint = {'x':Math.floor(L.x1), 'y':Math.floor(L.y1)};
 	    var endPoint = {'x':Math.floor(L.x2), 'y':Math.floor(L.y2)};
 	    var angle = Math.atan2( endPoint.y - startPoint.y, endPoint.x - startPoint.x ) ;
-	    var distance = Math.sqrt( Math.pow( L.x2-L.x1, 2 ) + Math.pow( L.y2-L.y1, 2 ) ) ;
-	    LinesArray.push({"startPoint":startPoint,"endPoint":endPoint,"angle":angle,'distance':distance});
+	    var length = Math.sqrt( Math.pow( L.x2-L.x1, 2 ) + Math.pow( L.y2-L.y1, 2 ) ) ;
+	    LinesArray.push({"startPoint":startPoint,"endPoint":endPoint,"angle":angle,'length':length});
 	}
-	findLeftStart();
+
 	out.width = canvas.width;
 	out.height = canvas.height;
+	blockAnalysis();
 	//detector.drawSegments(out_ctx, lines);
 }
 
-function isHLine(angle){
-	return (-0.1 < angle && angle < 0.1);
+const DIFF = 0.055; //傾き許容範囲-約3度
+const HORIZON = Math.PI;
+const VERTICAL_1 = 90 * TO_RAD;
+const VERTICAL_2 = 270 * TO_RAD;
+
+function isHorizon(angle){
+	var a = Math.abs(angle);
+	return (0 < a && a < DIFF) || (HORIZON-DIFF < a && a < HORIZON+DIFF);
 }
-function isVLine(angle){
-	return (1.5 < angle && angle < 1.6);
+function isVertical(angle){
+	var a = Math.abs(angle);
+	return  (VERTICAL_1-DIFF < a && a < VERTICAL_1+DIFF)
+		|| (VERTICAL_2-DIFF < a && a < VERTICAL_2+DIFF);
 }
 
-function findLeftStart() {
+function calcTiltAngle(angle){
+	var tiltAngle;
+	if (-DIFF < angle && angle < DIFF){
+		tiltAngle = 0 + angle;
+	} else if (HORIZON-DIFF < angle && angle < HORIZON+DIFF){
+		tiltAngle = angle - Math.PI;
+	} else if (0-HORIZON-DIFF < angle && angle < DIFF-HORIZON){
+		tiltAngle = angle + Math.PI;
+	}
+	return tiltAngle;
+}
+
+function drawLine(x1,y1,x2,y2){
+	out_ctx.beginPath();
+	out_ctx.moveTo(x1,y1);
+	out_ctx.lineTo(x2,y2);
+	out_ctx.stroke();
+}
+
+//譜表ブロック解析
+function blockAnalysis() {
 	var x1_Array = new Array();
 	var x2_Array = new Array();
 	var center = VISIBLE_WIDTH / 2;
@@ -623,22 +648,29 @@ function findLeftStart() {
 
 	//for (L of LinesArray){
 	for (var i in LinesArray){var L =  LinesArray[i];
-		if(L.distance > VISIBLE_WIDTH /100+10){
-		if(isHLine(L.angle)){
-			//横線端点検出方式
+		if(L.length > 0.02*VISIBLE_WIDTH){
+		if(isHorizon(L.angle)){
+
+//横線端点検出方式
 			/*
 			var s = L.startPoint.x
 			var e = L.endPoint.x
 			if( s < center ) x1_Array.push(s)
 			if( e > center ) x2_Array.push(e)
 			*/
+
 //合計長さ集計方式
 			//横線合計長さ集計
-			var y = L.startPoint.y
-			var d = parseInt(L.distance)
+			var y = L.startPoint.y;
+			var d = parseInt(L.length);
 
-			if(d>=img.width*0.3){
-				sumAngle = sumAngle + L.angle;
+			//横線傾き角度集計
+			if(L.length>0.2*VISIBLE_WIDTH){
+				out_ctx.strokeStyle = 'red';
+				sumAngle = sumAngle + calcTiltAngle(L.angle);
+				//drawLine(L.startPoint.x,L.startPoint.y,L.endPoint.x,L.endPoint.y);
+				//out_ctx.closePath();
+				horizontal_lines.push({'length':L.length,'angle':L.angle,'TiltAngle':calcTiltAngle(L.angle)*TO_DEG});
 				sumAngleN++;
 			}
 
@@ -647,16 +679,15 @@ function findLeftStart() {
 				else
 					hMap_Array[y] = d;
 
-		} else if (isVLine(L.angle)){
+		} else if (isVertical(L.angle)){
 				//縦線合計長さ集計
-				var x = L.startPoint.x
-				var d = parseInt(L.distance)
+				var x = L.startPoint.x;
+				var d = parseInt(L.length);
 
 					if(vMap_Array[x])
 						vMap_Array[x] += d;
 					else
 						vMap_Array[x] = d;
-
 			}
 
 		}
@@ -670,27 +701,49 @@ function findLeftStart() {
 	var right = findEdge(vMap_Array,VISIBLE_WIDTH,VISIBLE_WIDTH/3,threshold);
 	var top_v = findEdge(hMap_Array,1,center_v,threshold_H);
 	var bot_v = findEdge(hMap_Array,VISIBLE_HEIGHT,center_v,threshold_H);
-	var vAngle = sumAngle / sumAngleN;
+	var vAngle_radians = sumAngle / sumAngleN;
+	var vAngle_degree = vAngle_radians * TO_DEG;
 
-	console.log('横線平均角度 :', vAngle);
+	console.log('横線平均角度 :', vAngle_degree);
+	console.log('横線角度Map :', horizontal_lines);
 	console.log('横線Map :', hMap_Array);
 	console.log('縦線Map :', vMap_Array);
-//	console.log('左側縦線Map最大値 :', left);
-//	console.log('右側縦線Map最大値 :', right);
-//	console.log('上側横線Map最大値 :', top_v);
-//	console.log('下側横線Map最大値 :', bot_v);
+	console.log('左側縦線Map最大値 :', left);
+	console.log('右側縦線Map最大値 :', right);
+	console.log('上側横線Map最大値 :', top_v);
+	console.log('下側横線Map最大値 :', bot_v);
 
-    //var imgToView = VISIBLE_WIDTH/img.width;
-	var imgToView = 1;
-	rangeInput_L.value = left*imgToView;
-	rangeInput_R.value = right*imgToView;
-	rangeXChange(1,rangeInput_L.value);
-	rangeXChange(2,rangeInput_R.value);
-	divbox.id = 'edgeBox';
-	divbox.className = 'edgeBox';
+	if(Math.abs(vAngle_degree) < 0.5 ) {
+		rangeInput_L.value = left;
+		rangeInput_R.value = right;
+		rangeXChange(1,rangeInput_L.value);
+		rangeXChange(2,rangeInput_R.value);
+		divbox.className = 'edgeBox';
+		divbox.draw(rangeInput_L.value,top_v,(right-left),(bot_v-top_v));
+	} else {
+		//傾き補正
+		Image_Tilt.innerHTML = '画像傾き:'+vAngle_degree;
+		drawRotatedImage(cvs, -vAngle_radians);
+		tiltCorrected = true;
+	}
+
 	progressUpdate({status: '譜表領域検出完了'});
-	divbox.draw(rangeInput_L.value,top_v*imgToView,(right-left)*imgToView,(bot_v-top_v)*imgToView);
 }
+
+/**
+* 画像を回転
+* @param {object} canvas - canvasオブジェクト
+* @param {number} angle - 回転する角度[RADIANS]
+*/
+function drawRotatedImage(canvas, angle) {
+	var context = canvas.getContext('2d');
+	context.save();
+	context.translate(canvas.width/2, canvas.height/2);
+	context.rotate(angle);
+	context.drawImage(canvas, -(canvas.width/2), -(canvas.height/2));
+	context.restore();
+}
+
 function maxIndex(a,start,end) {
 	var index = 0;
 	var value = -1;
@@ -701,6 +754,7 @@ function maxIndex(a,start,end) {
 	}
 	return index;
 }
+
 function findEdge(a,start,end,threshold) {
 	var index = 0;
 	var increase = start<end ? 1 : -1 ;
@@ -711,19 +765,13 @@ function findEdge(a,start,end,threshold) {
 }
 
 //CDN worker
+/*
 var worker = new Tesseract.createWorker({
 	  logger: progressUpdate
 	});
-
-//Local worker 
-/*
-const worker = new Tesseract.createWorker({
-		workerPath: './file/tesseract/worker.min.js',
-		langPath: './file/traineddata/',
-		corePath: './file/tesseract/tesseract-core.wasm.js',
-		logger: progressUpdate
-});
 */
+
+//Local worker
 
 function fixWord(text){
 	var fix = text;
@@ -738,6 +786,13 @@ function fixWord(text){
 async function startOCR(){
 	//譜表領域検出
 	//await lineDetectLSD();
+
+	const worker = new Tesseract.createWorker({
+		workerPath: './file/tesseract/worker.min.js',
+		langPath: './file/traineddata/',
+		corePath: './file/tesseract/tesseract-core.wasm.js',
+		logger: progressUpdate
+	});
 
 	var input = getInputCanvas();
 	await worker.load();
