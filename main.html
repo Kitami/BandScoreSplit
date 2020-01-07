@@ -13,7 +13,7 @@
 			<button class="fileChangeBtn" onclick="Load_Pre('')">前</button>
 			<button class="fileChangeBtn" onclick="Load_Next('')">次</button>
 			<button class="fileChangeBtn" onclick="Input_Clear('')">クリア</button>
-			Band Score Split v0.12 beta 自動認識開発中
+			Band Score Split v0.13 beta 自動認識開発中
 			<br><span id="FileName"></span>
 		<div style='display:flex;'>
 			<div class="setting leftSide">トリミング枠設定
@@ -27,13 +27,14 @@
 			<br>個数:<input type="number" id="trimboxNum" disabled="disabled" class="tboxSetting" />
 			<div style="display: inline-block;padding-top:1px;margin-bottom:-1px;">
 			<button class="tboxBtn" onclick="addTrimBox()">追加</button>
-			<button class="tboxBtn" onclick="deleTrimBox()">削除</button>
+			<button class="tboxBtn" onclick="removeTrimBox()">削除</button>
 			<button class="tboxBtn" onclick="clearTrimBox()">全削除</button>
 			</div>
 			</div>
 
-			<div class="setting leftSide">自動認識設定
-			<br>検索対象:<input type="text" id="searchText"/>
+			<div class="setting leftSide">OCR設定
+<!-- 			<br>検索対象:<input type="text" id="searchText"/> -->
+
 			<button onclick="lineDetectLSD()">直線検出</button>
 			<button onclick="startOCR()">文字認識</button>
 <!-- 			傾き角度:<button onclick="fix()">補正</button> -->
@@ -44,7 +45,8 @@
 			</div>
 		</div>
 
-	<div id="result" style="padding: 3px;">ガイド線左側のみ認識される</div>
+	<div id="result" style="padding: 3px;">認識結果:</div>
+	<div id="Image_Tilt" style="padding: 3px;">画像傾き:</div>
 
 	<div id= "topSidebar">
 		<input id='rangeInput_L' type='range' min=4 onchange="rangeXChange(1,value)" oninput="rangeXChange(1,value)" style='width: 354px'>
@@ -80,14 +82,12 @@
 		<div style='width: 15px'></div>
 		<div id='outputDiv' class="canvasDiv"> <canvas id='out'></canvas> </div>
 	</div>
-	<script src='https://unpkg.com/tesseract.js@v2.0.1/dist/tesseract.min.js'></script>
-<!-- 	<script src='file/tesseract/tesseract.min.js'></script> -->
-<!-- 	<script src='file/tesseract/tesseract-core.wasm.js'></script> -->
-<!-- 	<script src='file/tesseract/worker.min.js'></script> -->
-	<script src="https://docs.opencv.org/4.1.2/opencv.js"></script>
-<!--	<script src="file/opencv.js"></script>-->
-<!-- 	<script src="file/Mathematics.js"></script> -->
-
+<!-- 	<script src='https://unpkg.com/tesseract.js@v2.0.1/dist/tesseract.min.js'></script> -->
+<!-- 	<script src="https://docs.opencv.org/4.1.2/opencv.js"></script> -->
+	<script src='file/tesseract/tesseract.min.js'></script>
+	<script src='file/tesseract/tesseract-core.wasm.js'></script>
+	<script src='file/tesseract/worker.min.js'></script>
+	<script src="file/opencv.js"></script>
 	<script src="file/lsd.js"></script>
 	<script src="file/split.js"></script>
 </body>
