@@ -18,6 +18,7 @@ var ParaNo = 1; //出力領域段落カウント
 var selectingID = '';
 var tiltCorrected = false;
 
+var worker;
 const cvs = document.getElementById('in'); //inエリアcanvas
 const out = document.getElementById('out'); //outエリアcanvas
 const in_ctx = cvs.getContext('2d');
@@ -764,15 +765,6 @@ function findEdge(a,start,end,threshold) {
 	return index;
 }
 
-//CDN worker
-/*
-var worker = new Tesseract.createWorker({
-	  logger: progressUpdate
-	});
-*/
-
-//Local worker
-
 function fixWord(text){
 	var fix = text;
 	switch(text) {
@@ -787,12 +779,23 @@ async function startOCR(){
 	//譜表領域検出
 	//await lineDetectLSD();
 
-	const worker = new Tesseract.createWorker({
-		workerPath: './file/tesseract/worker.min.js',
-		langPath: './file/traineddata/',
-		corePath: './file/tesseract/tesseract-core.wasm.js',
-		logger: progressUpdate
-	});
+
+	if(!worker){
+		//CDN worker
+		worker = new Tesseract.createWorker({
+			  logger: progressUpdate
+			});
+
+		//Local worker
+		/*
+	 	const worker = new Tesseract.createWorker({
+			workerPath: './file/tesseract/worker.min.js',
+			langPath: './file/traineddata/',
+			corePath: './file/tesseract/tesseract-core.wasm.js',
+			logger: progressUpdate
+		});
+		*/
+	}
 
 	var input = getInputCanvas();
 	await worker.load();
