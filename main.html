@@ -46,7 +46,9 @@
 		</div>
 
 	<div id="result" style="padding: 3px;">認識結果:</div>
-	<div id="Image_Tilt" style="padding: 3px;">画像傾き:</div>
+	<div id="ImageTilt" style="padding: 3px;">傾き補正:
+		<input type="number" id="Tilt_Correction" step="0.05" onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
+	</div>
 
 	<div id= "topSidebar">
 		<input id='rangeInput_L' type='range' min=4 onchange="rangeXChange(1,value)" oninput="rangeXChange(1,value)" style='width: 354px'>
