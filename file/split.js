@@ -29,7 +29,7 @@ const trimBoxList = document.getElementsByClassName('trimBox');
 const OCRTextList = document.getElementsByClassName('OCRText');
 const tboxNum = document.getElementById('trimboxNum'); //トリミング枠数
 const FileName = document.getElementById('FileName');
-const Image_Tilt = document.getElementById('Image_Tilt');
+const Tilt_Correction = document.getElementById('Tilt_Correction');
 
 //File input
 var reader;
@@ -87,6 +87,8 @@ function Input_Clear(){
 	removeTrimBox('edgeBox');
 	objFile.value = '';
 	FileName.innerHTML = '';
+	tiltCorrected = false;
+	Tilt_Correction.value = '';
 }
 
 window.onload = function() {
@@ -629,6 +631,7 @@ function calcTiltAngle(angle){
 }
 
 function drawLine(x1,y1,x2,y2){
+	out_ctx.strokeStyle = 'red';
 	out_ctx.beginPath();
 	out_ctx.moveTo(x1,y1);
 	out_ctx.lineTo(x2,y2);
@@ -667,7 +670,6 @@ function blockAnalysis() {
 
 			//横線傾き角度集計
 			if(L.length>0.2*VISIBLE_WIDTH){
-				out_ctx.strokeStyle = 'red';
 				sumAngle = sumAngle + calcTiltAngle(L.angle);
 				//drawLine(L.startPoint.x,L.startPoint.y,L.endPoint.x,L.endPoint.y);
 				//out_ctx.closePath();
@@ -714,7 +716,9 @@ function blockAnalysis() {
 	console.log('上側横線Map最大値 :', top_v);
 	console.log('下側横線Map最大値 :', bot_v);
 
-	if(Math.abs(vAngle_degree) < 0.5 ) {
+	Tilt_Correction.value = -vAngle_degree;
+
+	if(Math.abs(vAngle_degree) < 0.4 ) {
 		rangeInput_L.value = left;
 		rangeInput_R.value = right;
 		rangeXChange(1,rangeInput_L.value);
@@ -723,8 +727,7 @@ function blockAnalysis() {
 		divbox.draw(rangeInput_L.value,top_v,(right-left),(bot_v-top_v));
 	} else {
 		//傾き補正
-		Image_Tilt.innerHTML = '画像傾き:'+vAngle_degree;
-		drawRotatedImage(cvs, -vAngle_radians);
+		rotatImage(-vAngle_radians);
 		tiltCorrected = true;
 	}
 
@@ -734,15 +737,18 @@ function blockAnalysis() {
 /**
 * 画像を回転
 * @param {object} canvas - canvasオブジェクト
-* @param {number} angle - 回転する角度[RADIANS]
+* @param {number} angle - 回転する角度[Rad]
 */
-function drawRotatedImage(canvas, angle) {
-	var context = canvas.getContext('2d');
+function rotatImage(angle) {
+	var context = cvs.getContext('2d');
 	context.save();
-	context.translate(canvas.width/2, canvas.height/2);
+	context.translate(cvs.width/2, cvs.height/2);
 	context.rotate(angle);
-	context.drawImage(canvas, -(canvas.width/2), -(canvas.height/2));
+	context.drawImage(img, -(img.width/2), -(img.height/2));
 	context.restore();
+}
+function rotatImageByDegree(value) {
+	rotatImage(value*Math.PI/180);
 }
 
 function maxIndex(a,start,end) {
