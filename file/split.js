@@ -293,7 +293,7 @@ function doTrim() {
         var dWidth = sWidth;
         var dHeight = sHeight;
 
-        out_ctx.drawImage(img, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
+        out_ctx.drawImage(cvs, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
         var drawArea = {x:dx,y:dy,w:dWidth,h:dHeight};
         ParaList.push(drawArea);
         ParaNo++;
