@@ -314,6 +314,7 @@ function paraStartPosition(n) {
 }
 
 function rangeXChange(n,val) {
+
 	if(n==1){
 		guide_L = parseInt(val);
 		document.getElementById('guide_left').style.left = guide_L + 'px';
@@ -406,17 +407,16 @@ const resultArea = document.getElementById('result');
 function instSelect(elem){
 	var instNo = elem.value
 	var instElem = document.getElementById('instList_'+instNo)
+	var tboxId = 'trimBox_instNo_'+ instNo
 
 	if(elem.checked && !checkedList.includes(instNo)) {
 		var y = parseInt(instElem.style.top) + parseInt(instElem.style.height)/2 - trim_H/2
-		var tboxId = 'trimBox_instNo_'+ instNo
 		drawTrimBox(tboxId,y)
 		checkedList.push(instNo)
 	}
 	if(!elem.checked && checkedList.includes(instNo)){
 		var index = checkedList.indexOf(instNo)
 		checkedList.splice(index,1)
-		var tboxId = 'trimBox_instNo_'+ instNo
 		removeTrimBox(tboxId)
 	}
 }
@@ -424,7 +424,7 @@ function instSelect(elem){
 function getInputCanvas() {
     var canvas = document.createElement('canvas');
     var ctx = canvas.getContext('2d');
-	var useWidth = img.width * guide_L / VISIBLE_WIDTH;
+    var useWidth = img.width * guide_L / VISIBLE_WIDTH;
     canvas.width = useWidth;
     canvas.height = img.height;
     ctx.drawImage(img,0,0,useWidth,img.height,0,0,useWidth,img.height);
@@ -600,15 +600,15 @@ function isVertical(angle){
 }
 
 function calcTiltAngle(angle){
-	var tiltAngle;
+	var tilt;
 	if (-DIFF < angle && angle < DIFF){
-		tiltAngle = 0 + angle;
+		tilt = 0 + angle;
 	} else if (HORIZON-DIFF < angle && angle < HORIZON+DIFF){
-		tiltAngle = angle - Math.PI;
-	} else if (0-HORIZON-DIFF < angle && angle < DIFF-HORIZON){
-		tiltAngle = angle + Math.PI;
+		tilt = angle - Math.PI;
+	} else if (0 - HORIZON - DIFF < angle && angle < 0 - HORIZON +DIFF){
+		tilt = angle + Math.PI;
 	}
-	return tiltAngle;
+	return tilt;
 }
 
 function drawLine(x1,y1,x2,y2){
@@ -632,7 +632,8 @@ function blockAnalysis() {
 	var sumAngleN=0;
 
 	//for (L of LinesArray){
-	for (var i in LinesArray){var L =  LinesArray[i];
+	for (var i in LinesArray){
+		var L =  LinesArray[i];
 		if(L.length > 0.02*VISIBLE_WIDTH){
 		if(isHorizon(L.angle)){
 
@@ -702,9 +703,9 @@ function blockAnalysis() {
 	if(Math.abs(vAngle_degree) < 0.4 ) {
 		rangeInput_L.value = left;
 		rangeInput_R.value = right;
-		rangeXChange(1,rangeInput_L.value);
-		rangeXChange(2,rangeInput_R.value);
-		drawDivBox('','edgeBox',rangeInput_L.value,top_v,(right-left),(bot_v-top_v));
+		rangeXChange(1,left);
+		rangeXChange(2,right);
+		drawDivBox('','edgeBox',left,top_v,(right-left),(bot_v-top_v));
 	} else {
 		//傾き補正
 		rotatImage(-vAngle_radians);
