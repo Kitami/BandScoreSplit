@@ -1,13 +1,40 @@
+html, body { height: 100%;margin: 0px;}
+
 body {
-	background-color: #CCCCCC;
+	background-color: #CCCCCC;width: 1500px;font-size: 13.5px;padding: 5px;height:  calc(100% - 10px);
+}
+#canvasArea {
+	display: flex;height: calc(100% - 190px);width: 100%;margin-top: 2px;
+}
+.canvasDiv {
+	position: relative;
+	height: 100%;width: 730px;overflow-y: scroll;overflow-x: visible;
+	margin-top: 2px;
 }
 canvas {
-	border: solid 1px gray;
+	width: 708px;background-color: white;border: solid 1px gray;
+	height: 1000px;
+}
+#topArea {
+	width: 100%;display: flex;height:125px;
+}
+#topLeftArea,#topRightArea {
+	width: 709px;
+}
+
+#input-bar{
+	height:26px;font-size: 10px;
+}
+#input-bar button{
+	height:26px;width: 45px;
+}
+#trimboxSetting {
+	font-size: 14px;
 }
 
 input[type=file] {
 	background-color: white;
-	width: 280px;
+	width: 96px;height:26px;
 }
 
 input[type=range] {
@@ -25,36 +52,15 @@ input[type=range][orient=vertical] {
 select {
 	width: 33%;
 }
-#topArea {
-	width: 1450px;
-	font-size: 13.5px;
-	display: flex;
-}
-
-#topLeftArea {
-	width: 709px;
-}
-
-#topRightArea {
-	width: 700px;
-}
-
-#canvasArea {
-	display: flex;
-	margin-top: 2px;
-}
 
 .setting {
 	border: solid 1px white;
-	padding: 3px;
+	padding: 3px;height:100px;
 }
-
 .rightSide {
 	width: 100%;
-	height: 95%;
 	padding: 3px;
 }
-
 .leftSide {
 	width: 50%;
 	margin-top: 2px;
@@ -86,26 +92,9 @@ select {
 }
 
 #topSidebar {
-	display: flex;
+	display: flex;height: 13px;
 	margin-top: 6px;
 	margin-bottom: 3px;
-}
-
-.canvasDiv {
-	background-color: white;
-	position: relative;
-	height: 1000px;
-	margin-top: 2px;
-}
-
-#in {
-	width: 708px;
-	height: 1000px;
-}
-
-#out {
-	width: 708px;
-	height: 1000px;
 }
 
 .trimBox {
@@ -135,4 +124,8 @@ select {
 	border: solid 1px rgba(0, 0, 255, 0.5);
 	cursor: col-resize;
 	position: absolute;
+}
+
+#Tilt_Correction {
+	width:120px;
 }
