@@ -6,15 +6,9 @@
 	<link href="file/split.css" rel="stylesheet" type="text/css">
 </head>
 <body>
-
+<span>Band Score Split v0.13 beta 自動認識開発中</span>
 <div id="topArea">
 	<div id="topLeftArea">
-			<input type="file" multiple id="selectFile">
-			<button class="fileChangeBtn" onclick="Load_Pre('')">前</button>
-			<button class="fileChangeBtn" onclick="Load_Next('')">次</button>
-			<button class="fileChangeBtn" onclick="Input_Clear('')">クリア</button>
-			Band Score Split v0.13 beta 自動認識開発中
-			<br><span id="FileName"></span>
 		<div style='display:flex;'>
 			<div class="setting leftSide">トリミング枠設定
 			<br>
@@ -26,45 +20,34 @@
 <!-- 			<input type="checkbox" id="tvWidthLock" oninput="widthLockChange(this)"/>横幅固定 -->
 			<br>個数:<input type="number" id="trimboxNum" disabled="disabled" class="tboxSetting" />
 			<div style="display: inline-block;padding-top:1px;margin-bottom:-1px;">
-			<button class="tboxBtn" onclick="addTrimBox()">追加</button>
-			<button class="tboxBtn" onclick="removeTrimBox()">削除</button>
-			<button class="tboxBtn" onclick="clearTrimBox()">全削除</button>
+<!-- 				<button class="tboxBtn" onclick="addTrimBox()">追加</button> -->
+<!-- 				<button class="tboxBtn" onclick="removeTrimBox()">削除</button> -->
+<!-- 				<button class="tboxBtn" onclick="clearTrimBox()">全削除</button> -->
 			</div>
 			</div>
-
-			<div class="setting leftSide">OCR設定
-<!-- 			<br>検索対象:<input type="text" id="searchText"/> -->
-
+			<div class="setting leftSide">画像認識設定
+			<div id="ImageTilt" style="padding: 3px;">傾き補正:
+			<input type="number" id="Tilt_Correction" step="0.05" onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
 			<button onclick="lineDetectLSD()">直線検出</button>
-			<button onclick="startOCR()">文字認識</button>
-<!-- 			傾き角度:<button onclick="fix()">補正</button> -->
+			<button onclick="startOCR()">OCR開始</button>
+			</div>
+
 			<div id="log">
-				<div id="statusText">status</div>
-				<progress id="progressbar" value="0" max="1"></progress>
+						<div id="statusText">status</div>
+						<progress id="progressbar" value="0" max="1"></progress>
+					</div>
+					</div>
+				</div>
+			<span id="FileName"></span> <span id="in_res"></span>
+			<div id="result" style="padding: 3px;"></div>
 			</div>
-			</div>
-		</div>
 
-	<div id="result" style="padding: 3px;">認識結果:</div>
-	<div id="ImageTilt" style="padding: 3px;">傾き補正:
-		<input type="number" id="Tilt_Correction" step="0.05" onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
-	</div>
+		<div style='width: 26px'>&nbsp;</div>
 
-	<div id= "topSidebar">
-		<input id='rangeInput_L' type='range' min=4 onchange="rangeXChange(1,value)" oninput="rangeXChange(1,value)" style='width: 354px'>
-		<input id='rangeInput_R' type='range' min=0 onchange="rangeXChange(2,value)" oninput="rangeXChange(2,value)" style='width: 354px'>
-	</div>
-
-	</div>
-		<div style='width: 15px'></div>
 		<div id="topRightArea">
 		<div class="setting rightSide">
-			<button onclick='doTrim()'>トリミング</button>
-			<button onclick='cancel()'>元に戻す</button>
-			<button onclick="clean_img()">出力領域クリア</button>
-			<button onclick="download()">画像出力</button>
 			<!-- <a report="">BUG報告、FAQなど</a> -->
-			<br>出力画像サイズ<select name="output_size" disabled="disabled" >
+			出力画像サイズ<select name="output_size" disabled="disabled" >
 				<option value="origin">入力サイズと同じ幅</option>
 				<option value="B4_600">B4 600DPI</option>
 				<option value="B4_300">B4 300DPI</option>
@@ -74,22 +57,59 @@
 			<br>段落間隔:<input type="number" step="1" id="Para_interval" min="0" oninput="paraIntervalChange(value)" style="width: 40px"/>
 			<br>曲　名:<input type="text" id="title_text" class="titleText"/>
 			<br>作曲者:<input type="text" id="title_text2" class="titleText" disabled="disabled" />
-			<br><a id="hiddenLink" download="download.png">ダウンロードされない場合、下図を右クリックして保存してください。</a>
+			<span id="out_res"></span>
 		</div>
 		</div>
 	</div>
 
 	<div id="canvasArea">
-		<div id='inputDiv' class="canvasDiv"><canvas id='in'></canvas> </div>
-		<div style='width: 15px'></div>
-		<div id='outputDiv' class="canvasDiv"> <canvas id='out'></canvas> </div>
+
+	<div id="canvasArea-input">
+	<span id="FileName"></span> <span id="in_res"></span>
+	<div id="input-bar">
+		<input type="file" multiple id="selectFile">
+		<button onclick="Load_Pre('')">Pre</button>
+		<button onclick="Load_Next('')">Next</button>
+		<button onclick="Input_Clear('')">Clear</button>
+		<span id="trimboxSetting">
+		トリミング枠:
+		<button onclick="addTrimBox()">追加</button>
+		<button onclick="removeTrimBox()">削除</button>
+		<button style="width: 60px;" onclick="clearTrimBox()">全削除</button>
+		</span>
+	</div>
+	<div id= "topSidebar">
+		<input id='rangeInput_L' type='range' min=4 onchange="rangeXChange(1,value)" oninput="rangeXChange(1,value)" style='width: 354px'>
+	<input id='rangeInput_R' type='range' min=0 onchange="rangeXChange(2,value)" oninput="rangeXChange(2,value)" style='width: 354px'>
+	</div>
+		<div id='inputDiv' class="canvasDiv">
+		      <canvas id='in'></canvas>
+		</div>
+	</div>
+
+	<div style="width: 5px;">&nbsp;</div>
+
+	<div id="canvasArea-output">
+	<div id="output-bar">
+			<button onclick='doTrim()'>トリミング</button>
+			<button onclick='cancel()'>元に戻す</button>
+			<button onclick="clean_img()">クリア</button>
+			<button onclick="download()">画像出力</button>
+			<br><a id="hiddenLink" download="download.png">ダウンロードされない場合、下図を右クリックして保存してください。</a>
+	</div>
+
+	<div id='outputDiv' class="canvasDiv">
+		<canvas id='out'></canvas>
+	</div>
+	</div>
+
 	</div>
 	<script src='https://unpkg.com/tesseract.js@v2.0.1/dist/tesseract.min.js'></script>
- 	<script src="https://docs.opencv.org/4.1.2/opencv.js"></script>
-<!--	<script src='file/tesseract/tesseract.min.js'></script> -->
-<!--	<script src='file/tesseract/tesseract-core.wasm.js'></script> -->
-<!--	<script src='file/tesseract/worker.min.js'></script> -->
-<!--	<script src="file/opencv.js"></script> -->
+	<script src="https://docs.opencv.org/4.1.2/opencv.js"></script>
+<!-- 	<script src='file/tesseract/tesseract.min.js'></script> -->
+<!-- 	<script src='file/tesseract/tesseract-core.wasm.js'></script> -->
+<!-- 	<script src='file/tesseract/worker.min.js'></script> -->
+<!-- 	<script src="file/opencv.js"></script> -->
 	<script src="file/lsd.js"></script>
 	<script src="file/split.js"></script>
 </body>
