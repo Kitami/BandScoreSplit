@@ -10,7 +10,7 @@ var guide_R = VISIBLE_WIDTH - guide_L; //右側ガイド線位置(初期値)
 var leftSpace = 10; //ガイド線左側のスペース
 
 var trim_H = VISIBLE_HEIGHT * 0.1; //トリミング枠縦幅(初期値)
-var trim_W = guide_R - guide_L + leftSpace; //ガイド線間距離(初期値)
+var trim_W = guide_R - guide_L + leftSpace; //トリミング枠横幅(初期値)
 var offset_Y = 0;
 var offset_X = 0;
 
@@ -33,6 +33,9 @@ const OCRTextList = document.getElementsByClassName('OCRText');
 const tboxNum = document.getElementById('trimboxNum'); //トリミング枠数
 const FileName = document.getElementById('FileName');
 const Tilt_Correction = document.getElementById('Tilt_Correction');
+const inputDiv = document.getElementById('inputDiv');
+const in_res = document.getElementById('in_res');
+const out_res = document.getElementById('out_res');
 
 //File input
 var reader;
@@ -62,10 +65,12 @@ function Load_Image(dataUrl) {
 
 img.onload = function(_ev) {
     // 画像が読み込まれた
-	if(file.length>1)
-		FileName.innerHTML=file[fileNo].name+' ('+(fileNo+1)+' / '+file.length+')';
 	cvs.width = img.width;
 	cvs.height = img.width*ASPECT_R;
+
+	FileName.innerHTML=file[fileNo].name+' ('+(fileNo+1)+' / '+file.length+')';
+	in_res.innerHTML=' 解像度: '+img.width+'x'+img.height;
+
     in_ctx.fillStyle = 'white';
     in_ctx.fillRect(0, 0, cvs.width, cvs.height);
     in_ctx.drawImage(img,0,0,img.width,img.height);
@@ -126,6 +131,8 @@ function drawDivBox(id,className,x,y,width,height) {
 		if(className == 'trimBox') {
 			elem.addEventListener('click', selectTrimBox, false);
 			elem.addEventListener('mousedown', initMove, false);
+			elem.addEventListener('touchstart', initMove, false);
+			elem.addEventListener('touchend', selectTrimBox, false);
 			var referenceElement = (function(){
 			//for (e of trimBoxList){ if(y < parseInt(e.style.top)) return e } })();
 			for (var i=0;i<trimBoxList.length;i++){var e=trimBoxList[i]; if(y<parseInt(e.style.top)) return e; } })();
@@ -158,8 +165,16 @@ var move_start_y;
 function initMove(e) {
    move_start_y = e.clientY;
    moveElem = event.target;
-   window.addEventListener('mousemove', move, false);
-   window.addEventListener('mouseup', stopMove, false);
+
+   if(e.type=='touchstart'){
+	   //モバイル対応
+	   window.addEventListener('touchmove', move, false);
+	   window.addEventListener('touchend', stopMove, false);
+   }else{
+	   window.addEventListener('mousemove', move, false);
+	   window.addEventListener('mouseup', stopMove, false);
+   }
+
 }
 function move(e) {
 	var topVal = parseInt(moveElem.style.top);
@@ -168,8 +183,14 @@ function move(e) {
 	move_start_y = e.clientY;
 }
 function stopMove(e) {
-    window.removeEventListener('mousemove', move, false);
-    window.removeEventListener('mouseup', stopMove, false);
+    if(e.type=='touchend'){
+		//モバイル対応
+		window.removeEventListener('touchmove', move, false);
+		window.removeEventListener('touchend', stopMove, false);
+    }else{
+        window.removeEventListener('mousemove', move, false);
+        window.removeEventListener('mouseup', stopMove, false);
+    }
 }
 
 //guide_L.addEventListener('mousedown', initMove, false);
@@ -177,7 +198,7 @@ function stopMove(e) {
 
  //トリミング領域描画
 function drawTrimBox(id,PositionY) {
-	drawDivBox(id,'trimBox',guide_L-leftSpace,PositionY,trim_W,trim_H);
+	drawDivBox(id,'trimBox',(guide_L-leftSpace),PositionY,trim_W,trim_H);
 	selectingID = id;
 	tboxNum.value ++;
 }
@@ -206,7 +227,7 @@ function removeTrimBox(elemID) {
 }
 //トリミング領域追加
 function addTrimBox() {
-	drawTrimBox('trimBox_'+ tboxNum.value,VISIBLE_HEIGHT*0.1);
+	drawTrimBox('trimBox_'+ tboxNum.value,	inputDiv.scrollTop);
 }
 
  //画像出力
@@ -219,30 +240,11 @@ function download() {
         window.navigator.msSaveBlob(blob, filename);
     } else {
 		//downloadLink.href = out.toDataURL('image/png');
-		dataURI = out.toDataURL('image/png');
+		var dataURI = out.toDataURL('image/png');
 		download2(dataURI,filename);
-        //downloadLink.download = filename;
-        //downloadLink.click();
+//        downloadLink.download = filename;
+//        downloadLink.click();
     }
-}
-
-function dataURItoBlob(dataURI) {
-	const b64 = atob(dataURI.split(',')[1]);
-	const u8 = Uint8Array.from(b64.split(""), function (e){e.charCodeAt()});
-	return new Blob([u8], {type: "image/png"});
-}
-function download2(dataURI, filename){
-	const blob = dataURItoBlob(dataURI);
-	const url = URL.createObjectURL(blob);
-	const a = document.createElement("a");
-	a.download = filename;
-	a.href = url;
-	a.click();
-	// ダウンロードの時間がわからないので多めに 最低 3s,  1MiB / sec として
-	// 終わった頃に revoke する
-	setTimeout(function (){
-		URL.revokeObjectURL(url);
-	}, Math.max(5000, 1000 * dataURI.length / 1024 * 1024));
 }
 
  //画像トリミング
@@ -288,7 +290,7 @@ function doTrim() {
         var sWidth = parseInt(elem.style.width) * toOrigin;
         var sHeight = parseInt(elem.style.height) * toOrigin;
         //出力部
-        var dx = (VISIBLE_WIDTH-trim_W-leftSpace) / 2 * toOrigin;
+        var dx = (VISIBLE_WIDTH-trim_W) / 2 * toOrigin;
         var dy = paraStartPosition(ParaNo) * toOrigin;
         var dWidth = sWidth;
         var dHeight = sHeight;
@@ -383,7 +385,7 @@ function clearTrimBox() {
 }
 //OCR識別枠全削除
 function clearOCRTextBox() {
-	resultArea.innerHTML='認識結果:';
+	resultArea.innerHTML='';
 	removeByClassName('OCRText');
 	removeByClassName('edgeBox');
 }
@@ -444,18 +446,20 @@ function result(res){
 		var b = w.bbox;
 		var isWord = w.text.match(/[a-z]/gi);
 		if(isWord){
-			divId = "instList_" + index
+			divId = "instList_" + index;
 			instList.push(fixWord(w.text))
 			index++;
 
 			var imgToView = VISIBLE_WIDTH/img.width;
-			var x =(b.x0)*imgToView
-			var y =(b.y0)*imgToView
-			var width = (b.x1-b.x0)*imgToView
-			var hieght = (b.y1-b.y0)*imgToView
+			var x =(b.x0)*imgToView;
+			var y =(b.y0)*imgToView;
+			var width = (b.x1-b.x0)*imgToView;
+			var hieght = (b.y1-b.y0)*imgToView;
 
-			if(leftSpace<width)
-				leftSpace = width
+			if(leftSpace<width){
+				leftSpace = width;
+				trim_W = guide_R - guide_L + leftSpace;
+			}
 
 			drawDivBox(divId,'OCRText',x, y, width, hieght)
 		}
@@ -578,9 +582,11 @@ function lineDetectLSD(){
 	    LinesArray.push({"startPoint":startPoint,"endPoint":endPoint,"angle":angle,'length':length});
 	}
 
-	out.width = canvas.width;
-	out.height = canvas.height;
+	//ブロック解析
 	blockAnalysis();
+
+	//out.width = canvas.width;
+	//out.height = canvas.height;
 	//detector.drawSegments(out_ctx, lines);
 }
 
@@ -762,10 +768,29 @@ function fixWord(text){
 }
 
 //以降、ES2017必須
+function dataURItoBlob(dataURI) {
+	const b64 = atob(dataURI.split(',')[1])
+	const u8 = Uint8Array.from(b64.split(""), e => e.charCodeAt())
+	return new Blob([u8], {type: "image/png"})
+}
+
+function download2(dataURI, filename){
+	const blob = dataURItoBlob(dataURI)
+	const url = URL.createObjectURL(blob)
+	const a = document.createElement("a")
+	a.download = filename
+	a.href = url
+	a.click()
+
+	// ダウンロードの時間がわからないので多めに 最低 3s,  1MiB / sec として
+	// 終わった頃に revoke する
+	setTimeout(() => {
+		URL.revokeObjectURL(url)
+	}, Math.max(3000, 1000 * dataURI.length / 1024 * 1024))
+}
 async function startOCR(){
 	//譜表領域検出
 	//await lineDetectLSD();
-
 
 	if(!worker){
 		//CDN worker
