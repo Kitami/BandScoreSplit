@@ -168,19 +168,31 @@ function initMove(e) {
 
    if(e.type=='touchstart'){
 	   //モバイル対応
+	   event.preventDefault();
+	   var touchObject = e.changedTouches[0] ;
+	   move_start_y = touchObject.pageY;
 	   window.addEventListener('touchmove', move, false);
 	   window.addEventListener('touchend', stopMove, false);
    }else{
 	   window.addEventListener('mousemove', move, false);
 	   window.addEventListener('mouseup', stopMove, false);
    }
-
 }
 function move(e) {
 	var topVal = parseInt(moveElem.style.top);
 	var moveLength = Math.round(e.clientY - move_start_y);
+	if(e.type=='touchmove'){
+		event.preventDefault();
+		var touchObject = e.changedTouches[0] ;
+		moveLength = Math.round(touchObject.pageY - move_start_y);
+	}
+
 	moveElem.style.top = (parseInt(topVal) + moveLength) + "px";
-	move_start_y = e.clientY;
+
+	if (e.type=='touchmove')
+	    move_start_y = touchObject.pageY;
+	else
+	    move_start_y = e.clientY;
 }
 function stopMove(e) {
     if(e.type=='touchend'){
