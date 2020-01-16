@@ -10,7 +10,7 @@ var guide_R = VISIBLE_WIDTH - guide_L; //右側ガイド線位置(初期値)
 var leftSpace = 10; //ガイド線左側のスペース
 
 var trim_H = VISIBLE_HEIGHT * 0.1; //トリミング枠縦幅(初期値)
-var trim_W = guide_R - guide_L + leftSpace; //トリミング枠横幅(初期値)
+var trim_W = guide_R - guide_L; //トリミング枠横幅(初期値)
 var offset_Y = 0;
 var offset_X = 0;
 
@@ -22,6 +22,7 @@ var selectingID = '';
 var tiltCorrected = false;
 
 var worker;
+var guideElem_L,guideElem_R;
 const cvs = document.getElementById('in'); //inエリアcanvas
 const out = document.getElementById('out'); //outエリアcanvas
 const in_ctx = cvs.getContext('2d');
@@ -31,11 +32,12 @@ const rangeInput_R = document.getElementById('rangeInput_R');
 const trimBoxList = document.getElementsByClassName('trimBox');
 const OCRTextList = document.getElementsByClassName('OCRText');
 const tboxNum = document.getElementById('trimboxNum'); //トリミング枠数
-const FileName = document.getElementById('FileName');
+const inputFile_nav = document.getElementById('inputFile_nav');
 const Tilt_Correction = document.getElementById('Tilt_Correction');
 const inputDiv = document.getElementById('inputDiv');
-const in_res = document.getElementById('in_res');
-const out_res = document.getElementById('out_res');
+const inputFileInfo = document.getElementById('inputFileInfo');
+const outputFileInfo = document.getElementById('outputFileInfo');
+const widthLock = document.getElementById('widthLock');
 
 //File input
 var reader;
@@ -50,6 +52,16 @@ objFile.addEventListener("change", function(evt) {
 		fileNo = 0;
 		reader = new FileReader();
 		reader.readAsDataURL(file[0]);
+
+		for (var i=0 ;i < file.length; i++){
+			var fileName = file[i].name;
+			if (i > 0) addTab();
+			var tabElem = inputFile_nav.children[i];
+			tabElem.innerHTML= fileName;
+			setTabStyle(tabElem);
+		}
+		selectTab(inputFile_nav.children[0]);
+
 		reader.onload = function() {
 			Load_Image(reader.result);
 		};
@@ -63,40 +75,43 @@ function Load_Image(dataUrl) {
 	tiltCorrected = false;
 }
 
+const tabCSS = document.getElementById('tabCSS');
 img.onload = function(_ev) {
     // 画像が読み込まれた
 	cvs.width = img.width;
 	cvs.height = img.width*ASPECT_R;
 
-	FileName.innerHTML=file[fileNo].name+' ('+(fileNo+1)+' / '+file.length+')';
-	in_res.innerHTML=' 解像度: '+img.width+'x'+img.height;
+	inputFileInfo.innerHTML= (fileNo+1) + ' / ' +file.length+' 解像度: '+img.width+'x'+img.height;
 
     in_ctx.fillStyle = 'white';
     in_ctx.fillRect(0, 0, cvs.width, cvs.height);
     in_ctx.drawImage(img,0,0,img.width,img.height);
+};
+
+const newTab = document.getElementById('newTab');
+var zindexNo =100;
+
+function addTab(){
+	var tab = newTab.cloneNode(true);
+	zindexNo--;
+	tab.id = 'tab_'+ (101 - zindexNo);
+	tab.style.cssText = 'z-index: '+ zindexNo +';width: 100px;';
+	inputFile_nav.appendChild(tab);
 }
 
 function Load_Pre() {
     if (fileNo > 0) {
         fileNo--;
         reader.readAsDataURL(file[fileNo]);
+        selectTab(inputFile_nav.children[fileNo]);
     }
 }
 function Load_Next() {
     if (fileNo < file.length-1) {
         fileNo++;
         reader.readAsDataURL(file[fileNo]);
+        selectTab(inputFile_nav.children[fileNo]);
     }
-}
-function Input_Clear(){
-	clearTrimBox();
-	clearOCRTextBox();
-	in_ctx.clearRect(0, 0, cvs.width, cvs.height);
-	removeTrimBox('edgeBox');
-	objFile.value = '';
-	FileName.innerHTML = '';
-	tiltCorrected = false;
-	Tilt_Correction.value = '';
 }
 
 window.onload = function() {
@@ -115,6 +130,9 @@ window.onload = function() {
     document.getElementById('title_text').value = 'タイトル';
     drawGuideLine('guide_left','v',guide_L + 5);
     drawGuideLine('guide_right','v',guide_R - 5);
+    guideElem_L =document.getElementById('guide_left');
+    guideElem_R =document.getElementById('guide_right');
+
     //Load_Image('./image/demo.jpg'); //DEBUG用
 }
 
@@ -145,15 +163,11 @@ function drawDivBox(id,className,x,y,width,height) {
 function selectTrimBox(e) {
 	console.log("selectTrimBox:"+ e.target.id);
 	//前選択した要素のclassを解除
-	if(selectingID != undefined && selectingID != ''){
+	if(selectingID){
 		var selectedElem = document.getElementById(selectingID);
-		var hasPre = false;
-
-		if(selectedElem != undefined)
-			hasPre = selectedElem.classList.contains('selecting');
-
-		if(hasPre)
+		if(selectedElem && selectedElem.classList.contains('selecting')){
 			selectedElem.classList.remove('selecting');
+		}
 	}
 	//現在選択した要素のclassを追加
 	selectingID = e.target.id;
@@ -210,7 +224,7 @@ function stopMove(e) {
 
  //トリミング領域描画
 function drawTrimBox(id,PositionY) {
-	drawDivBox(id,'trimBox',(guide_L-leftSpace),PositionY,trim_W,trim_H);
+	drawDivBox(id,'trimBox',guide_L,PositionY,trim_W,trim_H);
 	selectingID = id;
 	tboxNum.value ++;
 }
@@ -328,29 +342,43 @@ function paraStartPosition(n) {
 }
 
 function rangeXChange(n,val) {
+	var guide_L_before = guide_L;
+	var guide_L_Change = parseInt(val) - guide_L_before;
+
+	var guide_R_before = guide_R;
+	var guide_R_Change = parseInt(val) - guide_R_before;
 
 	if(n==1){
 		guide_L = parseInt(val);
-		document.getElementById('guide_left').style.left = guide_L + 'px';
+		guideElem_L.style.left = guide_L + 'px';
 	} else {
 		guide_R = parseInt(val);
-		document.getElementById('guide_right').style.left = guide_R + 'px';
+		guideElem_R.style.left = guide_R + 'px';
 	}
 
-	//trim_W更新
-	trim_W = guide_R - guide_L + leftSpace;
+		//trim_W更新
+		if(!widthLock.checked) trim_W = guide_R - guide_L;
 
-	if(trimBoxList.length>0)
-	for (var i=0;i<trimBoxList.length;i++){
-		var elem = trimBoxList[i];
-        if(n==1) elem.style.left = (guide_L - leftSpace) + 'px'; //左端変更時
-		elem.style.width = trim_W + 'px'; //左/右端変更時
-	}
+		if(trimBoxList.length>0)
+		for (var i=0;i<trimBoxList.length;i++){
+			var elem = trimBoxList[i];
+	        if(n==1)
+	        	elem.style.left = (guide_L) + 'px'; //左端変更時
 
-}
-
-function widthLockChange(elem) {
-        widthLock = elem.checked;
+	        if(!widthLock.checked)
+	        	elem.style.width = trim_W + 'px'; //左/右端変更時
+	        else
+	        	if(n==2) {
+	        		guide_L = guide_L + guide_R_Change;
+	        		guideElem_L.style.left = guide_L + 'px';
+	        		rangeInput_L.value = guide_L+5;
+	        		elem.style.left = guide_L + 'px';
+	        	} else {
+	        		guide_R = guide_R + guide_L_Change;
+	        		guideElem_R.style.left = guide_R + 'px';
+	        		rangeInput_R.value = guide_R-4;
+	        	}
+		}
 }
 
 function rangeYChange(val) {
@@ -384,6 +412,23 @@ function paraIntervalChange(val) {
 	doTrim();
 }
 
+//入力領域クリア
+function Input_Clear(){
+	clearTrimBox();
+	clearOCRTextBox();
+	in_ctx.clearRect(0, 0, cvs.width, cvs.height);
+	removeTrimBox('edgeBox');
+	objFile.value = '';
+	inputFileInfo.innerHTML = '';
+
+	//FileName.innerHTML = '';
+	inputFile_nav.innerHTML='';
+	addTab();
+	fileNo = 0;
+
+	tiltCorrected = false;
+	Tilt_Correction.value = '';
+}
  //出力領域クリア
 function clean_img() {
     out_ctx.clearRect(0, 0, out.width, out.height)
@@ -470,7 +515,7 @@ function result(res){
 
 			if(leftSpace<width){
 				leftSpace = width;
-				trim_W = guide_R - guide_L + leftSpace;
+				trim_W = guide_R - guide_L;
 			}
 
 			drawDivBox(divId,'OCRText',x, y, width, hieght)
@@ -575,8 +620,8 @@ function lineDetectLSD(){
 	progressUpdate({status: '譜表領域検出'});
 
 	let canvas = getInputCanvas2();
-	let src = cv.imread(canvas);
-	cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+	//let src = cv.imread(canvas);
+	//cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
 	var context = canvas.getContext('2d');
 	 const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
 	 const detector = new LSD();
@@ -698,12 +743,12 @@ function blockAnalysis() {
     //mathematics = new Mathematics();
 	//var left = Math.min.apply(null, mathematics.mode(x1_Array));
 	//var right = Math.max.apply(null, mathematics.mode(x2_Array));
-	var threshold = VISIBLE_HEIGHT*0.3;
-	var threshold_H = VISIBLE_WIDTH*0.3;
-	var left = findEdge(vMap_Array,0,VISIBLE_WIDTH,threshold);
-	var right = findEdge(vMap_Array,VISIBLE_WIDTH,VISIBLE_WIDTH/3,threshold);
-	var top_v = findEdge(hMap_Array,1,center_v,threshold_H);
-	var bot_v = findEdge(hMap_Array,VISIBLE_HEIGHT,center_v,threshold_H);
+	//var threshold = VISIBLE_HEIGHT*0.3;
+	//var threshold_H = VISIBLE_WIDTH*0.3;
+	var left = findEdge(vMap_Array,0,VISIBLE_WIDTH);
+	var right = findEdge(vMap_Array,VISIBLE_WIDTH,VISIBLE_WIDTH/3);
+	var top_v = findEdge(hMap_Array,1,center_v);
+	var bot_v = findEdge(hMap_Array,VISIBLE_HEIGHT,center_v);
 	var vAngle_radians = sumAngle / sumAngleN;
 	var vAngle_degree = vAngle_radians * TO_DEG;
 
@@ -711,9 +756,9 @@ function blockAnalysis() {
 	console.log('横線角度Map :', horizontal_lines);
 	console.log('横線Map :', hMap_Array);
 	console.log('縦線Map :', vMap_Array);
-	console.log('左側縦線Map最大値 :', left);
+	console.log('左側縦線Map最大値 :', left , '縦線平均値 :', average(vMap_Array) ,'縦線中央値 :', median(vMap_Array) ,'30%高さ :', VISIBLE_HEIGHT*0.3  );
 	console.log('右側縦線Map最大値 :', right);
-	console.log('上側横線Map最大値 :', top_v);
+	console.log('上側横線Map最大値 :', top_v, '横線平均値 :', average(hMap_Array),'横線中央値 :', median(hMap_Array)  ,'30%幅 :', VISIBLE_WIDTH*0.3  );
 	console.log('下側横線Map最大値 :', bot_v);
 
 	Tilt_Correction.value = -vAngle_degree;
@@ -761,8 +806,33 @@ function maxIndex(a,start,end) {
 	return index;
 }
 
-function findEdge(a,start,end,threshold) {
+function notNullLength(arr) {
+	var notNullLength =0;
+	arr.forEach(function(item) { if(item) notNullLength++;});
+    return notNullLength;
+}
+var sum  = function(arr) {
+    return arr.reduce(function(prev, current, i, arr) {
+        return prev+current;
+    });
+};
+var average = function(arr, fn) {
+    return sum(arr, fn)/notNullLength(arr);
+};
+var median = function(arr, fn) {
+	var arr_new = new Array();
+	arr.forEach(function(item) { if(item) arr_new.push(item);});
+    var half = (arr_new.length/2)|0;
+    var temp = arr_new.sort(fn);
+    if (temp.length%2) {
+        return temp[half];
+    }
+    return (temp[half-1] + temp[half])/2;
+};
+
+function findEdge(a,start,end) {
 	var index = 0;
+	var threshold = average(a);
 	var increase = start<end ? 1 : -1 ;
 	for (var i=start;!(start<end^i<end);i=i+increase) {
 		if (a[i] && a[i]>threshold) {index = i;break;}
@@ -775,30 +845,74 @@ function fixWord(text){
 	switch(text) {
 		case 'Yo': fix = 'Vo';
 		case 'Yo.': fix = 'Vo.';
+		case 'Gl': fix = 'Gt';
 	}
 	return fix;
 }
 
+function selectTab(elem) {
+	var navElem = elem.parentNode;
+	var TabList = elem.parentNode.children;
+	var eList = [].slice.call(TabList);
+
+	//前選択した要素の処理
+	var selectedTab = navElem.getElementsByClassName("tab selected")[0];
+	if(selectedTab) {
+		selectedTab.classList.remove('selected');
+		//z-index設定
+		if(fileNo < eList.indexOf(selectedTab))
+		   var elemNo = TabList.length - eList.indexOf(selectedTab);
+		else
+			var elemNo = eList.indexOf(selectedTab) + 1;
+		selectedTab.style.cssText = 'z-index: '+ elemNo +';';
+		selectedTab.style.width = 100 + 'px';
+	}
+
+	//現在の要素を選択
+	elem.classList.add('selected');
+	elem.style.cssText='z-index: 100;';
+	elem.style.width='';
+
+	//tabCSS設定
+	setTabStyle(elem);
+
+	//ファイル読み込み
+	if(TabList.id=='inputFile_nav'){
+		fileNo = eList.indexOf(elem);
+		reader.readAsDataURL(file[fileNo]);
+	}
+}
+
+function setTabStyle(elem){
+	var len = elem.innerHTML.length;
+	if(elem.classList.contains('selected') && len > 12){
+		tabCSS.innerHTML='';
+		var scaleY= len*-0.0038 + 1.0419;
+		var perspective= len*0.082 + 0.2535;
+		tabCSS.innerHTML= '#'+ elem.id + '::before{transform: scaleY(' +scaleY+ ') perspective(' + perspective + 'em) rotateX(5deg);}'
+	}
+}
+
 //以降、ES2017必須
 function dataURItoBlob(dataURI) {
-	const b64 = atob(dataURI.split(',')[1])
-	const u8 = Uint8Array.from(b64.split(""), e => e.charCodeAt())
-	return new Blob([u8], {type: "image/png"})
+	const b64 = atob(dataURI.split(',')[1]);
+	const u8 = Uint8Array.from(b64.split(""), e => e.charCodeAt());
+	return new Blob([u8], {type: "image/png"});
 }
 
 function download2(dataURI, filename){
-	const blob = dataURItoBlob(dataURI)
-	const url = URL.createObjectURL(blob)
-	const a = document.createElement("a")
-	a.download = filename
-	a.href = url
-	a.click()
+	const blob = dataURItoBlob(dataURI);
+	const url = URL.createObjectURL(blob);
+	const a = document.createElement("a");
+	a.download = filename;
+	a.href = url;
+	a.click();
 
 	// ダウンロードの時間がわからないので多めに 最低 3s,  1MiB / sec として
 	// 終わった頃に revoke する
 	setTimeout(() => {
-		URL.revokeObjectURL(url)
-	}, Math.max(3000, 1000 * dataURI.length / 1024 * 1024))
+		URL.revokeObjectURL(url);
+	}, Math.max(3000, 1000 * dataURI.length / 1024 * 1024));
 }
 async function startOCR(){
 	//譜表領域検出
