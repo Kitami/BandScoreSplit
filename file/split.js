@@ -43,6 +43,7 @@ const widthLock = document.getElementById('widthLock');
 var reader;
 var file;
 var fileNo = 0;
+var zindexNo = 100;
 var objFile = document.getElementById("selectFile");
 const img = new Image();
 
@@ -51,7 +52,9 @@ objFile.addEventListener("change", function(evt) {
 		file = evt.target.files;
 		fileNo = 0;
 		reader = new FileReader();
-		reader.readAsDataURL(file[0]);
+		//reader.readAsDataURL(file[0]);
+		zindexNo = file.length;
+		clearTab();
 
 		for (var i=0 ;i < file.length; i++){
 			var fileName = file[i].name;
@@ -75,7 +78,6 @@ function Load_Image(dataUrl) {
 	tiltCorrected = false;
 }
 
-const tabCSS = document.getElementById('tabCSS');
 img.onload = function(_ev) {
     // 画像が読み込まれた
 	cvs.width = img.width;
@@ -88,28 +90,18 @@ img.onload = function(_ev) {
     in_ctx.drawImage(img,0,0,img.width,img.height);
 };
 
-const newTab = document.getElementById('newTab');
-var zindexNo =100;
-
-function addTab(){
-	var tab = newTab.cloneNode(true);
-	zindexNo--;
-	tab.id = 'tab_'+ (101 - zindexNo);
-	tab.style.cssText = 'z-index: '+ zindexNo +';width: 100px;';
-	inputFile_nav.appendChild(tab);
-}
-
 function Load_Pre() {
     if (fileNo > 0) {
         fileNo--;
-        reader.readAsDataURL(file[fileNo]);
+        //reader.readAsDataURL(file[fileNo]);
         selectTab(inputFile_nav.children[fileNo]);
     }
 }
+
 function Load_Next() {
     if (fileNo < file.length-1) {
         fileNo++;
-        reader.readAsDataURL(file[fileNo]);
+        //reader.readAsDataURL(file[fileNo]);
         selectTab(inputFile_nav.children[fileNo]);
     }
 }
@@ -254,23 +246,6 @@ function removeTrimBox(elemID) {
 //トリミング領域追加
 function addTrimBox() {
 	drawTrimBox('trimBox_'+ tboxNum.value,	inputDiv.scrollTop);
-}
-
- //画像出力
-function download() {
-    var filename = 'download.png';
-    var downloadLink = document.getElementById('hiddenLink');
-
-    if (out.msToBlob) {
-        var blob = out.msToBlob();
-        window.navigator.msSaveBlob(blob, filename);
-    } else {
-		//downloadLink.href = out.toDataURL('image/png');
-		var dataURI = out.toDataURL('image/png');
-		download2(dataURI,filename);
-//        downloadLink.download = filename;
-//        downloadLink.click();
-    }
 }
 
  //画像トリミング
@@ -422,9 +397,7 @@ function Input_Clear(){
 	inputFileInfo.innerHTML = '';
 
 	//FileName.innerHTML = '';
-	inputFile_nav.innerHTML='';
-	addTab();
-	fileNo = 0;
+	clearTab();
 
 	tiltCorrected = false;
 	Tilt_Correction.value = '';
@@ -455,6 +428,76 @@ function removeByClassName(ClassName) {
 		elem.parentNode.removeChild(elem);
 	}
 }
+
+
+const tabCSS = document.getElementById('tabCSS');
+const newTab = document.getElementById('newTab');
+//var zindexNo = file.length;
+
+function addTab(){
+	var tab = newTab.cloneNode(true);
+	zindexNo--;
+	tab.id = 'tab_'+ (file.length - zindexNo);
+	tab.style.cssText = 'z-index: '+ zindexNo +';width: 100px;';
+	inputFile_nav.appendChild(tab);
+}
+function clearTab() {
+	inputFile_nav.innerHTML='';
+	addTab();
+	fileNo = 0;
+}
+
+function selectTab(elem) {
+	var navElem = elem.parentNode;
+	var TabList = elem.parentNode.children;
+	var eList = [].slice.call(TabList);
+	var elem_Locat = eList.indexOf(elem);
+
+	//前選択した要素の処理
+	var selectedTab = navElem.getElementsByClassName("tab selected")[0];
+	if(selectedTab) {
+		selectedTab.classList.remove('selected');
+		//z-index設定
+		var selected_Locat = eList.indexOf(selectedTab);
+		//var elemNo = (elem_Locat < selected_Locat) ? (TabList.length - selected_Locat) : (selected_Locat + 1);
+		setTabZindex(TabList,elem_Locat);
+		//selectedTab.style.cssText = 'z-index: '+ elemNo +';';
+		selectedTab.style.width = '100px';
+	}
+
+	//現在の要素を選択
+	elem.classList.add('selected');
+	elem.style.cssText='z-index: '+file.length+';';
+	elem.style.width='';
+
+	//tabCSS設定
+	setTabStyle(elem);
+
+	//ファイル読み込み
+	if(file && navElem.id=='inputFile_nav'){
+		fileNo = elem_Locat;
+		reader.readAsDataURL(file[fileNo]);
+	}
+}
+
+function setTabZindex(TabElemList,selectTabNo){
+	for(var i=0 ;i<TabElemList.length;i++){
+		var tabElem = TabElemList[i];
+		var zindexVal = TabElemList.length - Math.abs(selectTabNo-i);
+		tabElem.style.cssText += 'z-index: '+ zindexVal +';';
+	}
+}
+
+function setTabStyle(elem){
+	var len = elem.innerHTML.length;
+	tabCSS.innerHTML='';
+	if(elem.classList.contains('selected') && len > 12){
+		var scaleY= len*-0.0038 + 1.0419;
+		var perspective= len*0.082 + 0.2535;
+		tabCSS.innerHTML= '#'+ elem.id + '::before{transform: scaleY(' +scaleY+ ') perspective(' + perspective + 'em) rotateX(5deg);}'
+	}
+}
+
 
 //以下、OCR関連
 var language = "eng";
@@ -577,7 +620,6 @@ function getInputCanvas2() {
 	    canvas.height = img.height*Ratio;
 	    ctx.drawImage(img,0,0,img.width,img.height,0,0,img.width*Ratio,img.height*Ratio);
     }
-    //document.getElementById('outputDiv').appendChild(canvas);
     return canvas;
 }
 
@@ -631,12 +673,18 @@ function lineDetectLSD(){
 	// draw lines
 	LinesArray = new Array();
 	//for (var L of lines) {
-	for (var i in lines) {var L = lines[i];
-	    var startPoint = {'x':Math.floor(L.x1), 'y':Math.floor(L.y1)};
-	    var endPoint = {'x':Math.floor(L.x2), 'y':Math.floor(L.y2)};
-	    var angle = Math.atan2( endPoint.y - startPoint.y, endPoint.x - startPoint.x ) ;
+	for (var i in lines) {
+		var L = lines[i];
+	    var angle = Math.atan2( L.y1 - L.y2, L.x1 - L.x2 ) ;
 	    var length = Math.sqrt( Math.pow( L.x2-L.x1, 2 ) + Math.pow( L.y2-L.y1, 2 ) ) ;
-	    LinesArray.push({"startPoint":startPoint,"endPoint":endPoint,"angle":angle,'length':length});
+	    LinesArray.push({
+	    	 'x1':Math.floor(L.x1),
+	    	 'y1':Math.floor(L.y1),
+	    	 'x2':Math.floor(L.x2),
+	    	 'y2':Math.floor(L.y2),
+	    	 'angle':angle,
+	    	 'length':length
+	    	});
 	}
 
 	//ブロック解析
@@ -694,7 +742,7 @@ function blockAnalysis() {
 	var sumAngle=0;
 	var sumAngleN=0;
 
-	//for (L of LinesArray){
+	//for (var L of LinesArray){
 	for (var i in LinesArray){
 		var L =  LinesArray[i];
 		if(L.length > 0.02*VISIBLE_WIDTH){
@@ -702,21 +750,21 @@ function blockAnalysis() {
 
 //横線端点検出方式
 			/*
-			var s = L.startPoint.x
-			var e = L.endPoint.x
+			var s = L.x1
+			var e = L.x2
 			if( s < center ) x1_Array.push(s)
 			if( e > center ) x2_Array.push(e)
 			*/
 
 //合計長さ集計方式
 			//横線合計長さ集計
-			var y = L.startPoint.y;
+			var y = L.y1;
 			var d = parseInt(L.length);
 
 			//横線傾き角度集計
 			if(L.length>0.2*VISIBLE_WIDTH){
 				sumAngle = sumAngle + calcTiltAngle(L.angle);
-				//drawLine(L.startPoint.x,L.startPoint.y,L.endPoint.x,L.endPoint.y);
+				//drawLine(L.x1,L.y1,L.endPoint.x,L.endPoint.y);
 				//out_ctx.closePath();
 				horizontal_lines.push({'length':L.length,'angle':L.angle,'TiltAngle':calcTiltAngle(L.angle)*TO_DEG});
 				sumAngleN++;
@@ -729,7 +777,7 @@ function blockAnalysis() {
 
 		} else if (isVertical(L.angle)){
 				//縦線合計長さ集計
-				var x = L.startPoint.x;
+				var x = L.x1;
 				var d = parseInt(L.length);
 
 					if(vMap_Array[x])
@@ -752,14 +800,14 @@ function blockAnalysis() {
 	var vAngle_radians = sumAngle / sumAngleN;
 	var vAngle_degree = vAngle_radians * TO_DEG;
 
-	console.log('横線平均角度 :', vAngle_degree);
-	console.log('横線角度Map :', horizontal_lines);
-	console.log('横線Map :', hMap_Array);
-	console.log('縦線Map :', vMap_Array);
-	console.log('左側縦線Map最大値 :', left , '縦線平均値 :', average(vMap_Array) ,'縦線中央値 :', median(vMap_Array) ,'30%高さ :', VISIBLE_HEIGHT*0.3  );
-	console.log('右側縦線Map最大値 :', right);
-	console.log('上側横線Map最大値 :', top_v, '横線平均値 :', average(hMap_Array),'横線中央値 :', median(hMap_Array)  ,'30%幅 :', VISIBLE_WIDTH*0.3  );
-	console.log('下側横線Map最大値 :', bot_v);
+//	console.log('横線平均角度 :', vAngle_degree);
+//	console.log('横線角度Map :', horizontal_lines);
+//	console.log('横線Map :', hMap_Array);
+//	console.log('縦線Map :', vMap_Array);
+//	console.log('左側縦線Map最大値 :', left , '縦線平均値 :', average(vMap_Array) ,'縦線中央値 :', median(vMap_Array) ,'30%高さ :', VISIBLE_HEIGHT*0.3  );
+//	console.log('右側縦線Map最大値 :', right);
+//	console.log('上側横線Map最大値 :', top_v, '横線平均値 :', average(hMap_Array),'横線中央値 :', median(hMap_Array)  ,'30%幅 :', VISIBLE_WIDTH*0.3  );
+//	console.log('下側横線Map最大値 :', bot_v);
 
 	Tilt_Correction.value = -vAngle_degree;
 
@@ -850,47 +898,21 @@ function fixWord(text){
 	return fix;
 }
 
-function selectTab(elem) {
-	var navElem = elem.parentNode;
-	var TabList = elem.parentNode.children;
-	var eList = [].slice.call(TabList);
+//画像出力
+function download() {
+    var filename = 'download.png';
+    var downloadLink = document.getElementById('hiddenLink');
 
-	//前選択した要素の処理
-	var selectedTab = navElem.getElementsByClassName("tab selected")[0];
-	if(selectedTab) {
-		selectedTab.classList.remove('selected');
-		//z-index設定
-		if(fileNo < eList.indexOf(selectedTab))
-		   var elemNo = TabList.length - eList.indexOf(selectedTab);
-		else
-			var elemNo = eList.indexOf(selectedTab) + 1;
-		selectedTab.style.cssText = 'z-index: '+ elemNo +';';
-		selectedTab.style.width = 100 + 'px';
-	}
-
-	//現在の要素を選択
-	elem.classList.add('selected');
-	elem.style.cssText='z-index: 100;';
-	elem.style.width='';
-
-	//tabCSS設定
-	setTabStyle(elem);
-
-	//ファイル読み込み
-	if(TabList.id=='inputFile_nav'){
-		fileNo = eList.indexOf(elem);
-		reader.readAsDataURL(file[fileNo]);
-	}
-}
-
-function setTabStyle(elem){
-	var len = elem.innerHTML.length;
-	if(elem.classList.contains('selected') && len > 12){
-		tabCSS.innerHTML='';
-		var scaleY= len*-0.0038 + 1.0419;
-		var perspective= len*0.082 + 0.2535;
-		tabCSS.innerHTML= '#'+ elem.id + '::before{transform: scaleY(' +scaleY+ ') perspective(' + perspective + 'em) rotateX(5deg);}'
-	}
+    if (out.msToBlob) {
+        var blob = out.msToBlob();
+        window.navigator.msSaveBlob(blob, filename);
+    } else {
+		//downloadLink.href = out.toDataURL('image/png');
+		var dataURI = out.toDataURL('image/png');
+		download2(dataURI,filename);
+//        downloadLink.download = filename;
+//        downloadLink.click();
+    }
 }
 
 //以降、ES2017必須
