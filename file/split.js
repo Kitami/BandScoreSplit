@@ -710,14 +710,14 @@ function isVertical(angle){
 		|| (VERTICAL_2-DIFF < a && a < VERTICAL_2+DIFF);
 }
 
-function calcTiltAngle(angle){
+function calcTiltAngle(a){
 	var tilt;
-	if (-DIFF < angle && angle < DIFF){
-		tilt = 0 + angle;
-	} else if (HORIZON-DIFF < angle && angle < HORIZON+DIFF){
-		tilt = angle - Math.PI;
-	} else if (0 - HORIZON - DIFF < angle && angle < 0 - HORIZON +DIFF){
-		tilt = angle + Math.PI;
+	if (-DIFF < a && a < DIFF){
+		tilt = a;
+	} else if (HORIZON-DIFF < a && a < HORIZON+DIFF){
+		tilt = a - Math.PI;
+	} else if (0 - HORIZON - DIFF < a && a < 0 - HORIZON +DIFF){
+		tilt = a + Math.PI;
 	}
 	return tilt;
 }
@@ -729,87 +729,71 @@ function drawLine(x1,y1,x2,y2){
 	out_ctx.lineTo(x2,y2);
 	out_ctx.stroke();
 }
+Array.prototype.increase = function (i,e) {
+	if(this[i])
+		this[i] += e;
+	else
+		this[i] = e;
+}
 
 //譜表ブロック解析
 function blockAnalysis() {
 	var x1_Array = new Array();
 	var x2_Array = new Array();
-	var center = VISIBLE_WIDTH / 2;
-	var center_v = VISIBLE_HEIGHT / 2;
 
 	var hMap_Array = new Array(); //横線Map
 	var vMap_Array = new Array(); //縦線Map
-	var sumAngle=0;
-	var sumAngleN=0;
+	var tiltAngle_Array = new Array(); //傾き角度集計用
 
 	//for (var L of LinesArray){
 	for (var i in LinesArray){
 		var L =  LinesArray[i];
-		if(L.length > 0.02*VISIBLE_WIDTH){
-		if(isHorizon(L.angle)){
+		var d = parseInt(L.length);
 
-//横線端点検出方式
-			/*
-			var s = L.x1
-			var e = L.x2
-			if( s < center ) x1_Array.push(s)
-			if( e > center ) x2_Array.push(e)
-			*/
+		if(L.length > 0.02*VISIBLE_WIDTH) {
 
-//合計長さ集計方式
-			//横線合計長さ集計
-			var y = L.y1;
-			var d = parseInt(L.length);
+			if(isHorizon(L.angle)){
 
-			//横線傾き角度集計
-			if(L.length>0.2*VISIBLE_WIDTH){
-				sumAngle = sumAngle + calcTiltAngle(L.angle);
-				//drawLine(L.x1,L.y1,L.endPoint.x,L.endPoint.y);
-				//out_ctx.closePath();
-				horizontal_lines.push({'length':L.length,'angle':L.angle,'TiltAngle':calcTiltAngle(L.angle)*TO_DEG});
-				sumAngleN++;
-			}
+	/* 横線端点統計方式
+			if( L.x1 < center ) x1_Array.push(L.x1)
+			if( L.x2 > center ) x2_Array.push(L.x2)
+	*/
+				//横線合計長さ集計
+				hMap_Array.increase(L.y1,d);
 
-				if(hMap_Array[y])
-					hMap_Array[y] += d;
-				else
-					hMap_Array[y] = d;
+				//横線傾き角度集計
+				if(L.length>0.2*VISIBLE_WIDTH){
+					tiltAngle_Array.push(calcTiltAngle(L.angle));
+					//drawLine(L.x1,L.y1,L.x2,L.y2);
+					//out_ctx.closePath();
+					//horizontal_lines.push({'length':L.length,'angle':L.angle,'TiltAngle':calcTiltAngle(L.angle)*TO_DEG});
+				}
+			} else if (isVertical(L.angle)){
 
-		} else if (isVertical(L.angle)){
 				//縦線合計長さ集計
-				var x = L.x1;
-				var d = parseInt(L.length);
+				vMap_Array.increase(L.x1,d);
 
-					if(vMap_Array[x])
-						vMap_Array[x] += d;
-					else
-						vMap_Array[x] = d;
 			}
-
 		}
 	}
-    //mathematics = new Mathematics();
-	//var left = Math.min.apply(null, mathematics.mode(x1_Array));
-	//var right = Math.max.apply(null, mathematics.mode(x2_Array));
-	//var threshold = VISIBLE_HEIGHT*0.3;
-	//var threshold_H = VISIBLE_WIDTH*0.3;
-	var left = findEdge(vMap_Array,0,VISIBLE_WIDTH);
-	var right = findEdge(vMap_Array,VISIBLE_WIDTH,VISIBLE_WIDTH/3);
-	var top_v = findEdge(hMap_Array,1,center_v);
-	var bot_v = findEdge(hMap_Array,VISIBLE_HEIGHT,center_v);
-	var vAngle_radians = sumAngle / sumAngleN;
+
+	var left = findEdge(vMap_Array,  0, VISIBLE_WIDTH / 2);
+	var right = findEdge(vMap_Array , VISIBLE_WIDTH, VISIBLE_WIDTH*0.85);
+	var top_v = findEdge(hMap_Array, 1, VISIBLE_HEIGHT / 2);
+	var bot_v = findEdge(hMap_Array, VISIBLE_HEIGHT, VISIBLE_HEIGHT / 2 );
+
+	var vAngle_radians = average(tiltAngle_Array);
 	var vAngle_degree = vAngle_radians * TO_DEG;
+	Tilt_Correction.value = -vAngle_degree;
 
 //	console.log('横線平均角度 :', vAngle_degree);
 //	console.log('横線角度Map :', horizontal_lines);
 //	console.log('横線Map :', hMap_Array);
 //	console.log('縦線Map :', vMap_Array);
-//	console.log('左側縦線Map最大値 :', left , '縦線平均値 :', average(vMap_Array) ,'縦線中央値 :', median(vMap_Array) ,'30%高さ :', VISIBLE_HEIGHT*0.3  );
+//	console.log('左側縦線Map最大値 :', left , '縦線平均値 :', average(vMap_Array) ,'縦線中央値 :', topN(vMap_Array) ,'30%高さ :', VISIBLE_HEIGHT*0.3  );
 //	console.log('右側縦線Map最大値 :', right);
-//	console.log('上側横線Map最大値 :', top_v, '横線平均値 :', average(hMap_Array),'横線中央値 :', median(hMap_Array)  ,'30%幅 :', VISIBLE_WIDTH*0.3  );
+//	console.log('上側横線Map最大値 :', top_v, '横線平均値 :', average(hMap_Array),'横線中央値 :', topN(hMap_Array)  ,'30%幅 :', VISIBLE_WIDTH*0.3  );
 //	console.log('下側横線Map最大値 :', bot_v);
-
-	Tilt_Correction.value = -vAngle_degree;
 
 	if(Math.abs(vAngle_degree) < 0.4 ) {
 		rangeInput_L.value = left;
@@ -817,13 +801,13 @@ function blockAnalysis() {
 		rangeXChange(1,left);
 		rangeXChange(2,right);
 		drawDivBox('','edgeBox',left,top_v,(right-left),(bot_v-top_v));
+		progressUpdate({status: '譜表領域検出完了'});
 	} else {
 		//傾き補正
 		rotatImage(-vAngle_radians);
 		tiltCorrected = true;
+		progressUpdate({status: '傾き補正'});
 	}
-
-	progressUpdate({status: '譜表領域検出完了'});
 }
 
 /**
@@ -867,23 +851,30 @@ var sum  = function(arr) {
 var average = function(arr, fn) {
     return sum(arr, fn)/notNullLength(arr);
 };
-var median = function(arr, fn) {
+
+function topN(arr,N) {
+	if (!N) N = 0.5;
 	var arr_new = new Array();
 	arr.forEach(function(item) { if(item) arr_new.push(item);});
-    var half = (arr_new.length/2)|0;
-    var temp = arr_new.sort(fn);
-    if (temp.length%2) {
-        return temp[half];
-    }
-    return (temp[half-1] + temp[half])/2;
+    var target = parseInt(arr_new.length * N);
+    var temp = arr_new.sort(function (a,b){return a<b ? 1 : -1});
+    return temp[target];
 };
 
 function findEdge(a,start,end) {
+	var calc_a = a.slice();
 	var index = 0;
-	var threshold = average(a);
+
+	if (start<end)
+	    calc_a.forEach(function(e,i){if(e && i > end) calc_a[i] = 0;});
+	else
+	    calc_a.forEach(function(e,i){if(e && i < end) calc_a[i] = 0;});
+
+	var threshold = topN(calc_a,0.5);
+
 	var increase = start<end ? 1 : -1 ;
-	for (var i=start;!(start<end^i<end);i=i+increase) {
-		if (a[i] && a[i]>threshold) {index = i;break;}
+	for (var i=start;!(start<end^i<end);i += increase) {
+		if (calc_a[i] && calc_a[i]>=threshold) {index = i;break;}
 	}
 	return index;
 }
