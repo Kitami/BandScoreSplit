@@ -85,7 +85,7 @@
 	<div style="display: flex;width: 708px;">
 
 		<nav id="inputFile_nav">
-		  <a href="#" id="Tab_1" class="tab selected" style="z-index: 100;" onclick="selectTab(this)">&nbsp;</a>
+		  <a href="#" id="Tab_1" class="tab selected" style="z-index: 1;" onclick="selectTab(this)">&nbsp;</a>
 		</nav>
 		<a href="#" id="newTab" class="tab" style="z-index: 0;width: 100px;display:none" onclick="selectTab(this)">&nbsp;</a>
 		<span id="inputFileInfo" style="margin:0 0 0 auto;"></span>
@@ -109,18 +109,21 @@
 	</div>
 
 	<nav>
-	  <a href="#" class="tab selected" style="" onclick="selectTab(this)">01.PNG</a>
-	  <a href="#" class="tab" style="z-index: 2;" onclick="selectTab(this)">02.PNG</a>
-	  <a href="#" class="tab" style="z-index: 1;" onclick="selectTab(this)">03.PNG</a>
+	  <div class="tab selected" style="" onclick="selectTab(this)">01.PNG</div>
+	  <div class="tab" style="z-index: 2;" onclick="selectTab(this)">02.PNG</div>
+	  <div class="tab" style="z-index: 1;" onclick="selectTab(this)">03.PNG</div>
 	</nav>
 
 	<div id='outputDiv' class="canvasDiv">
 		<canvas id='out'></canvas>
+		<canvas id='out_2' style="z-index: -1;display:none"></canvas>
+		<canvas id='out_3' style="z-index: -1;display:none"></canvas>
 	</div>
 	</div>
 
 	</div>
 	<script src='https://unpkg.com/tesseract.js@v2.0.1/dist/tesseract.min.js'></script>
+	<script src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.3.200/pdf.min.js'></script>
 <!-- 	<script src="https://docs.opencv.org/4.1.2/opencv.js"></script> -->
 <!-- 	<script src='file/tesseract/tesseract.min.js'></script> -->
 <!-- 	<script src='file/tesseract/tesseract-core.wasm.js'></script> -->
