@@ -82,7 +82,7 @@ objFile.addEventListener("change", function(evt) {
 
 function Load_Image(dataUrl) {
 	// 画像の読み込み
-	//clearOCRTextBox();
+	clearOCRTextBox();
 	tiltCorrected = false;
 	img.src = dataUrl;
 }
@@ -116,6 +116,7 @@ function Load_Pdf(arrayBuffer) {
 			openPage(pdf,pageNo);
 	    });
 	}
+	clearOCRTextBox();
 }
 
 function openPage(pdf,p){
