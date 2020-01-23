@@ -46,6 +46,9 @@ var fileNo = 0;
 var zindexNo = 100;
 var objFile = document.getElementById("selectFile");
 const img = new Image();
+var fileName = '';
+var fileType = '';
+var outFileName = 'download.png';
 
 objFile.addEventListener("change", function(evt) {
 	if(evt){
@@ -57,52 +60,135 @@ objFile.addEventListener("change", function(evt) {
 		clearTab();
 
 		for (var i=0 ;i < file.length; i++){
-			var fileName = file[i].name;
+			fileName = file[i].name;
+			fileType = getExt(fileName);
 			if (i > 0) addTab();
 			var tabElem = inputFile_nav.children[i];
 			tabElem.innerHTML= fileName;
 			setTabStyle(tabElem);
 		}
+
+		setTabZindex(inputFile_nav.children,0);
 		selectTab(inputFile_nav.children[0]);
 
 		reader.onload = function() {
-			Load_Image(reader.result);
+			if(fileType=='pdf')
+			  Load_Pdf(reader.result);
+			else
+			  Load_Image(reader.result);
 		};
 	}
 }, false);
 
 function Load_Image(dataUrl) {
 	// 画像の読み込み
-	clearOCRTextBox();
-	img.src = dataUrl;
+	//clearOCRTextBox();
 	tiltCorrected = false;
+	img.src = dataUrl;
+}
+
+var pdfPages = 0;
+var pageNo = 1;
+var pdfData = {name : '', doc : null };
+
+// The workerSrc property shall be specified.
+//pdfjsLib.GlobalWorkerOptions.workerSrc = '//mozilla.github.io/pdf.js/build/pdf.worker.js';
+
+var pageRendering = false,
+	pageNumPending = null;
+
+function Load_Pdf(arrayBuffer) {
+	if(pdfData.name == fileName) {
+		openPage(pdfData.doc,pageNo);
+	} else {
+		console.log('Load Pdf');
+	    var typedarray = new Uint8Array(arrayBuffer);
+		pdfjsLib.getDocument(typedarray).then(function (pdf) {
+	        // do stuff
+			console.log('PDFJS load');
+			pdfData.name = fileName;
+			pdfData.doc = pdf;
+			pdfjsLib.disableStream = true;
+	        var endTabID = "tab_"+fileNo+"_"+pdf.numPages;
+			if(pdf.numPages>1 && !document.getElementById(endTabID)){
+	            addPdfTabs(fileNo,pdf.numPages);
+			}
+			openPage(pdf,pageNo);
+	    });
+	}
+}
+
+function openPage(pdf,p){
+	console.log('Load Page');
+	pageRendering = true;
+	pdf.getPage(p).then(function(page) {
+		// you can now use *page* here
+		var viewport = page.getViewport({ scale: 2});
+		cvs.height = viewport.height;
+		cvs.width = viewport.width;
+
+		var renderContext = {
+		  canvasContext: in_ctx,
+		  viewport: viewport
+		};
+		var renderTask = page.render(renderContext);
+
+	    // Wait for rendering to finish
+	    renderTask.promise.then(function() {
+	      pageRendering = false;
+	      if (pageNumPending !== null) {
+	        // New page rendering is pending
+	    	console.log('New page rendering is pending');
+	        renderPage(pageNumPending);
+	        pageNumPending = null;
+	      }
+	    });
+		//Load_Image(cvs.toDataURL())
+	});
+}
+
+function addPdfTabs(TabNo,Pags) {
+	var firstPage = inputFile_nav.children[TabNo];
+	firstPage.id += "_1";
+	firstPage.innerHTML += "_1";
+
+	for (var i = 1 ;i < Pags; i++) {
+		var N = i+1;
+		var tabID = "tab_"+fileNo+"_"+N;
+		var newPageTab = addTab();
+		newPageTab.innerHTML= fileName+"_"+N;
+		newPageTab.id = tabID;
+	}
+	setTabZindex(inputFile_nav.children,0);
+	selectTab(inputFile_nav.children[0]);
 }
 
 img.onload = function(_ev) {
-    // 画像が読み込まれた
-	cvs.width = img.width;
-	cvs.height = img.width*ASPECT_R;
-
+	if(fileType!='pdf'){
+	    // 画像が読み込まれた
+		cvs.width = img.width;
+		cvs.height = img.width*ASPECT_R;
+	    in_ctx.fillStyle = 'white';
+	    in_ctx.fillRect(0, 0, cvs.width, cvs.height);
+	    in_ctx.drawImage(img,0,0,img.width,img.height);
+	}
+	// 画像,pdfが読み込まれた
 	inputFileInfo.innerHTML= (fileNo+1) + ' / ' +file.length+' 解像度: '+img.width+'x'+img.height;
-
-    in_ctx.fillStyle = 'white';
-    in_ctx.fillRect(0, 0, cvs.width, cvs.height);
-    in_ctx.drawImage(img,0,0,img.width,img.height);
 };
 
 function Load_Pre() {
-    if (fileNo > 0) {
-        fileNo--;
-        //reader.readAsDataURL(file[fileNo]);
-        selectTab(inputFile_nav.children[fileNo]);
+	var tabList = [].slice.call(inputFile_nav.children);
+	var seleTabIndex = tabList.indexOf(inputFile_nav.getElementsByClassName('selected')[0]);
+    if (tabList.length > 0 && seleTabIndex-1>=0) {
+        selectTab(inputFile_nav.children[seleTabIndex-1]);
     }
 }
 
 function Load_Next() {
-    if (fileNo < file.length-1) {
-        fileNo++;
-        //reader.readAsDataURL(file[fileNo]);
-        selectTab(inputFile_nav.children[fileNo]);
+	var tabList = [].slice.call(inputFile_nav.children);
+	var seleTabIndex = tabList.indexOf(inputFile_nav.getElementsByClassName('selected')[0]);
+    if (tabList.length > 0 && seleTabIndex+1<tabList.length) {
+        selectTab(inputFile_nav.children[seleTabIndex+1]);
     }
 }
 
@@ -251,11 +337,11 @@ function addTrimBox() {
  //画像トリミング
 var ParaList = new Array();
 function doTrim() {
-	var toOrigin = img.width / VISIBLE_WIDTH; //画面位置to出力位置変換係数
+	var toOrigin = cvs.width / VISIBLE_WIDTH; //画面位置to出力位置変換係数
 
     if (ParaNo == 1) {
-		out.width = img.width;
-		out.height = img.width*ASPECT_R;
+		out.width = cvs.width;
+		out.height = cvs.width*ASPECT_R;
         // 背景
         out_ctx.fillStyle = 'white';  //DEBUG用 '#f1f1f1'
         out_ctx.fillRect(0, 0, cvs.width, cvs.height);
@@ -394,9 +480,9 @@ function Input_Clear(){
 	in_ctx.clearRect(0, 0, cvs.width, cvs.height);
 	removeTrimBox('edgeBox');
 	objFile.value = '';
+	pdfData = {name : '', doc : null };
 	inputFileInfo.innerHTML = '';
 
-	//FileName.innerHTML = '';
 	clearTab();
 
 	tiltCorrected = false;
@@ -434,13 +520,20 @@ const tabCSS = document.getElementById('tabCSS');
 const newTab = document.getElementById('newTab');
 //var zindexNo = file.length;
 
-function addTab(){
+function addTab(Container){
 	var tab = newTab.cloneNode(true);
-	zindexNo--;
-	tab.id = 'tab_'+ (file.length - zindexNo);
-	tab.style.cssText = 'z-index: '+ zindexNo +';width: 100px;';
-	inputFile_nav.appendChild(tab);
+
+	if (!Container) Container = inputFile_nav;
+	var tabCount = Container.children.length;
+	var tabList = Container.children;
+
+	tab.id = 'tab_'+ tabCount;
+	tab.style.cssText = 'width: 100px;';
+
+	Container.appendChild(tab);
+	return tab;
 }
+
 function clearTab() {
 	inputFile_nav.innerHTML='';
 	addTab();
@@ -451,7 +544,7 @@ function selectTab(elem) {
 	var navElem = elem.parentNode;
 	var TabList = elem.parentNode.children;
 	var eList = [].slice.call(TabList);
-	var elem_Locat = eList.indexOf(elem);
+	var elemIndex = eList.indexOf(elem);
 
 	//前選択した要素の処理
 	var selectedTab = navElem.getElementsByClassName("tab selected")[0];
@@ -460,14 +553,14 @@ function selectTab(elem) {
 		//z-index設定
 		var selected_Locat = eList.indexOf(selectedTab);
 		//var elemNo = (elem_Locat < selected_Locat) ? (TabList.length - selected_Locat) : (selected_Locat + 1);
-		setTabZindex(TabList,elem_Locat);
+		setTabZindex(TabList,elemIndex);
 		//selectedTab.style.cssText = 'z-index: '+ elemNo +';';
 		selectedTab.style.width = '100px';
 	}
 
 	//現在の要素を選択
 	elem.classList.add('selected');
-	elem.style.cssText='z-index: '+file.length+';';
+	elem.style.cssText='z-index: '+TabList.length+';';
 	elem.style.width='';
 
 	//tabCSS設定
@@ -475,8 +568,16 @@ function selectTab(elem) {
 
 	//ファイル読み込み
 	if(file && navElem.id=='inputFile_nav'){
-		fileNo = elem_Locat;
-		reader.readAsDataURL(file[fileNo]);
+		fileNo = elem.id.split('_')[1];
+		fileName = file[fileNo].name;
+		fileType = getExt(fileName);
+
+		if(fileType == 'pdf' ){
+			pageNo = elem.id.split('_').length>2 ? parseInt(elem.id.split('_')[2]) : 1;
+			reader.readAsArrayBuffer(file[fileNo]);
+		} else {
+			reader.readAsDataURL(file[fileNo]);
+		}
 	}
 }
 
@@ -489,15 +590,15 @@ function setTabZindex(TabElemList,selectTabNo){
 }
 
 function setTabStyle(elem){
+	var style = window.getComputedStyle(elem);
 	var len = elem.innerHTML.length;
 	tabCSS.innerHTML='';
 	if(elem.classList.contains('selected') && len > 12){
-		var scaleY= len*-0.0038 + 1.0419;
+		var scaleY= parseInt(style.width)*-0.0004 + 1.03;
 		var perspective= len*0.082 + 0.2535;
 		tabCSS.innerHTML= '#'+ elem.id + '::before{transform: scaleY(' +scaleY+ ') perspective(' + perspective + 'em) rotateX(5deg);}'
 	}
 }
-
 
 //以下、OCR関連
 var language = "eng";
@@ -507,9 +608,9 @@ var LinesArray = new Array();
 const resultArea = document.getElementById('result');
 
 function instSelect(elem){
-	var instNo = elem.value
-	var instElem = document.getElementById('instList_'+instNo)
-	var tboxId = 'trimBox_instNo_'+ instNo
+	var instNo = elem.value;
+	var instElem = document.getElementById('instList_'+instNo);
+	var tboxId = 'trimBox_instNo_'+ instNo;
 
 	if(elem.checked && !checkedList.includes(instNo)) {
 		var y = parseInt(instElem.style.top) + parseInt(instElem.style.height)/2 - trim_H/2
@@ -609,12 +710,12 @@ function getInputCanvas2() {
     var canvas = document.createElement('canvas');
     var ctx = canvas.getContext('2d');
 
-    if(tiltCorrected){
+    if(tiltCorrected || fileType == 'pdf'){
     	var Ratio = VISIBLE_WIDTH / cvs.width;
 	    canvas.width = cvs.width*Ratio;
 	    canvas.height = cvs.height*Ratio;
 	    ctx.drawImage(cvs,0,0,cvs.width,cvs.height,0,0,cvs.width*Ratio,cvs.height*Ratio);
-    }else{
+    } else {
         var Ratio = VISIBLE_WIDTH / img.width;
 	    canvas.width = img.width*Ratio;
 	    canvas.height = img.height*Ratio;
@@ -889,20 +990,32 @@ function fixWord(text){
 	return fix;
 }
 
+//ファイル名から拡張子を取得する関数
+function getExt(filename)
+{
+	var pos = filename.lastIndexOf('.');
+	if (pos === -1) return '';
+	return filename.slice(pos + 1);
+}
+
 //画像出力
 function download() {
-    var filename = 'download.png';
     var downloadLink = document.getElementById('hiddenLink');
-
     if (out.msToBlob) {
         var blob = out.msToBlob();
-        window.navigator.msSaveBlob(blob, filename);
+        window.navigator.msSaveBlob(blob, outFileName);
     } else {
 		//downloadLink.href = out.toDataURL('image/png');
 		var dataURI = out.toDataURL('image/png');
-		download2(dataURI,filename);
-//        downloadLink.download = filename;
-//        downloadLink.click();
+		const blob = dataURItoBlob(dataURI);
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.download = outFileName;
+		a.href = url;
+		a.click();
+		// ダウンロードの時間がわからないので多めに 最低 3s,  1MiB / sec として
+		// 終わった頃に revoke する
+		setTimeout(function (){URL.revokeObjectURL(url);}, Math.max(3000, 1000 * dataURI.length / 1024 * 1024));
     }
 }
 
@@ -913,20 +1026,6 @@ function dataURItoBlob(dataURI) {
 	return new Blob([u8], {type: "image/png"});
 }
 
-function download2(dataURI, filename){
-	const blob = dataURItoBlob(dataURI);
-	const url = URL.createObjectURL(blob);
-	const a = document.createElement("a");
-	a.download = filename;
-	a.href = url;
-	a.click();
-
-	// ダウンロードの時間がわからないので多めに 最低 3s,  1MiB / sec として
-	// 終わった頃に revoke する
-	setTimeout(() => {
-		URL.revokeObjectURL(url);
-	}, Math.max(3000, 1000 * dataURI.length / 1024 * 1024));
-}
 async function startOCR(){
 	//譜表領域検出
 	//await lineDetectLSD();
