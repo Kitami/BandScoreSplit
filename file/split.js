@@ -5,17 +5,17 @@ const VISIBLE_WIDTH = 708; //画像表示サイズ幅
 const VISIBLE_HEIGHT = 1000; //画像表示サイズ幅
 const ASPECT_R =Math.SQRT2; //出力用紙アスペクト比
 
-var guide_L = VISIBLE_WIDTH * 0.05; //左側ガイド線位置(初期値)
-var guide_R = VISIBLE_WIDTH - guide_L; //右側ガイド線位置(初期値)
-var leftSpace = 10; //ガイド線左側のスペース
+var Left = VISIBLE_WIDTH * 0.05; //左側ガイド線位置(初期値)
+var Right = VISIBLE_WIDTH - Left; //右側ガイド線位置(初期値)
+var LeftSpace = 10; //ガイド線左側のスペース
 
 var trim_H = VISIBLE_HEIGHT * 0.1; //トリミング枠縦幅(初期値)
-var trim_W = guide_R - guide_L; //トリミング枠横幅(初期値)
+var trim_W = Right - Left; //トリミング枠横幅(初期値)
 var offset_Y = 0;
 var offset_X = 0;
 
 var Top_margin = VISIBLE_HEIGHT * 0.05; //描画開始位置X（上部余白）
-var title_h = 0;
+var Title_h = 0;
 var Para_interval = 15; //段落間隔
 var ParaNo = 1; //出力領域段落カウント
 var selectingID = '';
@@ -38,44 +38,33 @@ const inputDiv = document.getElementById('inputDiv');
 const inputFileInfo = document.getElementById('inputFileInfo');
 const outputFileInfo = document.getElementById('outputFileInfo');
 const widthLock = document.getElementById('widthLock');
+const objFile = document.getElementById("selectFile");
+var img = new Image();
 
 //File input
-var reader;
-var file;
-var fileNo = 0;
-var zindexNo = 100;
-var objFile = document.getElementById("selectFile");
-const img = new Image();
-var fileName = '';
-var fileType = '';
-var outFileName = 'download.png';
+var reader,file,fileNo = 0,
+	fileType = '' ,fileName = '',
+	zindexNo = 100,
+	outFileName = 'download.png';
 
 objFile.addEventListener("change", function(evt) {
-	if(evt){
+	if(evt && evt.target.files){
 		file = evt.target.files;
 		fileNo = 0;
 		reader = new FileReader();
-		//reader.readAsDataURL(file[0]);
 		zindexNo = file.length;
 		clearTab();
-
 		for (var i=0 ;i < file.length; i++){
 			fileName = file[i].name;
 			fileType = getExt(fileName);
 			if (i > 0) addTab();
 			var tabElem = inputFile_nav.children[i];
 			tabElem.innerHTML= fileName;
-			setTabStyle(tabElem);
 		}
-
 		setTabZindex(inputFile_nav.children,0);
 		selectTab(inputFile_nav.children[0]);
-
 		reader.onload = function() {
-			if(fileType=='pdf')
-			  Load_Pdf(reader.result);
-			else
-			  Load_Image(reader.result);
+			if(fileType=='pdf') Load_Pdf(reader.result); else Load_Image(reader.result);
 		};
 	}
 }, false);
@@ -87,15 +76,11 @@ function Load_Image(dataUrl) {
 	img.src = dataUrl;
 }
 
-var pdfPages = 0;
-var pageNo = 1;
-var pdfData = {name : '', doc : null };
-
-// The workerSrc property shall be specified.
-//pdfjsLib.GlobalWorkerOptions.workerSrc = '//mozilla.github.io/pdf.js/build/pdf.worker.js';
-
-var pageRendering = false,
-	pageNumPending = null;
+var pdfPages = 0,
+	pageNo = 1,
+	pageRendering = false,
+	pageNumPending = null,
+	pdfData = {name : '', doc : null };
 
 function Load_Pdf(arrayBuffer) {
 	if(pdfData.name == fileName) {
@@ -124,7 +109,7 @@ function openPage(pdf,p){
 	pageRendering = true;
 	pdf.getPage(p).then(function(page) {
 		// you can now use *page* here
-		var viewport = page.getViewport({ scale: 2});
+		var viewport = page.getViewport({ scale: 2 });
 		cvs.height = viewport.height;
 		cvs.width = viewport.width;
 
@@ -137,6 +122,7 @@ function openPage(pdf,p){
 	    // Wait for rendering to finish
 	    renderTask.promise.then(function() {
 	      pageRendering = false;
+	      getPdfCanvas();
 	      if (pageNumPending !== null) {
 	        // New page rendering is pending
 	    	console.log('New page rendering is pending');
@@ -197,8 +183,8 @@ window.onload = function() {
 	rangeInput_L.max = parseInt(VISIBLE_WIDTH/2)-5;
 	rangeInput_R.min = parseInt(VISIBLE_WIDTH/2)+4;
 	rangeInput_R.max = VISIBLE_WIDTH-6;
-	rangeInput_L.value = guide_L+5;
-	rangeInput_R.value = guide_R-4;
+	rangeInput_L.value = Left+5;
+	rangeInput_R.value = Right-4;
     tboxNum.value = 0;
 
 	document.getElementById('tboxX').value = 0;
@@ -207,12 +193,12 @@ window.onload = function() {
     document.getElementById('trim_H').value = trim_H;
     document.getElementById('Para_interval').value = Para_interval;
     document.getElementById('title_text').value = 'タイトル';
-    drawGuideLine('guide_left','v',guide_L + 5);
-    drawGuideLine('guide_right','v',guide_R - 5);
+    drawGuideLine('guide_left','v',Left + 5);
+    drawGuideLine('guide_right','v',Right - 5);
     guideElem_L =document.getElementById('guide_left');
     guideElem_R =document.getElementById('guide_right');
 
-    //Load_Image('./image/demo.jpg'); //DEBUG用
+    //Load_Image('./img/demo.jpg'); //DEBUG用
 }
 
 function drawDivBox(id,className,x,y,width,height) {
@@ -253,8 +239,7 @@ function selectTrimBox(e) {
 	document.getElementById(selectingID).classList.add('selecting');
 }
 
-var moveElem;
-var move_start_y;
+var moveElem,move_start_y;
 function initMove(e) {
    move_start_y = e.clientY;
    moveElem = event.target;
@@ -298,12 +283,12 @@ function stopMove(e) {
     }
 }
 
-//guide_L.addEventListener('mousedown', initMove, false);
-//guide_R.addEventListener('mousedown', initMove, false);
+//Left.addEventListener('mousedown', initMove, false);
+//Right.addEventListener('mousedown', initMove, false);
 
  //トリミング領域描画
 function drawTrimBox(id,PositionY) {
-	drawDivBox(id,'trimBox',guide_L,PositionY,trim_W,trim_H);
+	drawDivBox(id,'trimBox',Left,PositionY,trim_W,trim_H);
 	selectingID = id;
 	tboxNum.value ++;
 }
@@ -354,8 +339,8 @@ function doTrim() {
             var textWidth = out_ctx.measureText(titleText).width;
             var textHeight = out_ctx.measureText(titleText).height;
             out_ctx.fillText(titleText, (cvs.width - textWidth) / 2, Top_margin * toOrigin);
-            title_h = 20;
-		} else title_h = 0;
+            Title_h = 20;
+		} else Title_h = 0;
     }
 
 	var trimBoxList_now = document.querySelectorAll('.trimBox');
@@ -400,73 +385,55 @@ function cancel(){
 
  //n段目から描画位置Y1を計算
 function paraStartPosition(n) {
-        return Top_margin + title_h + (n-1)*Para_interval + (n-1) * trim_H;
+        return Top_margin + Title_h + (n-1)*Para_interval + (n-1) * trim_H;
 }
-
-function rangeXChange(n,val) {
-	var guide_L_before = guide_L;
-	var guide_L_Change = parseInt(val) - guide_L_before;
-
-	var guide_R_before = guide_R;
-	var guide_R_Change = parseInt(val) - guide_R_before;
-
-	if(n==1){
-		guide_L = parseInt(val);
-		guideElem_L.style.left = guide_L + 'px';
-	} else {
-		guide_R = parseInt(val);
-		guideElem_R.style.left = guide_R + 'px';
-	}
-
-		//trim_W更新
-		if(!widthLock.checked) trim_W = guide_R - guide_L;
-
-		if(trimBoxList.length>0)
-		for (var i=0;i<trimBoxList.length;i++){
-			var elem = trimBoxList[i];
-	        if(n==1)
-	        	elem.style.left = (guide_L) + 'px'; //左端変更時
-
-	        if(!widthLock.checked)
-	        	elem.style.width = trim_W + 'px'; //左/右端変更時
-	        else
-	        	if(n==2) {
-	        		guide_L = guide_L + guide_R_Change;
-	        		guideElem_L.style.left = guide_L + 'px';
-	        		rangeInput_L.value = guide_L+5;
-	        		elem.style.left = guide_L + 'px';
-	        	} else {
-	        		guide_R = guide_R + guide_L_Change;
-	        		guideElem_R.style.left = guide_R + 'px';
-	        		rangeInput_R.value = guide_R-4;
-	        	}
+//全trimboxに対する操作
+function changeTrimBox(func) {
+	for (var i=0;i < trimBoxList.length;i++){func(trimBoxList[i]);}
+}
+//ガイド線移動
+function rangeChange(id,val) {
+	if (id=='rangeInput_L'){
+		var guide_L_before = Left;
+		Left = parseInt(val);
+		guideElem_L.style.left = Left + 'px';
+		if (widthLock.checked){
+			rangeInput_R.value = Right = Right + parseInt(val) - guide_L_before;
+			guideElem_R.style.left = Right + 'px';
 		}
-}
-
-function rangeYChange(val) {
-	var trimBoxList_now = document.querySelectorAll('.trimBox');
-	for (var i=0;i < trimBoxList_now.length;i++){
-		var elem = trimBoxList_now[i];
-	    var origin_Y = parseInt(elem.style.top) + offset_Y;
-	    var topVal = origin_Y - parseInt(val);
-	    elem.style.top = topVal + 'px';
+	} else if (id=='rangeInput_R') {
+		var guide_R_before = Right;
+		Right = parseInt(val);
+		guideElem_R.style.left = Right + 'px';
+		if (widthLock.checked) {
+			rangeInput_L.value = Left = Left + parseInt(val) - guide_R_before;
+			guideElem_L.style.left = Right + 'px';
+		}
 	}
+	trim_W = parseInt(Right - Left) - 2;
+	 var change =  (id=='rangeInput_R' && !widthLock.checked) ? function(e){e.style.width = trim_W + 'px';} //右端変更&幅固定しない時
+	 : function(e){e.style.left = Left + 'px'; if (!widthLock.checked) e.style.width = trim_W + 'px';} //左端変更時
+	 changeTrimBox(change);
+}
+//トリミング枠offset_Y変更
+function offsetYChange(val) {
+	changeTrimBox(function(e){
+	    var origin_Y = parseInt(e.style.top) + offset_Y;
+	    var topVal = origin_Y - parseInt(val);
+	    e.style.top = topVal + 'px';
+    });
 	offset_Y = parseInt(val);
 }
-
-function tvHeightChange(val) {
-	var trimBoxList_now = document.querySelectorAll('.trimBox');
-	//for (var elem of trimBoxList_now) {
-	for (var i=0;i<trimBoxList_now.length;i++){
-		var elem = trimBoxList_now[i];
-		var topVal = parseInt(elem.style.top)
-        var hChange = parseInt(val - trim_H) / 2;
-		elem.style.height = parseInt(val) + 'px';
-		elem.style.top = topVal-hChange + 'px';
-	}
+//トリミング枠縦幅変更
+function trimHeightChange(val) {
+	var hChange = parseInt(val - trim_H) / 2;
+	changeTrimBox(function(e){
+		var topVal = parseInt(e.style.top)
+		e.style.height = parseInt(val) + 'px';
+		e.style.top = topVal-hChange + 'px';
+	});
     trim_H = parseInt(val);
 }
-
 
 function paraIntervalChange(val) {
 	Para_interval = parseInt(val);
@@ -492,8 +459,8 @@ function Input_Clear(){
  //出力領域クリア
 function clean_img() {
     out_ctx.clearRect(0, 0, out.width, out.height)
-    ParaNo = 1
-	title_h = 0
+    ParaNo = 1;
+	Title_h = 0;
 }
  //トリミング枠全削除
 function clearTrimBox() {
@@ -553,9 +520,7 @@ function selectTab(elem) {
 		selectedTab.classList.remove('selected');
 		//z-index設定
 		var selected_Locat = eList.indexOf(selectedTab);
-		//var elemNo = (elem_Locat < selected_Locat) ? (TabList.length - selected_Locat) : (selected_Locat + 1);
 		setTabZindex(TabList,elemIndex);
-		//selectedTab.style.cssText = 'z-index: '+ elemNo +';';
 		selectedTab.style.width = '100px';
 	}
 
@@ -628,7 +593,7 @@ function instSelect(elem){
 function getInputCanvas() {
     var canvas = document.createElement('canvas');
     var ctx = canvas.getContext('2d');
-    var useWidth = img.width * guide_L / VISIBLE_WIDTH;
+    var useWidth = img.width * Left / VISIBLE_WIDTH;
     canvas.width = useWidth;
     canvas.height = img.height;
     ctx.drawImage(img,0,0,useWidth,img.height,0,0,useWidth,img.height);
@@ -658,9 +623,9 @@ function result(res){
 			var width = (b.x1-b.x0)*imgToView;
 			var hieght = (b.y1-b.y0)*imgToView;
 
-			if(leftSpace<width){
-				leftSpace = width;
-				trim_W = guide_R - guide_L;
+			if(LeftSpace<width){
+				LeftSpace = width;
+				trim_W = Right - Left;
 			}
 
 			drawDivBox(divId,'OCRText',x, y, width, hieght)
@@ -689,15 +654,7 @@ function progressUpdate(packet){
 		progressbar.value = packet.progress;
 	}
 
-/*
-	if(packet.status == 'done'){
-		var pre = document.createElement('pre')
-		pre.appendChild(document.createTextNode(packet.data.text))
-		line.innerHTML = ''
-		log.appendChild(pre)
-	}
-*/
-
+/* if(packet.status == 'done'){} */
 }
 
 /*
@@ -724,9 +681,17 @@ function getInputCanvas2() {
     }
     return canvas;
 }
-
+var pdfCanvas;
+function getPdfCanvas() {
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+    canvas.width = cvs.width;
+    canvas.height = cvs.height;
+    ctx.drawImage(cvs,0,0);
+    pdfCanvas = canvas;
+}
 //openCV HoughLinesP
-function lineDetect(){
+function HoughLinesP(){
 	progressUpdate({status: '譜表領域検出'});
 	let src = cv.imread(getInputCanvas2());
 	let dst = cv.Mat.zeros(src.rows, src.cols, cv.CV_8UC3);
@@ -840,9 +805,6 @@ Array.prototype.increase = function (i,e) {
 
 //譜表ブロック解析
 function blockAnalysis() {
-	var x1_Array = new Array();
-	var x2_Array = new Array();
-
 	var hMap_Array = new Array(); //横線Map
 	var vMap_Array = new Array(); //縦線Map
 	var tiltAngle_Array = new Array(); //傾き角度集計用
@@ -851,38 +813,23 @@ function blockAnalysis() {
 	for (var i in LinesArray){
 		var L =  LinesArray[i];
 		var d = parseInt(L.length);
-
-		if(L.length > 0.02*VISIBLE_WIDTH) {
-
+		if(L.length>0.02*VISIBLE_WIDTH) {
 			if(isHorizon(L.angle)){
-
-	/* 横線端点統計方式
-			if( L.x1 < center ) x1_Array.push(L.x1)
-			if( L.x2 > center ) x2_Array.push(L.x2)
-	*/
-				//横線合計長さ集計
-				hMap_Array.increase(L.y1,d);
-
-				//横線傾き角度集計
-				if(L.length>0.2*VISIBLE_WIDTH){
-					tiltAngle_Array.push(calcTiltAngle(L.angle));
-					//drawLine(L.x1,L.y1,L.x2,L.y2);
-					//out_ctx.closePath();
-					//horizontal_lines.push({'length':L.length,'angle':L.angle,'TiltAngle':calcTiltAngle(L.angle)*TO_DEG});
+				hMap_Array.increase(L.y1,d); //横線合計長さ集計
+				if(L.length>0.2*VISIBLE_WIDTH) {
+					tiltAngle_Array.push(calcTiltAngle(L.angle)); //横線傾き角度集計
+					//drawLine(L.x1,L.y1,L.x2,L.y2);out_ctx.closePath();
 				}
 			} else if (isVertical(L.angle)){
-
-				//縦線合計長さ集計
-				vMap_Array.increase(L.x1,d);
-
+				vMap_Array.increase(L.x1,d); //縦線合計長さ集計
 			}
 		}
 	}
 
-	var left = findEdge(vMap_Array,  0, VISIBLE_WIDTH / 2);
-	var right = findEdge(vMap_Array , VISIBLE_WIDTH, VISIBLE_WIDTH*0.85);
-	var top_v = findEdge(hMap_Array, 1, VISIBLE_HEIGHT / 2);
-	var bot_v = findEdge(hMap_Array, VISIBLE_HEIGHT, VISIBLE_HEIGHT / 2 );
+	var edge_L = findEdge(vMap_Array,  0, VISIBLE_WIDTH / 2);
+	var edge_R = findEdge(vMap_Array , VISIBLE_WIDTH, VISIBLE_WIDTH*0.85);
+	var edge_T = findEdge(hMap_Array, 1, VISIBLE_HEIGHT / 2);
+	var edge_B = findEdge(hMap_Array, VISIBLE_HEIGHT, VISIBLE_HEIGHT / 2 );
 
 	var vAngle_radians = average(tiltAngle_Array);
 	var vAngle_degree = vAngle_radians * TO_DEG;
@@ -898,17 +845,18 @@ function blockAnalysis() {
 //	console.log('下側横線Map最大値 :', bot_v);
 
 	if(Math.abs(vAngle_degree) < 0.4 ) {
-		rangeInput_L.value = left;
-		rangeInput_R.value = right;
-		rangeXChange(1,left);
-		rangeXChange(2,right);
-		drawDivBox('','edgeBox',left,top_v,(right-left),(bot_v-top_v));
+		rangeInput_L.value = edge_L;
+		rangeInput_R.value = edge_R;
+		rangeChange(rangeInput_L.id,edge_L);
+		rangeChange(rangeInput_R.id,edge_R);
+		drawDivBox('','edgeBox',edge_L,edge_T,(edge_R-edge_L),(edge_B-edge_T));
 		progressUpdate({status: '譜表領域検出完了'});
 	} else {
 		//傾き補正
 		rotatImage(-vAngle_radians);
 		tiltCorrected = true;
 		progressUpdate({status: '傾き補正'});
+		//lineDetectLSD();
 	}
 }
 
@@ -917,12 +865,16 @@ function blockAnalysis() {
 * @param {object} canvas - canvasオブジェクト
 * @param {number} angle - 回転する角度[Rad]
 */
+
 function rotatImage(angle) {
 	var context = cvs.getContext('2d');
 	context.save();
 	context.translate(cvs.width/2, cvs.height/2);
 	context.rotate(angle);
-	context.drawImage(img, -(img.width/2), -(img.height/2));
+	if(fileType=='pdf')
+		context.drawImage(pdfCanvas, -(pdfCanvas.width/2), -(pdfCanvas.height/2));
+	else
+		context.drawImage(img, -(img.width/2), -(img.height/2));
 	context.restore();
 }
 function rotatImageByDegree(value) {
@@ -1006,8 +958,8 @@ function download() {
         var blob = out.msToBlob();
         window.navigator.msSaveBlob(blob, outFileName);
     } else {
-		//downloadLink.href = out.toDataURL('image/png');
-		var dataURI = out.toDataURL('image/png');
+		//downloadLink.href = out.toDataURL('img/png');
+		var dataURI = out.toDataURL('img/png');
 		const blob = dataURItoBlob(dataURI);
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement("a");
@@ -1024,7 +976,7 @@ function download() {
 function dataURItoBlob(dataURI) {
 	const b64 = atob(dataURI.split(',')[1]);
 	const u8 = Uint8Array.from(b64.split(""), e => e.charCodeAt());
-	return new Blob([u8], {type: "image/png"});
+	return new Blob([u8], {type: "img/png"});
 }
 
 async function startOCR(){
