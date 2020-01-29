@@ -14,10 +14,10 @@
 			<div class="setting leftSide">トリミング枠設定
 			<br>
 			Ⅹ軸:<input type="number" id="tboxX" class="tboxSetting"/>
-			Ｙ軸:<input type="number" id="tboxY" class="tboxSetting" oninput="rangeYChange(value)"/>
-			(オフセット)
+			Ｙ軸:<input type="number" id="tboxY" class="tboxSetting" oninput="offsetYChange(value)"/>
+			(offset)
 			<br>横幅:<input type="number" id=trim_W class="tboxSetting"/>
-			縦幅:<input type="number"id="trim_H" class="tboxSetting" step="2" oninput="tvHeightChange(value)"/>
+			縦幅:<input type="number"id="trim_H" class="tboxSetting" step="2" oninput="trimHeightChange(value)"/>
 			<input type="checkbox" id="widthLock"/>横幅固定
 			<br>個数:<input type="number" id="trimboxNum" disabled="disabled" class="tboxSetting" />
 			<div style="display: inline-block;padding-top:1px;margin-bottom:-1px;">
@@ -78,8 +78,8 @@
 	</div>
 
 	<div id= "topSidebar">
-		<input id='rangeInput_L' type='range' min=4 onchange="rangeXChange(1,value)" oninput="rangeXChange(1,value)" style='width: 354px'>
-	<input id='rangeInput_R' type='range' min=0 onchange="rangeXChange(2,value)" oninput="rangeXChange(2,value)" style='width: 354px'>
+		<input id='rangeInput_L' type='range' min=4 onchange="rangeChange(id,value)" oninput="rangeChange(id,value)" style='width: 354px'>
+	<input id='rangeInput_R' type='range' min=0 onchange="rangeChange(id,value)" oninput="rangeChange(id,value)" style='width: 354px'>
 	</div>
 
 	<div style="display: flex;width: 708px;">
@@ -102,7 +102,7 @@
 	<div id="outputTop" style="padding: 3px;"></div>
 	<div id="output-bar">
 			<button onclick='doTrim()'>トリミング</button>
-			<button onclick='cancel()'>元に戻す</button>
+			<button onclick='cancel()'>段落削除</button>
 			<button onclick="clean_img()">初期化</button>
 			<button onclick="download()">画像出力</button>
 			<br><a id="hiddenLink" download="download.png">ダウンロードされない場合、下図を右クリックして保存してください。</a>
