@@ -5,14 +5,11 @@ const VISIBLE_WIDTH = 708; //画像表示サイズ幅
 const VISIBLE_HEIGHT = 1000; //画像表示サイズ幅
 const ASPECT_R =Math.SQRT2; //出力用紙アスペクト比
 
-var Left = VISIBLE_WIDTH * 0.05; //左側ガイド線位置(初期値)
-var Right = VISIBLE_WIDTH - Left; //右側ガイド線位置(初期値)
-var LeftSpace = 10; //ガイド線左側のスペース
-
+var Guide_L = VISIBLE_WIDTH * 0.05; //左側ガイド線位置(初期値)
+var Guide_R = VISIBLE_WIDTH - Guide_L; //右側ガイド線位置(初期値)
 var trim_H = VISIBLE_HEIGHT * 0.1; //トリミング枠縦幅(初期値)
-var trim_W = Right - Left; //トリミング枠横幅(初期値)
+var trim_W = parseInt(Guide_R-Guide_L)+10-2; //トリミング枠横幅(初期値)
 var offset_Y = 0;
-var offset_X = 0;
 
 var Top_margin = VISIBLE_HEIGHT * 0.05; //描画開始位置X（上部余白）
 var Title_h = 0;
@@ -21,8 +18,7 @@ var ParaNo = 1; //出力領域段落カウント
 var selectingID = '';
 var tiltCorrected = false;
 
-var worker;
-var guideElem_L,guideElem_R;
+var tboxNum,worker,guideElem_L,guideElem_R;
 const cvs = document.getElementById('in'); //inエリアcanvas
 const out = document.getElementById('out'); //outエリアcanvas
 const in_ctx = cvs.getContext('2d');
@@ -31,18 +27,18 @@ const rangeInput_L = document.getElementById('rangeInput_L');
 const rangeInput_R = document.getElementById('rangeInput_R');
 const trimBoxList = document.getElementsByClassName('trimBox');
 const OCRTextList = document.getElementsByClassName('OCRText');
-const tboxNum = document.getElementById('trimboxNum'); //トリミング枠数
 const inputFile_nav = document.getElementById('inputFile_nav');
 const Tilt_Correction = document.getElementById('Tilt_Correction');
 const inputDiv = document.getElementById('inputDiv');
 const inputFileInfo = document.getElementById('inputFileInfo');
 const outputFileInfo = document.getElementById('outputFileInfo');
 const widthLock = document.getElementById('widthLock');
+const LeftSpace = document.getElementById('LeftSpace');  //譜表左側のスペース
+const RightSpace = document.getElementById('RightSpace');  //譜表右側のスペース
 const objFile = document.getElementById("selectFile");
-var img = new Image();
 
 //File input
-var reader,file,fileNo = 0,
+var reader,file,fileNo = 0,img = new Image(),
 	fileType = '' ,fileName = '',
 	zindexNo = 100,
 	outFileName = 'download.png';
@@ -181,20 +177,19 @@ function Load_Next() {
 
 window.onload = function() {
 	rangeInput_L.max = parseInt(VISIBLE_WIDTH/2)-5;
-	rangeInput_R.min = parseInt(VISIBLE_WIDTH/2)+4;
+	rangeInput_R.min = parseInt(VISIBLE_WIDTH/2)+5;
 	rangeInput_R.max = VISIBLE_WIDTH-6;
-	rangeInput_L.value = Left+5;
-	rangeInput_R.value = Right-4;
-    tboxNum.value = 0;
+	rangeInput_L.value = Guide_L;
+	rangeInput_R.value = Guide_R;
+    tboxNum = 0;
+    LeftSpace.value = RightSpace.value = 0;
 
-	document.getElementById('tboxX').value = 0;
 	document.getElementById('tboxY').value = 0;
-	document.getElementById('trim_W').value = trim_W;
     document.getElementById('trim_H').value = trim_H;
     document.getElementById('Para_interval').value = Para_interval;
     document.getElementById('title_text').value = 'タイトル';
-    drawGuideLine('guide_left','v',Left + 5);
-    drawGuideLine('guide_right','v',Right - 5);
+    drawGuideLine('guide_left','v',Guide_L);
+    drawGuideLine('guide_right','v',Guide_R);
     guideElem_L =document.getElementById('guide_left');
     guideElem_R =document.getElementById('guide_right');
 
@@ -283,14 +278,20 @@ function stopMove(e) {
     }
 }
 
-//Left.addEventListener('mousedown', initMove, false);
-//Right.addEventListener('mousedown', initMove, false);
+//guideElem_L.addEventListener('mousedown', initMove, false);
+//guideElem_R.addEventListener('mousedown', initMove, false);
 
+//トリミング領域追加
+function addTrimBox() {
+	drawTrimBox('trimBox_'+ tboxNum,	inputDiv.scrollTop);
+}
  //トリミング領域描画
-function drawTrimBox(id,PositionY) {
-	drawDivBox(id,'trimBox',Left,PositionY,trim_W,trim_H);
+function drawTrimBox(id,top) {
+	var left = Guide_L - LeftSpace.valueAsNumber;
+	var width =  parseInt(Guide_R-Guide_L) + LeftSpace.valueAsNumber + RightSpace.valueAsNumber - 2;
+	drawDivBox(id,'trimBox',left,top,width,trim_H);
 	selectingID = id;
-	tboxNum.value ++;
+	tboxNum ++;
 }
 
 //ガイド線描画
@@ -309,15 +310,11 @@ function removeTrimBox(elemID) {
 	var elem = document.getElementById(elemID);
 	if(elem){
 		elem.parentNode.removeChild(elem);
-		if(tboxNum.value>0)
-			tboxNum.value--;
+		if(tboxNum>0)
+			tboxNum--;
 		if(selectingID==elemID)
 			selectingID = '';
 	}
-}
-//トリミング領域追加
-function addTrimBox() {
-	drawTrimBox('trimBox_'+ tboxNum.value,	inputDiv.scrollTop);
 }
 
  //画像トリミング
@@ -350,7 +347,7 @@ function doTrim() {
     //for (var elem of trimBoxList) {
 	for (var i=0;i<trimBoxListArray.length;i++){
 		var elem = trimBoxListArray[i];
-        var paraStart = paraStartPosition(ParaNo) + trim_H;
+        var paraStart = getParaTop(ParaNo) + trim_H;
 
         if (paraStart > VISIBLE_HEIGHT) {
             window.alert('ページ末尾に到達しました');
@@ -363,8 +360,8 @@ function doTrim() {
         var sWidth = parseInt(elem.style.width) * toOrigin;
         var sHeight = parseInt(elem.style.height) * toOrigin;
         //出力部
-        var dx = (VISIBLE_WIDTH-trim_W) / 2 * toOrigin;
-        var dy = paraStartPosition(ParaNo) * toOrigin;
+        var dx = (VISIBLE_WIDTH - parseInt(elem.style.width) ) / 2 * toOrigin;
+        var dy = getParaTop(ParaNo) * toOrigin;
         var dWidth = sWidth;
         var dHeight = sHeight;
 
@@ -383,8 +380,8 @@ function cancel(){
     }
 }
 
- //n段目から描画位置Y1を計算
-function paraStartPosition(n) {
+ //n段目から描画位置Topを計算
+function getParaTop(n) {
         return Top_margin + Title_h + (n-1)*Para_interval + (n-1) * trim_H;
 }
 //全trimboxに対する操作
@@ -394,25 +391,27 @@ function changeTrimBox(func) {
 //ガイド線移動
 function rangeChange(id,val) {
 	if (id=='rangeInput_L'){
-		var guide_L_before = Left;
-		Left = parseInt(val);
-		guideElem_L.style.left = Left + 'px';
+		var guide_L_before = Guide_L;
+		Guide_L = parseInt(val);
+		guideElem_L.style.left = Guide_L + 'px';
 		if (widthLock.checked){
-			rangeInput_R.value = Right = Right + parseInt(val) - guide_L_before;
-			guideElem_R.style.left = Right + 'px';
+			rangeInput_R.value = Guide_R = Guide_R + parseInt(val) - guide_L_before;
+			guideElem_R.style.left = Guide_R + 'px';
 		}
 	} else if (id=='rangeInput_R') {
-		var guide_R_before = Right;
-		Right = parseInt(val);
-		guideElem_R.style.left = Right + 'px';
+		var guide_R_before = Guide_R;
+		Guide_R = parseInt(val);
+		guideElem_R.style.left = Guide_R + 'px';
 		if (widthLock.checked) {
-			rangeInput_L.value = Left = Left + parseInt(val) - guide_R_before;
-			guideElem_L.style.left = Right + 'px';
+			rangeInput_L.value = Guide_L = Guide_L + parseInt(val) - guide_R_before;
+			guideElem_L.style.left = Guide_R + 'px';
 		}
 	}
-	trim_W = parseInt(Right - Left) - 2;
-	 var change =  (id=='rangeInput_R' && !widthLock.checked) ? function(e){e.style.width = trim_W + 'px';} //右端変更&幅固定しない時
-	 : function(e){e.style.left = Left + 'px'; if (!widthLock.checked) e.style.width = trim_W + 'px';} //左端変更時
+	trim_W = parseInt(Guide_R-Guide_L)+LeftSpace.valueAsNumber+RightSpace.valueAsNumber;
+	var left = Guide_L-LeftSpace.valueAsNumber;
+	 var change =  (id=='rangeInput_R' && !widthLock.checked)
+	 ? function(e){e.style.width = trim_W + 'px';} //右端変更&幅固定しない時
+	 : function(e){e.style.left =left+'px'; if (!widthLock.checked) e.style.width = trim_W + 'px';} //左端変更時
 	 changeTrimBox(change);
 }
 //トリミング枠offset_Y変更
@@ -428,7 +427,7 @@ function offsetYChange(val) {
 function trimHeightChange(val) {
 	var hChange = parseInt(val - trim_H) / 2;
 	changeTrimBox(function(e){
-		var topVal = parseInt(e.style.top)
+		var topVal = parseInt(e.style.top);
 		e.style.height = parseInt(val) + 'px';
 		e.style.top = topVal-hChange + 'px';
 	});
@@ -465,7 +464,7 @@ function clean_img() {
  //トリミング枠全削除
 function clearTrimBox() {
 	removeByClassName('trimBox');
-	tboxNum.value = 0;
+	tboxNum = 0;
 }
 //OCR識別枠全削除
 function clearOCRTextBox() {
@@ -623,11 +622,9 @@ function result(res){
 			var width = (b.x1-b.x0)*imgToView;
 			var hieght = (b.y1-b.y0)*imgToView;
 
-			if(LeftSpace<width){
-				LeftSpace = width;
-				trim_W = Right - Left;
+			if(LeftSpace.valueAsNumber<width){
+				LeftSpace.value = width;
 			}
-
 			drawDivBox(divId,'OCRText',x, y, width, hieght)
 		}
 	})
