@@ -592,7 +592,7 @@ function instSelect(elem){
 function getInputCanvas() {
     var canvas = document.createElement('canvas');
     var ctx = canvas.getContext('2d');
-    var useWidth = img.width * Left / VISIBLE_WIDTH;
+    var useWidth = img.width * Guide_L / VISIBLE_WIDTH;
     canvas.width = useWidth;
     canvas.height = img.height;
     ctx.drawImage(img,0,0,useWidth,img.height,0,0,useWidth,img.height);
