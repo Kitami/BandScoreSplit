@@ -13,7 +13,6 @@ var offset_Y = 0;
 
 var Top_margin = VISIBLE_HEIGHT * 0.05; //描画開始位置X（上部余白）
 var Title_h = 0;
-var Para_interval = 15; //段落間隔
 var ParaNo = 1; //出力領域段落カウント
 var selectingID = '';
 var tiltCorrected = false;
@@ -32,13 +31,17 @@ const Tilt_Correction = document.getElementById('Tilt_Correction');
 const inputDiv = document.getElementById('inputDiv');
 const inputFileInfo = document.getElementById('inputFileInfo');
 const outputFileInfo = document.getElementById('outputFileInfo');
-const widthLock = document.getElementById('widthLock');
 const LeftSpace = document.getElementById('LeftSpace');  //譜表左側のスペース
 const RightSpace = document.getElementById('RightSpace');  //譜表右側のスペース
 const objFile = document.getElementById("selectFile");
+const Para_i = document.getElementById('Para_interval'); //段落間隔
+
+const widthLock = document.getElementById('widthLock');
+const autoMode = document.getElementById("autoMode");
+const searchText = document.getElementById("searchText");
 
 //File input
-var reader,file,fileNo = 0,img = new Image(),
+var reader,file,fileIndex = 0,img = new Image(),
 	fileType = '' ,fileName = '',
 	zindexNo = 100,
 	outFileName = 'download.png';
@@ -46,7 +49,7 @@ var reader,file,fileNo = 0,img = new Image(),
 objFile.addEventListener("change", function(evt) {
 	if(evt && evt.target.files){
 		file = evt.target.files;
-		fileNo = 0;
+		fileIndex = 0;
 		reader = new FileReader();
 		zindexNo = file.length;
 		clearTab();
@@ -68,7 +71,6 @@ objFile.addEventListener("change", function(evt) {
 function Load_Image(dataUrl) {
 	// 画像の読み込み
 	clearOCRTextBox();
-	tiltCorrected = false;
 	img.src = dataUrl;
 }
 
@@ -76,6 +78,7 @@ var pdfPages = 0,
 	pageNo = 1,
 	pageRendering = false,
 	pageNumPending = null,
+	pdfCanvas,
 	pdfData = {name : '', doc : null };
 
 function Load_Pdf(arrayBuffer) {
@@ -90,9 +93,9 @@ function Load_Pdf(arrayBuffer) {
 			pdfData.name = fileName;
 			pdfData.doc = pdf;
 			pdfjsLib.disableStream = true;
-	        var endTabID = "tab_"+fileNo+"_"+pdf.numPages;
+	        var endTabID = "tab_"+fileIndex+"_"+pdf.numPages;
 			if(pdf.numPages>1 && !document.getElementById(endTabID)){
-	            addPdfTabs(fileNo,pdf.numPages);
+	            addPdfTabs(fileIndex,pdf.numPages);
 			}
 			openPage(pdf,pageNo);
 	    });
@@ -125,9 +128,19 @@ function openPage(pdf,p){
 	        renderPage(pageNumPending);
 	        pageNumPending = null;
 	      }
+	      if(autoMode.checked) {startOCR();}
 	    });
 		//Load_Image(cvs.toDataURL())
 	});
+}
+
+function getPdfCanvas() {
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+    canvas.width = cvs.width;
+    canvas.height = cvs.height;
+    ctx.drawImage(cvs,0,0);
+    pdfCanvas = canvas;
 }
 
 function addPdfTabs(TabNo,Pags) {
@@ -137,7 +150,7 @@ function addPdfTabs(TabNo,Pags) {
 
 	for (var i = 1 ;i < Pags; i++) {
 		var N = i+1;
-		var tabID = "tab_"+fileNo+"_"+N;
+		var tabID = "tab_"+fileIndex+"_"+N;
 		var newPageTab = addTab();
 		newPageTab.innerHTML= fileName+"_"+N;
 		newPageTab.id = tabID;
@@ -156,7 +169,9 @@ img.onload = function(_ev) {
 	    in_ctx.drawImage(img,0,0,img.width,img.height);
 	}
 	// 画像,pdfが読み込まれた
-	inputFileInfo.innerHTML= (fileNo+1) + ' / ' +file.length+' 解像度: '+img.width+'x'+img.height;
+	var fileNo = parseInt(fileIndex) + 1;
+	inputFileInfo.innerHTML= fileNo + ' / ' +file.length+' 解像度: '+img.width+'x'+img.height;
+	if(autoMode.checked) {startOCR();}
 };
 
 function Load_Pre() {
@@ -183,10 +198,10 @@ window.onload = function() {
 	rangeInput_R.value = Guide_R;
     tboxNum = 0;
     LeftSpace.value = RightSpace.value = 0;
+    Para_i.value = 15;
 
 	document.getElementById('tboxY').value = 0;
     document.getElementById('trim_H').value = trim_H;
-    document.getElementById('Para_interval').value = Para_interval;
     document.getElementById('title_text').value = 'タイトル';
     drawGuideLine('guide_left','v',Guide_L);
     drawGuideLine('guide_right','v',Guide_R);
@@ -382,7 +397,7 @@ function cancel(){
 
  //n段目から描画位置Topを計算
 function getParaTop(n) {
-        return Top_margin + Title_h + (n-1)*Para_interval + (n-1) * trim_H;
+        return Top_margin + Title_h + (n-1)*Para_i.valueAsNumber + (n-1) * trim_H;
 }
 //全trimboxに対する操作
 function changeTrimBox(func) {
@@ -434,26 +449,29 @@ function trimHeightChange(val) {
     trim_H = parseInt(val);
 }
 
-function paraIntervalChange(val) {
-	Para_interval = parseInt(val);
+/*function paraIntervalChange(val) {
+	Para_i = parseInt(val);
 	clean_img();
 	doTrim();
-}
+}*/
 
 //入力領域クリア
 function Input_Clear(){
 	clearTrimBox();
-	clearOCRTextBox();
 	in_ctx.clearRect(0, 0, cvs.width, cvs.height);
-	removeTrimBox('edgeBox');
+	clearOCRTextBox();
+	clearTab();
+	inputFileInfo.innerHTML = '';
 	objFile.value = '';
 	pdfData = {name : '', doc : null };
-	inputFileInfo.innerHTML = '';
-
-	clearTab();
-
-	tiltCorrected = false;
+}
+//OCR関連初期化
+function clearOCRTextBox() {
+	resultArea.innerHTML='';
 	Tilt_Correction.value = '';
+	removeByClassName('OCRText');
+	removeByClassName('edgeBox');
+	blockAnalysisDone = OCRDone = tiltCorrected = false;
 }
  //出力領域クリア
 function clean_img() {
@@ -466,12 +484,7 @@ function clearTrimBox() {
 	removeByClassName('trimBox');
 	tboxNum = 0;
 }
-//OCR識別枠全削除
-function clearOCRTextBox() {
-	resultArea.innerHTML='';
-	removeByClassName('OCRText');
-	removeByClassName('edgeBox');
-}
+
 
 //ClassNameで要素削除
 function removeByClassName(ClassName) {
@@ -504,7 +517,7 @@ function addTab(Container){
 function clearTab() {
 	inputFile_nav.innerHTML='';
 	addTab();
-	fileNo = 0;
+	fileIndex = 0;
 }
 
 function selectTab(elem) {
@@ -532,16 +545,16 @@ function selectTab(elem) {
 	setTabStyle(elem);
 
 	//ファイル読み込み
-	if(file && navElem.id=='inputFile_nav'){
-		fileNo = elem.id.split('_')[1];
-		fileName = file[fileNo].name;
+	if(file[0] && navElem.id=='inputFile_nav'){
+		fileIndex = elem.id.split('_')[1];
+		fileName = file[fileIndex].name;
 		fileType = getExt(fileName);
 
 		if(fileType == 'pdf' ){
 			pageNo = elem.id.split('_').length>2 ? parseInt(elem.id.split('_')[2]) : 1;
-			reader.readAsArrayBuffer(file[fileNo]);
+			reader.readAsArrayBuffer(file[fileIndex]);
 		} else {
-			reader.readAsDataURL(file[fileNo]);
+			reader.readAsDataURL(file[fileIndex]);
 		}
 	}
 }
@@ -572,7 +585,9 @@ var checkedList = new Array();
 var LinesArray = new Array();
 const resultArea = document.getElementById('result');
 
-function instSelect(elem){
+var blockAnalysisDone = false, OCRDone = false;
+
+function selectInst(elem){
 	var instNo = elem.value;
 	var instElem = document.getElementById('instList_'+instNo);
 	var tboxId = 'trimBox_instNo_'+ instNo;
@@ -633,12 +648,22 @@ function result(res){
 		resultArea.innerHTML='認識結果:';
 		instList.forEach(
 				function (value, index){
-				var chkboxstr = '<input type="checkbox" oninput="instSelect(this)" value="' + index + '" id="ckbox_' + index + '">'
+				var chkboxstr = '<input type="checkbox" oninput="selectInst(this)" value="' + index + '" id="ckbox_' + index + '">'
 				+ '<label>' + value + '</label>';
 				resultArea.insertAdjacentHTML('beforeend',chkboxstr);
+
+				if(searchText.value) {
+					if( value.includes(searchText.value) ){
+						var e = document.getElementById('ckbox_' + index);
+						e.checked = true;
+						selectInst(e);
+					}
+				}
+
 						}
 				);
 	}
+	OCRDone = true;
 }
 
 function progressUpdate(packet){
@@ -678,15 +703,7 @@ function getInputCanvas2() {
     }
     return canvas;
 }
-var pdfCanvas;
-function getPdfCanvas() {
-    var canvas = document.createElement('canvas');
-    var ctx = canvas.getContext('2d');
-    canvas.width = cvs.width;
-    canvas.height = cvs.height;
-    ctx.drawImage(cvs,0,0);
-    pdfCanvas = canvas;
-}
+
 //openCV HoughLinesP
 function HoughLinesP(){
 	progressUpdate({status: '譜表領域検出'});
@@ -848,12 +865,13 @@ function blockAnalysis() {
 		rangeChange(rangeInput_R.id,edge_R);
 		drawDivBox('','edgeBox',edge_L,edge_T,(edge_R-edge_L),(edge_B-edge_T));
 		progressUpdate({status: '譜表領域検出完了'});
-	} else {
+		blockAnalysisDone = true;
+	} else if (!tiltCorrected) {
 		//傾き補正
 		rotatImage(-vAngle_radians);
 		tiltCorrected = true;
-		progressUpdate({status: '傾き補正'});
-		//lineDetectLSD();
+		progressUpdate({status: '傾き補正済み'});
+		lineDetectLSD();
 	}
 }
 
@@ -978,23 +996,22 @@ function dataURItoBlob(dataURI) {
 
 async function startOCR(){
 	//譜表領域検出
-	//await lineDetectLSD();
+	if(!blockAnalysisDone)
+		await lineDetectLSD();
 
 	if(!worker){
 		//CDN worker
 		worker = new Tesseract.createWorker({
-			  logger: progressUpdate
-			});
+			logger: progressUpdate
+		});
 
 		//Local worker
-		/*
-	 	const worker = new Tesseract.createWorker({
+/*	 	worker = new Tesseract.createWorker({
 			workerPath: './file/tesseract/worker.min.js',
 			langPath: './file/traineddata/',
 			corePath: './file/tesseract/tesseract-core.wasm.js',
 			logger: progressUpdate
-		});
-		*/
+		});*/
 	}
 
 	var input = getInputCanvas();
