@@ -27,38 +27,32 @@
 <!-- 				<button class="tboxBtn" onclick="clearTrimBox()">全削除</button> -->
 			</div>
 			</div>
-			<div class="setting leftSide">画像認識設定
-			<div id="ImageTilt" style="padding: 3px;">傾き補正:
-			<input type="number" id="Tilt_Correction" step="0.05" onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
-			<button onclick="lineDetectLSD()">直線検出</button>
-			<button onclick="startOCR()">OCR開始</button>
+			<div id="OCRSetting" class="setting leftSide">画像認識設定
+				<br><input type="checkbox" id="autoMode" checked="checked"/>画像読み込みたら自動OCR開始
+				<br><span>傾き補正:</span>
+				<input type="number" id="Tilt_Correction" step="0.05" onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
+				<button onclick="lineDetectLSD()">直線検出</button>
+				<br><span>パート名:</span>
+				<input type="text" id="searchText"/>
+				<button onclick="startOCR()">OCR開始</button>
 			</div>
-
-			<div id="log">
-						<div id="statusText">status</div>
-						<progress id="progressbar" value="0" max="1"></progress>
-					</div>
-					</div>
-				</div>
-			</div>
+		</div>
+		</div>
 
 		<div style="width: 26px;">&nbsp;</div>
 
 		<div id="topRightArea">
 		<div class="setting rightSide">
 			<!-- <a report="">BUG報告、FAQなど</a> -->
-			出力画像サイズ
-			<select name="output_size" disabled="disabled" style="padding:0px 0 2px 0;font-size:12.5px;">
-				<option value="origin">入力サイズと同じ幅</option>
-				<option value="B4_600">B4 600DPI</option>
-				<option value="B4_300">B4 300DPI</option>
-				<option value="A4_600">A4 600DPI</option>
-				<option value="A4_300">A4 300DPI</option>
-			</select>
-			<br>段落間隔:<input type="number" step="1" id="Para_interval" min="0" oninput="paraIntervalChange(value)" style="width: 40px"/>
-			<br>曲　名:<input type="text" id="title_text" class="titleText"/>
-			<br>作曲者:<input type="text" id="title_text2" class="titleText" disabled="disabled" />
+			<span style="width: 10%;display: inline-block;">曲　名:</span><input type="text" id="title_text" class="titleText"/>
+			<br><span style="width: 10%;display: inline-block;">段落間隔:</span><input type="number" step="1" id="Para_interval" min="0" style="width: 40px"/>
 			<span id="outputFileInfo"></span>
+
+		<div id="log">
+			<div id="statusText">status</div>
+			<progress id="progressbar" value="0" max="1"></progress>
+		</div>
+
 		</div>
 		</div>
 	</div>
@@ -125,11 +119,11 @@
 	</div>
 	<script src='https://unpkg.com/tesseract.js@v2.0.1/dist/tesseract.min.js'></script>
 	<script src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.3.200/pdf.min.js'></script>
-<!-- 	<script src="https://docs.opencv.org/4.1.2/opencv.js"></script> -->
 <!-- 	<script src='file/tesseract/tesseract.min.js'></script> -->
 <!-- 	<script src='file/tesseract/tesseract-core.wasm.js'></script> -->
 <!-- 	<script src='file/tesseract/worker.min.js'></script> -->
 <!-- 	<script src="file/opencv.js"></script> -->
+<!-- 	<script src="https://docs.opencv.org/4.1.2/opencv.js"></script> -->
 	<script src="file/lsd.js"></script>
 	<script src="file/split.js"></script>
 </body>
