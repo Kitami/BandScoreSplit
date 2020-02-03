@@ -9,7 +9,7 @@ var Guide_L = VISIBLE_WIDTH * 0.05; //左側ガイド線位置(初期値)
 var Guide_R = VISIBLE_WIDTH - Guide_L; //右側ガイド線位置(初期値)
 var trim_H = VISIBLE_HEIGHT * 0.1; //トリミング枠縦幅(初期値)
 var trim_W = parseInt(Guide_R-Guide_L)+10-2; //トリミング枠横幅(初期値)
-var offset_Y = 0;
+var offset_Y_rem = 0;
 
 var Top_margin = VISIBLE_HEIGHT * 0.05; //描画開始位置X（上部余白）
 var Title_h = 0;
@@ -39,11 +39,15 @@ const Para_i = document.getElementById('Para_interval'); //段落間隔
 const widthLock = document.getElementById('widthLock');
 const autoMode = document.getElementById("autoMode");
 const searchText = document.getElementById("searchText");
+const withOCR = document.getElementById("withOCR");
+const offset_Y = document.getElementById("offset_Y");
 
 //File input
-var reader,file,fileIndex = 0,img = new Image(),
-	fileType = '' ,fileName = '',
+var reader,file,
+	fileIndex = 0,
 	zindexNo = 100,
+	fileType = '',fileName = '',
+	img = new Image(),
 	outFileName = 'download.png';
 
 objFile.addEventListener("change", function(evt) {
@@ -79,19 +83,20 @@ var pdfPages = 0,
 	pageRendering = false,
 	pageNumPending = null,
 	pdfCanvas,
-	pdfData = {name : '', doc : null };
+	pdfName = '',pdfData = null;
+
 
 function Load_Pdf(arrayBuffer) {
-	if(pdfData.name == fileName) {
-		openPage(pdfData.doc,pageNo);
+	if(pdfName == fileName) {
+		openPage(pdfData,pageNo);
 	} else {
 		console.log('Load Pdf');
 	    var typedarray = new Uint8Array(arrayBuffer);
 		pdfjsLib.getDocument(typedarray).then(function (pdf) {
 	        // do stuff
 			console.log('PDFJS load');
-			pdfData.name = fileName;
-			pdfData.doc = pdf;
+			pdfName = fileName;
+			pdfData = pdf;
 			pdfjsLib.disableStream = true;
 	        var endTabID = "tab_"+fileIndex+"_"+pdf.numPages;
 			if(pdf.numPages>1 && !document.getElementById(endTabID)){
@@ -200,7 +205,6 @@ window.onload = function() {
     LeftSpace.value = RightSpace.value = 0;
     Para_i.value = 15;
 
-	document.getElementById('tboxY').value = 0;
     document.getElementById('trim_H').value = trim_H;
     document.getElementById('title_text').value = 'タイトル';
     drawGuideLine('guide_left','v',Guide_L);
@@ -303,7 +307,7 @@ function addTrimBox() {
  //トリミング領域描画
 function drawTrimBox(id,top) {
 	var left = Guide_L - LeftSpace.valueAsNumber;
-	var width =  parseInt(Guide_R-Guide_L) + LeftSpace.valueAsNumber + RightSpace.valueAsNumber - 2;
+	var width =  parseInt(Guide_R-Guide_L) + LeftSpace.valueAsNumber + RightSpace.valueAsNumber;
 	drawDivBox(id,'trimBox',left,top,width,trim_H);
 	selectingID = id;
 	tboxNum ++;
@@ -432,11 +436,11 @@ function rangeChange(id,val) {
 //トリミング枠offset_Y変更
 function offsetYChange(val) {
 	changeTrimBox(function(e){
-	    var origin_Y = parseInt(e.style.top) + offset_Y;
-	    var topVal = origin_Y - parseInt(val);
+	    var before_Y = parseInt(e.style.top) + offset_Y_rem;
+	    var topVal = before_Y - parseInt(val);
 	    e.style.top = topVal + 'px';
     });
-	offset_Y = parseInt(val);
+	offset_Y.value = offset_Y_rem = parseInt(val);
 }
 //トリミング枠縦幅変更
 function trimHeightChange(val) {
@@ -463,7 +467,9 @@ function Input_Clear(){
 	clearTab();
 	inputFileInfo.innerHTML = '';
 	objFile.value = '';
-	pdfData = {name : '', doc : null };
+	pdfName = '';
+	pdfData = null;
+	refeEdge = null;
 }
 //OCR関連初期化
 function clearOCRTextBox() {
@@ -472,6 +478,7 @@ function clearOCRTextBox() {
 	removeByClassName('OCRText');
 	removeByClassName('edgeBox');
 	blockAnalysisDone = OCRDone = tiltCorrected = false;
+	offset_Y.value = offset_Y_rem = 0;
 }
  //出力領域クリア
 function clean_img() {
@@ -519,6 +526,20 @@ function clearTab() {
 	addTab();
 	fileIndex = 0;
 }
+
+var refeEdge = null;
+function setRefeEdge(){
+	var edgeElem = document.getElementById("edgeBox");
+	var T = parseInt(edgeElem.style.top);
+	var L = parseInt(edgeElem.style.left);
+	var W = parseInt(edgeElem.style.width);
+	var H = parseInt(edgeElem.style.height);
+	refeEdge = {top:T,left:L,width:W,height:H};
+	//位置保存
+	console.log(refeEdge);
+}
+
+var edgeBoxList = new Array();
 
 function selectTab(elem) {
 	var navElem = elem.parentNode;
@@ -863,7 +884,13 @@ function blockAnalysis() {
 		rangeInput_R.value = edge_R;
 		rangeChange(rangeInput_L.id,edge_L);
 		rangeChange(rangeInput_R.id,edge_R);
-		drawDivBox('','edgeBox',edge_L,edge_T,(edge_R-edge_L),(edge_B-edge_T));
+		drawDivBox('edgeBox','edgeBox',edge_L,edge_T,(edge_R-edge_L),(edge_B-edge_T));
+
+		if(refeEdge){
+			var offset = refeEdge.top - edge_T;
+			offsetYChange(offset);
+		}
+
 		progressUpdate({status: '譜表領域検出完了'});
 		blockAnalysisDone = true;
 	} else if (!tiltCorrected) {
@@ -897,9 +924,7 @@ function rotatImageByDegree(value) {
 }
 
 function maxIndex(a,start,end) {
-	var index = 0;
-	var value = -1;
-
+	var index = 0,value = -1;
 	var increase = start<end ? 1 : -1 ;
 	for (var i=start;!(start<end^i<end);i=i+increase) {
 		if (value < a[i]) {	value = a[i]; index = i	}
@@ -998,6 +1023,9 @@ async function startOCR(){
 	//譜表領域検出
 	if(!blockAnalysisDone)
 		await lineDetectLSD();
+
+	if(!withOCR.checked)
+		return;
 
 	if(!worker){
 		//CDN worker
