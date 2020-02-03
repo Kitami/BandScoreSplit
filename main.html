@@ -17,7 +17,7 @@
 			<span style="width: 10%;display: inline-block;">右側:</span>
 			<input type="number" id="RightSpace" class="tboxSetting"/>
 			<br><span style="width: 27%;display: inline-block;">縦方向Offset:</span>
-			<input type="number" id="tboxY" class="tboxSetting" oninput="offsetYChange(value)"/>
+			<input type="number" id="offset_Y" class="tboxSetting" value="0" oninput="offsetYChange(valueAsNumber)"/>
 			<span style="width: 10%;display: inline-block;">縦幅:</span>
 			<input type="number"id="trim_H" class="tboxSetting" step="2" oninput="trimHeightChange(valueAsNumber)"/>
 			<br><input type="checkbox" id="widthLock"/>横幅固定
@@ -28,10 +28,11 @@
 			</div>
 			</div>
 			<div id="OCRSetting" class="setting leftSide">画像認識設定
-				<br><input type="checkbox" id="autoMode" checked="checked"/>画像読み込みたら自動OCR開始
+				<br><input type="checkbox" id="autoMode" checked="checked"/>画像読込みたら自動認識開始
+				<br><input type="checkbox" id="withOCR"/>パート名OCRまで実施
 				<br><span>傾き補正:</span>
 				<input type="number" id="Tilt_Correction" step="0.05" onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
-				<button onclick="lineDetectLSD()">直線検出</button>
+<!-- 				<button onclick="lineDetectLSD()">直線検出</button> -->
 				<br><span>パート名:</span>
 				<input type="text" id="searchText"/>
 				<button onclick="startOCR()">OCR開始</button>
@@ -70,6 +71,7 @@
 トリミング枠: <button onclick="addTrimBox()">追加</button>
 		<button onclick="removeTrimBox()">削除</button>
 		<button style="width: 60px;" onclick="clearTrimBox()">全削除</button>
+		<button style="width: 100px;" onclick="setRefeEdge()">相対位置保存</button>
 	</div>
 
 	<div id= "topSidebar">
