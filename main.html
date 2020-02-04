@@ -13,9 +13,9 @@
 		<div style='display:flex;'>
 			<div class="setting leftSide">トリミング枠設定
 			<br><span style="width: 27%;display: inline-block;">譜表左側余白:</span>
-			<input type="number" id="LeftSpace" class="tboxSetting"/>
+			<input type="number" id="LeftSpace" value="5" class="tboxSetting" oninput="rangeChange(id)"/>
 			<span style="width: 10%;display: inline-block;">右側:</span>
-			<input type="number" id="RightSpace" class="tboxSetting"/>
+			<input type="number" id="RightSpace" value="5" class="tboxSetting" oninput="rangeChange(id)"/>
 			<br><span style="width: 27%;display: inline-block;">縦方向Offset:</span>
 			<input type="number" id="offset_Y" class="tboxSetting" value="0" oninput="offsetYChange(valueAsNumber)"/>
 			<span style="width: 10%;display: inline-block;">縦幅:</span>
@@ -27,15 +27,16 @@
 <!-- 				<button class="tboxBtn" onclick="clearTrimBox()">全削除</button> -->
 			</div>
 			</div>
-			<div id="OCRSetting" class="setting leftSide">画像認識設定
-				<br><input type="checkbox" id="autoMode" checked="checked"/>画像読込みたら自動認識開始
-				<br><input type="checkbox" id="withOCR"/>パート名OCRまで実施
+			<div id="OCRSetting" class="setting leftSide">自動化設定
+				<br><input type="checkbox" id="EdgeDetect" checked="checked"/>エッジ検出
+				<input type="checkbox" id="withOCR"/>パート名OCR
+				<br><input type="checkbox" id="autoTrim"/>ファイル切替時自動トリミング
 				<br><span>傾き補正:</span>
 				<input type="number" id="Tilt_Correction" step="0.05" onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
 <!-- 				<button onclick="lineDetectLSD()">直線検出</button> -->
 				<br><span>パート名:</span>
 				<input type="text" id="searchText"/>
-				<button onclick="startOCR()">OCR開始</button>
+				<button onclick="startOCR()">認識開始</button>
 			</div>
 		</div>
 		</div>
@@ -45,8 +46,8 @@
 		<div id="topRightArea">
 		<div class="setting rightSide">
 			<!-- <a report="">BUG報告、FAQなど</a> -->
-			<span style="width: 10%;display: inline-block;">曲　名:</span><input type="text" id="title_text" class="titleText"/>
-			<br><span style="width: 10%;display: inline-block;">段落間隔:</span><input type="number" step="1" id="Para_interval" min="0" style="width: 40px"/>
+			<span style="width: 10%;display: inline-block;">曲　名:</span><input type="text" id="title_text" value="" class="titleText"/>
+			<br><span style="width: 10%;display: inline-block;">段落間隔:</span><input type="number" value="15" step="1" id="Para_interval" min="0" style="width: 40px"/>
 			<span id="outputFileInfo"></span>
 
 		<div id="log">
@@ -72,11 +73,12 @@
 		<button onclick="removeTrimBox()">削除</button>
 		<button style="width: 60px;" onclick="clearTrimBox()">全削除</button>
 		<button style="width: 100px;" onclick="setRefeEdge()">相対位置保存</button>
+		<button style="width: 120px;" onclick="doStaff()">後続ページ処理</button>
 	</div>
 
 	<div id= "topSidebar">
-		<input id='rangeInput_L' type='range' min=5 onchange="rangeChange(id,valueAsNumber)" oninput="rangeChange(id,valueAsNumber)" style='width: 354px'>
-	<input id='rangeInput_R' type='range' min=0 onchange="rangeChange(id,valueAsNumber)" oninput="rangeChange(id,valueAsNumber)" style='width: 354px'>
+		<input id='rangeInput_L' type='range' min=5 onchange="rangeChange(id)" oninput="rangeChange(id)" style='width: 354px'>
+	<input id='rangeInput_R' type='range' min=0 onchange="rangeChange(id)" oninput="rangeChange(id)" style='width: 354px'>
 	</div>
 
 	<div style="display: flex;width: 708px;">
