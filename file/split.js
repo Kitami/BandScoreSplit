@@ -15,6 +15,7 @@ var Top_margin = VISIBLE_HEIGHT * 0.05; //描画開始位置X（上部余白）
 var Title_h = 0;
 var ParaNo = 1; //出力領域段落カウント
 var selectingID = '';
+var seleTabIndex = 0;
 var tiltCorrected = false;
 
 var tboxNum,worker,g_L,g_R;
@@ -111,8 +112,8 @@ function LoadImage(dataUrl) {
         	in_ctx.drawImage(img,0,0,img.width,img.height);
         	var fileNo = parseInt(fileIndex) + 1;
         	inputFileInfo.innerHTML= fileNo + ' / ' +file.length+' 解像度: '+img.width+'x'+img.height;
-        	if(EdgeDetect.checked) {startAutoTrim();}
             resolve(img);
+        	if(EdgeDetect.checked) {startAutoTrim();}
         }
     })
 }
@@ -153,7 +154,7 @@ function openPage(num) {
         pageNumPending = null;
       }
       getPdfCanvas();
-      if(EdgeDetect.checked) {startAutoTrim();}
+  	if(EdgeDetect.checked) {startAutoTrim();}
     });
   });
   // Update page counters
@@ -198,17 +199,15 @@ function addPdfTabs(TabNo,Pags) {
 //};
 
 function Load_Pre() {
-	var tabList = [].slice.call(inputFile_nav.children);
-	var seleTabIndex = tabList.indexOf(inputFile_nav.getElementsByClassName('selected')[0]);
-    if (tabList.length > 0 && seleTabIndex-1>=0) {
+	var tabList = inputFile_nav.children;
+    if (tabList.length > 0 && seleTabIndex - 1>=0) {
         selectTab(inputFile_nav.children[seleTabIndex-1]);
     }
 }
 
 function Load_Next() {
-	var tabList = [].slice.call(inputFile_nav.children);
-	var seleTabIndex = tabList.indexOf(inputFile_nav.getElementsByClassName('selected')[0]);
-    if (tabList.length > 0 && seleTabIndex+1<tabList.length) {
+	var tabList = inputFile_nav.children;
+    if (tabList.length > 0 && seleTabIndex + 1< tabList.length) {
     	return selectTab(inputFile_nav.children[seleTabIndex+1]);
     }
 }
@@ -424,6 +423,10 @@ async function doTrim() {
         ParaList.push(drawArea);
         ParaNo++;
     }
+
+	if(autoTriming && seleTabIndex == inputFile_nav.children.length){
+		autoTriming = autoTrim.checked = false;
+	}
 }
 
 function cancel(){
@@ -585,7 +588,6 @@ function setRefeEdge(){
 	refeEdge = {top:T,left:L,width:W,height:H};
 	//位置保存
 	console.log(refeEdge);
-	autoTrim.checked = true;
 }
 
 var edgeBoxList = new Array();
@@ -595,7 +597,7 @@ function selectTab(elem) {
 	var navElem = elem.parentNode;
 	var TabList = elem.parentNode.children;
 	var eList = [].slice.call(TabList);
-	var elemIndex = eList.indexOf(elem);
+	seleTabIndex = eList.indexOf(elem);
 
 	//前選択した要素の処理
 	var selectedTab = navElem.getElementsByClassName("tab selected")[0];
@@ -603,7 +605,7 @@ function selectTab(elem) {
 		selectedTab.classList.remove('selected');
 		//z-index設定
 		var selected_Locat = eList.indexOf(selectedTab);
-		setTabZindex(TabList,elemIndex);
+		setTabZindex(TabList,seleTabIndex);
 		selectedTab.style.width = '100px';
 	}
 
@@ -1118,16 +1120,14 @@ async function startOCR(){
 	result(data);
 }
 
+var autoTriming = false;
 async function doStaff(){
+	autoTrim.checked = autoTriming = true;
 	doTrim();
 	setRefeEdge();
-    var result;
-	var tabList = [].slice.call(inputFile_nav.children);
-	var seleTabIndex = tabList.indexOf(inputFile_nav.getElementsByClassName('selected')[0]);
-
+	var tabList = inputFile_nav.children;
 	while (seleTabIndex < tabList.length) {
 		result = await Load_Next();
-		//console.log(seleTabIndex +' '+ result);
 		seleTabIndex++;
 	}
 }
