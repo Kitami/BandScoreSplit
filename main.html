@@ -31,21 +31,17 @@
                         <!--<button class="tboxBtn" onclick="clearTrimBox()">全削除</button> -->
                         </div>
                     </div>
-                    <div id="OCRSetting" class="setting leftSide">
-                        自動化設定 <br>
-                        <input type="checkbox" id="EdgeDetect" checked="checked"/>
-                        エッジ検出 <input type="checkbox" id="withOCR"/>
-                        パート名OCR <br>
-                        <input type="checkbox" id="autoTrim"/>
-                        自動トリミング<br>
-                        <span>傾き補正:</span>
-                        <input type="number" id="Tilt_Correction" step="0.05" onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
-                        <!--                 <button onclick="lineDetectLSD()">直線検出</button> -->
-                        <br>
-                        <span>パート名:</span>
-                        <input type="text" id="searchText"/>
-                        <button onclick="startOCR()">認識開始</button>
-                    </div>
+					<div id="OCRSetting" class="setting leftSide">自動化設定
+						<br><input type="checkbox" id="EdgeDetect" checked="checked"/>エッジ検出
+						<input type="checkbox" id="withOCR"/>パート名OCR
+						<br><input type="checkbox" id="autoTrim"/>自動トリミング
+						<br><span>傾き補正:</span>
+						<input type="number" id="Tilt_Correction" step="0.050" novalidate onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
+							<button onclick="lineDetectLSD()">エッジ検出</button>
+						<br><span>パート名:</span>
+						<input type="text" name="searchText"/>
+						<button onclick="startOCR()">OCR開始</button>
+					</div>
                 </div>
             </div>
             <div style="width: 26px;">&nbsp;</div>
@@ -121,6 +117,7 @@
         </div>
         <script src='https://unpkg.com/tesseract.js@v2.0.1/dist/tesseract.min.js'></script>
         <script src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.3.200/pdf.min.js'></script>
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.3.200/pdf.worker.js'></script>
         <!--     <script src='file/tesseract/tesseract.min.js'></script> -->
         <!--     <script src='file/tesseract/tesseract-core.wasm.js'></script> -->
         <!--     <script src='file/tesseract/worker.min.js'></script> -->
