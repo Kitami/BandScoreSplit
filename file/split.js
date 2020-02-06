@@ -75,7 +75,11 @@ objFile.addEventListener("change", function(evt) {
 	}
 }, false);
 
+var status = '';
 async function Load_file(dataUrl) {
+	status = 'Loading File';
+	progressUpdate({ status: status});
+
 	clearOCRTextBox();
 	if(fileType=='pdf'){
 		if(pdfName == fileName) {
@@ -113,6 +117,9 @@ function LoadImage(dataUrl) {
         	var fileNo = parseInt(fileIndex) + 1;
         	inputFileInfo.innerHTML= fileNo + ' / ' +file.length+' 解像度: '+img.width+'x'+img.height;
             resolve(img);
+
+			status = 'Loading File done';
+			progressUpdate({ status: status});
         	if(EdgeDetect.checked) {startAutoTrim();}
         }
     })
@@ -208,7 +215,7 @@ function Load_Pre() {
 function Load_Next() {
 	var tabList = inputFile_nav.children;
     if (tabList.length > 0 && seleTabIndex + 1< tabList.length) {
-    	return selectTab(inputFile_nav.children[seleTabIndex+1]);
+    	selectTab(inputFile_nav.children[seleTabIndex+1]);
     }
 }
 
@@ -363,7 +370,7 @@ function drawInit(){
 function drawTitle(){
 	var titleText = TitleText.value;
 	var toOrigin = out.width / VISIBLE_WIDTH;
-	var clearHeight = Top_margin + Title_h + Para_i.valueAsNumber;
+	var clearHeight = (Top_margin + Title_h + Para_i.valueAsNumber)*toOrigin;
 	if (titleText.length > 0) {
 		var font_size = out.width / 25;
 		out_ctx.font = font_size + "px serif";
@@ -374,8 +381,8 @@ function drawTitle(){
 		var y = Top_margin * toOrigin;
         out_ctx.clearRect(0,0,out.width,clearHeight);
         out_ctx.fillText(titleText,x,y);
-        Title_h = textHeight*0.5;
-	} else  {
+        Title_h = textHeight/toOrigin;
+	} else if(Title_h>0) {
 		out_ctx.clearRect(0,0,out.width,clearHeight);
 	}
 }
@@ -405,6 +412,7 @@ async function doTrim() {
             } else {
             	await download();
             	clean_img();
+            	drawInit();
             	TitleText.value = '';
             }
         }
@@ -428,6 +436,8 @@ async function doTrim() {
 
 	if(autoTriming && seleTabIndex == inputFile_nav.children.length){
 		autoTriming = autoTrim.checked = false;
+		status = 'autoTrim done';
+		progressUpdate({ status: status});
 	}
 }
 
@@ -747,8 +757,8 @@ function result(res){
 	OCRDone = true;
 }
 
+var statusText = document.getElementById('statusText');
 function progressUpdate(packet){
-	var statusText = document.getElementById('statusText');
 	var progressbar = document.getElementById('progressbar');
 	var log = document.getElementById('log');
 
@@ -1082,6 +1092,8 @@ function dataURItoBlob(dataURI) {
 }
 
 async function startAutoTrim(){
+	status = 'doing autoTrim';
+	progressUpdate({ status: status});
 	//譜表領域検出
 	if(!blockAnalyzeDone)
 		await lineDetectLSD();
@@ -1093,6 +1105,11 @@ async function startAutoTrim(){
 	if(autoTrim.checked){
 		doTrim();
 	}
+
+	//next page
+    if(autoTriming && autoTrim.checked){
+    	await Load_Next();
+    }
 }
 
 async function startOCR(){
@@ -1123,13 +1140,13 @@ async function startOCR(){
 }
 
 var autoTriming = false;
+
 async function doStaff(){
 	autoTrim.checked = autoTriming = true;
 	doTrim();
 	setRefeEdge();
 	var tabList = inputFile_nav.children;
-	while (seleTabIndex < tabList.length) {
-		result = await Load_Next();
-		seleTabIndex++;
-	}
+	//while (seleTabIndex < tabList.length) {
+	await Load_Next();
+	//}
 }
