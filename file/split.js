@@ -219,6 +219,8 @@ window.onload = function() {
 	rangeInput_L.value = Guide_L;
 	rangeInput_R.value = Guide_R;
     tboxNum = 0;
+    out.width = VISIBLE_WIDTH;
+    out.height = VISIBLE_HEIGHT;
 
     document.getElementById('trim_H').value = trim_H;
     g_L = drawGuideLine('guide_left','v',Guide_L);
