@@ -42,6 +42,7 @@ const searchText = document.getElementById("searchText");
 const withOCR = document.getElementById("withOCR");
 const offset_Y = document.getElementById("offset_Y");
 const autoTrim = document.getElementById("autoTrim");
+const TitleText = document.getElementById("titleText");
 
 //File input
 var reader,file,
@@ -67,14 +68,17 @@ objFile.addEventListener("change", function(evt) {
 		}
 		setTabZindex(inputFile_nav.children,0);
 		selectTab(inputFile_nav.children[0]);
-		reader.onload = function() {Load_file(reader.result)};
+		reader.onload = function() {
+			Load_file(reader.result)
+		};
 	}
 }, false);
 
-function Load_file(dataUrl) {
+async function Load_file(dataUrl) {
+	clearOCRTextBox();
 	if(fileType=='pdf'){
 		if(pdfName == fileName) {
-				openPage(pdfData,pageNo);
+				openPage(pageNo);
 			} else {
 				//console.log('Load Pdf');
 				var typedarray = new Uint8Array(dataUrl); // pdf:arrayBuffer
@@ -82,58 +86,79 @@ function Load_file(dataUrl) {
 					// do stuff
 					console.log('PDFJS load');
 					pdfName = fileName;
-					pdfData = pdf;
+					pdfDoc = pdf;
 					pdfjsLib.disableStream = true;
 					var endTabID = "tab_"+fileIndex+"_"+pdf.numPages;
 					if(pdf.numPages>1 && !document.getElementById(endTabID)){
 						addPdfTabs(fileIndex,pdf.numPages);
 					}
-					openPage(pdf,pageNo);
+					openPage(pageNo);
 				});
 			}
 	} else {
-		// 画像の読み込み
-		img.src = dataUrl;
+		// 画像の読み込み img.src = dataUrl;
+		await LoadImage(dataUrl);
 	}
-		clearOCRTextBox();
 }
-
+function LoadImage(dataUrl) {
+    return new Promise((resolve, reject) => {
+    	img.src = dataUrl;
+    	img.onload = () => {
+        	cvs.width = img.width;
+        	cvs.height = img.width*ASPECT_R;
+        	in_ctx.fillStyle = 'white';
+        	in_ctx.fillRect(0, 0, cvs.width, cvs.height);
+        	in_ctx.drawImage(img,0,0,img.width,img.height);
+        	var fileNo = parseInt(fileIndex) + 1;
+        	inputFileInfo.innerHTML= fileNo + ' / ' +file.length+' 解像度: '+img.width+'x'+img.height;
+        	if(EdgeDetect.checked) {startAutoTrim();}
+            resolve(img);
+        }
+    })
+}
 var pdfPages = 0,
 	pageNo = 1,
 	pageRendering = false,
 	pageNumPending = null,
 	pdfCanvas,
-	pdfName = '',pdfData = null;
+	scale = 2,
+	pdfName = '',pdfDoc = null;
+	pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.3.200/pdf.worker.js';
 
-function openPage(pdf,p){
-	console.log('Load Page');
-	pageRendering = true;
-	pdf.getPage(p).then(function(page) {
-		// you can now use *page* here
-		var viewport = page.getViewport({ scale: 2 });
-		cvs.height = viewport.height;
-		cvs.width = viewport.width;
+/**
+ * Get page info from document, resize canvas accordingly, and render page.
+ * @param num Page number.
+ */
+function openPage(num) {
+  pageRendering = true;
+  // Using promise to fetch the page
+  pdfDoc.getPage(num).then(function(page) {
+    var viewport = page.getViewport({scale: scale});
+    cvs.height = viewport.height;
+    cvs.width = viewport.width;
 
-		var renderContext = {
-		  canvasContext: in_ctx,
-		  viewport: viewport
-		};
-		var renderTask = page.render(renderContext);
+    // Render PDF page into canvas context
+    var renderContext = {
+      canvasContext: in_ctx,
+      viewport: viewport
+    };
+    var renderTask = page.render(renderContext);
 
-	    // Wait for rendering to finish
-	    renderTask.promise.then(function() {
-	      pageRendering = false;
-	      getPdfCanvas();
-	      if (pageNumPending !== null) {
-	        // New page rendering is pending
-	    	console.log('New page rendering is pending');
-	        renderPage(pageNumPending);
-	        pageNumPending = null;
-	      }
-	      if(EdgeDetect.checked) {startOCR();}
-	    });
-		//Load_Image(cvs.toDataURL())
-	});
+    // Wait for rendering to finish
+    renderTask.promise.then(function() {
+      pageRendering = false;
+      if (pageNumPending !== null) {
+        // New page rendering is pending
+        renderPage(pageNumPending);
+        pageNumPending = null;
+      }
+      getPdfCanvas();
+      if(EdgeDetect.checked) {startAutoTrim();}
+    });
+  });
+  // Update page counters
+  //document.getElementById('page_num').textContent = num;
+  return Promise.resolve(1);
 }
 
 function getPdfCanvas() {
@@ -161,17 +186,16 @@ function addPdfTabs(TabNo,Pags) {
 	selectTab(inputFile_nav.children[0]);
 }
 
-img.onload = function(_ev) {
-	// 画像が読み込まれた
-	cvs.width = img.width;
-	cvs.height = img.width*ASPECT_R;
-	in_ctx.fillStyle = 'white';
-	in_ctx.fillRect(0, 0, cvs.width, cvs.height);
-	in_ctx.drawImage(img,0,0,img.width,img.height);
-	var fileNo = parseInt(fileIndex) + 1;
-	inputFileInfo.innerHTML= fileNo + ' / ' +file.length+' 解像度: '+img.width+'x'+img.height;
-	if(EdgeDetect.checked) {startOCR();}
-};
+//img.onload = function(_ev) {
+//	// 画像が読み込まれた
+//	cvs.width = img.width;
+//	cvs.height = img.width*ASPECT_R;
+//	in_ctx.fillStyle = 'white';
+//	in_ctx.fillRect(0, 0, cvs.width, cvs.height);
+//	in_ctx.drawImage(img,0,0,img.width,img.height);
+//	var fileNo = parseInt(fileIndex) + 1;
+//	inputFileInfo.innerHTML= fileNo + ' / ' +file.length+' 解像度: '+img.width+'x'+img.height;
+//};
 
 function Load_Pre() {
 	var tabList = [].slice.call(inputFile_nav.children);
@@ -326,28 +350,42 @@ function removeTrimBox(elemID) {
 			selectingID = '';
 	}
 }
-
+//出力領域初期化
+function drawInit(){
+	out.width = cvs.width;
+	out.height = cvs.width*ASPECT_R;
+    // 背景
+    out_ctx.fillStyle = 'white';  //DEBUG用 '#f1f1f1'
+    out_ctx.fillRect(0, 0, cvs.width, cvs.height);
+}
+//タイトル書込み
+function drawTitle(){
+	var titleText = TitleText.value;
+	var toOrigin = out.width / VISIBLE_WIDTH;
+	var clearHeight = Top_margin + Title_h + Para_i.valueAsNumber;
+	if (titleText.length > 0) {
+		var font_size = out.width / 25;
+		out_ctx.font = font_size + "px serif";
+        out_ctx.fillStyle = 'black';
+		var textWidth = out_ctx.measureText(titleText).width;
+		var textHeight = textWidth/titleText.length;
+		var x = (out.width - textWidth)/2;
+		var y = Top_margin * toOrigin;
+        out_ctx.clearRect(0,0,out.width,clearHeight);
+        out_ctx.fillText(titleText,x,y);
+        Title_h = textHeight*0.5;
+	} else  {
+		out_ctx.clearRect(0,0,out.width,clearHeight);
+	}
+}
  //画像トリミング
 var ParaList = new Array();
-function doTrim() {
+async function doTrim() {
 	var toOrigin = cvs.width / VISIBLE_WIDTH; //画面位置to出力位置変換係数
 
     if (ParaNo == 1) {
-		out.width = cvs.width;
-		out.height = cvs.width*ASPECT_R;
-        // 背景
-        out_ctx.fillStyle = 'white';  //DEBUG用 '#f1f1f1'
-        out_ctx.fillRect(0, 0, cvs.width, cvs.height);
-        // 表題
-        var titleText = document.getElementById('title_text').value;
-        if (titleText.length > 0) {
-            out_ctx.font = cvs.width / 25 + "px serif";
-            out_ctx.fillStyle = 'black';
-            var textWidth = out_ctx.measureText(titleText).width;
-            var textHeight = out_ctx.measureText(titleText).height;
-            out_ctx.fillText(titleText, (cvs.width - textWidth) / 2, Top_margin * toOrigin);
-            Title_h = 20;
-		} else Title_h = 0;
+    	drawInit();// 初期化
+    	drawTitle();// 表題
     }
 
 	var trimBoxList_now = document.querySelectorAll('.trimBox');
@@ -360,8 +398,14 @@ function doTrim() {
         var paraStart = getParaTop(ParaNo) + trim_H;
 
         if (paraStart > VISIBLE_HEIGHT) {
-            window.alert('ページ末尾に到達しました');
-            break;
+            if(!autoTrim.checked){
+            	window.alert('ページ末尾に到達しました');
+            	break;
+            } else {
+            	await download();
+            	clean_img();
+            	TitleText.value = '';
+            }
         }
 
         //入力部
@@ -471,7 +515,7 @@ function Input_Clear(){
 	inputFileInfo.innerHTML = '';
 	objFile.value = '';
 	pdfName = '';
-	pdfData = null;
+	pdfDoc = null;
 	refeEdge = null;
 }
 //OCR関連初期化
@@ -851,6 +895,7 @@ Array.prototype.increase = function (i,e) {
 }
 
 //譜表ブロック解析
+	var edge_L=0,edge_R=0,edge_T=0,edge_B=0;
 function blockAnalysis() {
 	var hMap_Array = new Array(); //横線Map
 	var vMap_Array = new Array(); //縦線Map
@@ -873,14 +918,13 @@ function blockAnalysis() {
 		}
 	}
 
-	var edge_L = findEdge(vMap_Array,  0, VISIBLE_WIDTH / 2);
-	var edge_R = findEdge(vMap_Array , VISIBLE_WIDTH, VISIBLE_WIDTH*0.85);
-	var edge_T = findEdge(hMap_Array, 1, VISIBLE_HEIGHT / 2);
-	var edge_B = findEdge(hMap_Array, VISIBLE_HEIGHT, VISIBLE_HEIGHT / 2 );
+	edge_L = findEdge(vMap_Array,  0, VISIBLE_WIDTH / 2);
+	edge_R = findEdge(vMap_Array , VISIBLE_WIDTH, VISIBLE_WIDTH*0.85);
+	edge_T = findEdge(hMap_Array, 1, VISIBLE_HEIGHT / 2);
+	edge_B = findEdge(hMap_Array, VISIBLE_HEIGHT, VISIBLE_HEIGHT / 2 );
 
 	var vAngle_radians = average(tiltAngle_Array);
 	var vAngle_degree = vAngle_radians * TO_DEG;
-	Tilt_Correction.value = -vAngle_degree;
 
 //	console.log('横線平均角度 :', vAngle_degree);
 //	console.log('横線角度Map :', horizontal_lines);
@@ -898,18 +942,14 @@ function blockAnalysis() {
 		rangeChange(rangeInput_R.id,edge_R);
 		drawDivBox('edgeBox','edgeBox',edge_L,edge_T,(edge_R-edge_L),(edge_B-edge_T));
 
-		if(refeEdge){
-			var offset = refeEdge.top - edge_T;
-			offsetYChange(offset);
-		}
-		if(autoTrim.checked){
-			doTrim();
-		}
+		if(!tiltCorrected)
+			Tilt_Correction.value = -vAngle_degree;
 
 		progressUpdate({status: '譜表領域検出完了'});
 		blockAnalyzeDone = true;
-	} else if (!tiltCorrected) {
+	} else if (!tiltCorrected && vAngle_degree) {
 		//傾き補正
+		Tilt_Correction.value = -vAngle_degree;
 		rotatImage(-vAngle_radians);
 		tiltCorrected = true;
 		progressUpdate({status: '傾き補正済み'});
@@ -953,9 +993,11 @@ function notNullLength(arr) {
     return notNullLength;
 }
 var sum  = function(arr) {
+	if(arr.length>0)
     return arr.reduce(function(prev, current, i, arr) {
         return prev+current;
     });
+    else return 0;
 };
 var average = function(arr, fn) {
     return sum(arr, fn)/notNullLength(arr);
@@ -1025,6 +1067,7 @@ function download() {
 		// 終わった頃に revoke する
 		setTimeout(function (){URL.revokeObjectURL(url);}, Math.max(3000, 1000 * dataURI.length / 1024 * 1024));
     }
+	return Promise.resolve(1);
 }
 
 //以降、ES2017必須
@@ -1034,14 +1077,21 @@ function dataURItoBlob(dataURI) {
 	return new Blob([u8], {type: "img/png"});
 }
 
-async function startOCR(){
+async function startAutoTrim(){
 	//譜表領域検出
 	if(!blockAnalyzeDone)
 		await lineDetectLSD();
 
-	if(!withOCR.checked)
-		return;
+	if(refeEdge){
+		var offset = refeEdge.top - edge_T;
+		offsetYChange(offset);
+	}
+	if(autoTrim.checked){
+		doTrim();
+	}
+}
 
+async function startOCR(){
 	if(!worker){
 		//CDN worker
 		worker = new Tesseract.createWorker({
