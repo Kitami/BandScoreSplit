@@ -36,7 +36,7 @@
 						<input type="checkbox" id="withOCR"/>パート名OCR
 						<br><input type="checkbox" id="autoTrim"/>自動トリミング
 						<br><span>傾き補正:</span>
-						<input type="number" id="Tilt_Correction" step="0.050" novalidate onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
+						<input type="number" id="Tilt_degree" step="0.050" novalidate onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
 							<button onclick="lineDetectLSD()">エッジ検出</button>
 						<br><span>パート名:</span>
 						<input type="text" name="searchText"/>
@@ -65,7 +65,7 @@
             <div id="canvasArea-input">
                 <div id="result" style="padding: 3px;"></div>
                 <div id="input-bar">
-                    <input type="file" multiple id="selectFile">
+                    <input type="file" multiple id="InputFile">
                     <button onclick="Load_Pre('')">＜</button>
                     <button onclick="Load_Next('')">＞</button>
                     <button onclick="Input_Clear('')">初期化</button>
@@ -97,13 +97,13 @@
                 <div id="output-bar">
                     <button onclick='doTrim()'>トリミング</button>
                     <button onclick='cancel()'>段落削除</button>
-                    <button onclick="clean_img()">初期化</button>
+                    <button onclick="drawInit()">初期化</button>
                     <button onclick="download()">画像出力</button>
                     <br>
                     <a id="hiddenLink" download="download.png">ダウンロードされない場合、下図を右クリックして保存してください。</a>
                 </div>
                 <nav>
-                    <div class="tab selected" style="" onclick="selectTab(this)">Output
+                    <div class="tab selected" onclick="selectTab(this)">Output
                     Canvas</div>
                     <!--<div class="tab" style="z-index: 2;" onclick="selectTab(this)">02.PNG</div> -->
                     <!--<div class="tab" style="z-index: 1;" onclick="selectTab(this)">03.PNG</div> -->
