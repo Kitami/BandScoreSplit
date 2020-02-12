@@ -30,8 +30,8 @@ Images or PDF files are never transferred to the server, all processing is compl
 3.After trimming once, perform the same trimming process (at the relative position to the staff border) on other images  
 3.一度トリミングした後、他の画像に対して同じ(外枠に対する相対位置で)トリミング処理を行う  
 
-4.Automatically output image when paragraph is full  
-4.段落がいっぱいになったら自動的に画像を出力する  
+4.Automatically output image when page is full  
+4.ページがいっぱいになったら自動的に画像を出力する  
 
 ## Using Guide  
 使い方：   
