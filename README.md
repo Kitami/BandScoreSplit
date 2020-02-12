@@ -1,7 +1,7 @@
 # BandScoreSplit  
 
 BandScoreSplit is a tool for dividing band scores(Or orchestra score, etc.) into parts scores. that is built with HTML5 Canvas.  
-BandScoreSplitは画像形式のバンドスコア(またはオーケストラスコアなど)をパート譜に抽出、分割するためのツールです。HTML5のCanvasを利用して構築したものです。  
+BandScoreSplitは画像形式のバンドスコア(またはオーケストラスコアなど)をパート譜に抽出するためのツールです。HTML5のCanvasを利用しています。  
 
 only use for  image(JPG,PNG) or PDF files.  
 処理できるのは画像（JPG,PNG）とPDF  
