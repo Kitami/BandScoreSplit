@@ -1,13 +1,19 @@
 # BandScoreSplit  
 
 BandScoreSplit is a tool for dividing band scores(Or orchestra score, etc.) into parts scores. that is built with HTML5 Canvas.  
-BandScoreSplitは画像形式のバンドスコア(またはオーケストラスコアなど)をパート譜に抽出するためのツールです。HTML5のCanvasを利用しています。  
+BandScoreSplitは画像形式のバンドスコア(またはオーケストラスコアなど)をパート譜に抽出するためのツールです。HTML5のCanvasを基づき構築したものです。
 
 only use for  image(JPG,PNG) or PDF files.  
 処理できるのは画像（JPG,PNG）とPDF  
 
 Images or PDF files are never transferred to the server, all processing is completed locally.  
-画像、PDFファイルはサーバーに転送されることは一切ない、全部処理はローカルで完結する  
+画像、PDFファイルはサーバーに転送されることは一切ありません、全部処理はローカルで完結します  
+
+## Using module or sources  
+利用している技術またはソース
++ [wellflat/Line Segment Detector(LSD) module (MIT License)](https://github.com/wellflat/imageprocessing-labs/tree/master/cv/lsd)
++ [naptha/tesseract.js](https://github.com/naptha/tesseract.js)
++ [mozilla/pdf.js](https://github.com/mozilla/pdf.js)
 
 ## Online demo:  
 下記リンクから直接使える  
