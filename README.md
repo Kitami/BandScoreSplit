@@ -33,13 +33,16 @@ Images or PDF files are never transferred to the server, all processing is compl
 4.Automatically output image when page is full  
 4.ページがいっぱいになったら自動的に画像を出力する  
 
+5.OCR the instrument name on left   
+5.ガイド線左側の楽器名に対してOCR（文字認識）を行う  
+
 ## Using Guide  
 使い方：   
 1.Load an image or PDF file by selecting a file button.  
 1.ファイル選択で画像ファイルを読み込ませる  
 
-2.adding a trim box, and adjust the position and height  
-2.トリミング枠を追加して、位置と縦幅を調整する  
+2.adding a trim box, and adjust the position and height (you can use OCR button to locate it accurately)  
+2.トリミング枠を追加して、位置と縦幅を調整する (OCRを実行すると結果は位置特定に使える)  
 
 3.cilck trim button or "subsequent page processing" button, The results will be displayed in the output-area and will be downloaded automatically when one page is done.  
 3.トリミングボタン、または「後続ページ処理」ボタンを押す、結果は右側のエリアに表示されて、1ページが使い終わったら自動的ダウンロードされる  
