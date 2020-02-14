@@ -343,7 +343,7 @@ function removeTrimBox(elemID) {
 function drawTitle() {
     var t = TitleText.value;
     var toOrigin = out.width / VISIBLE_WIDTH;
-    var clearHeight = (Top_margin + Title_h + Para_i.valueAsNumber) * toOrigin;
+    var clearHeight = (Top_margin + Title_h) * toOrigin;
     if (t.length > 0) {
         var font_size = out.width / 25;
         out_ctx.font = font_size + "px serif";
