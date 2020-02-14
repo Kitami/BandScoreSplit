@@ -1,129 +1,131 @@
 <!DOCTYPE HTML>
 <html lang="ja">
-    <head>
-        <meta charset="UTF-8">
-        <title>Band Score Split</title>
-        <link href="file/split.css" rel="stylesheet" type="text/css">
-        <style id='tabCSS' type='text/css'></style>
-    </head>
-    <body>
-        <span>Band Score Split v0.30 beta(開発中)</span>
-        <div id="topArea">
-            <div id="topLeftArea">
-                <div style='display: flex;'>
-                    <div class="setting leftSide">
-                        トリミング枠設定 <br>
-                        <span style="width: 27%; display: inline-block;">譜表左側余白:</span>
-                        <input type="number" id="LeftSpace" value="5" class="tboxSetting" oninput="rangeChange(id)"/>
-                        <span style="width: 10%; display: inline-block;">右側:</span>
-                        <input type="number" id="RightSpace" value="5" class="tboxSetting" oninput="rangeChange(id)"/>
-                        <br>
-                        <span style="width: 27%; display: inline-block;">縦方向Offset:</span>
-                        <input type="number" id="offset_Y" class="tboxSetting" value="0" oninput="offsetYChange(valueAsNumber)"/>
-                        <span style="width: 10%; display: inline-block;">縦幅:</span>
-                        <input type="number" id="trim_H" class="tboxSetting" step="2" oninput="trimHeightChange(valueAsNumber)"/>
-                        <br>
-                        <input type="checkbox" id="widthLock"/>
-                        横幅固定
+
+<head>
+    <meta charset="UTF-8">
+    <title>Band Score Split</title>
+    <link href="file/split.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+    <span>Band Score Split v0.40 楽譜分割支援ツール</span>
+    <a href="https://github.com/Kitami/BandScoreSplit#using-guide" target=”_blank”>使い方</a>
+    <a href="https://translate.google.com/translate?sl=ja&tl=en&u=https://kitami.github.io/BandScoreSplit/main.html">English</a>
+    <div id="topArea">
+        <div id="topLeftArea">
+            <div style='display: flex;'>
+                <div class="setting leftSide">
+                    トリミング枠設定 <br>
+                    <span style="display: inline-block;">譜表左側余白:</span>
+                    <input type="number" id="LeftSpace" value="5" class="tboxSetting" oninput="rangeChange(id)" />
+                    <span style="display: inline-block;">右側:</span>
+                    <input type="number" id="RightSpace" value="5" class="tboxSetting" oninput="rangeChange(id)" />
+                    <br>
+                    <span style="display: inline-block;">縦方向Offset:</span>
+                    <input type="number" id="offset_Y" class="tboxSetting" value="0" oninput="offsetYChange(valueAsNumber)" />
+                    <span style="display: inline-block;">縦幅:</span>
+                    <input type="number" id="trim_H" class="tboxSetting" step="2" oninput="trimHeightChange(valueAsNumber)" />
+                    <br>
+                    <input type="checkbox" id="widthLock" /> 横幅固定
                     <div style="display: inline-block; padding-top: 1px; margin-bottom: -1px;">
-                        <!--<button class="tboxBtn" onclick="addTrimBox()">追加</button> -->
-                        <!--<button class="tboxBtn" onclick="removeTrimBox()">削除</button> -->
-                        <!--<button class="tboxBtn" onclick="clearTrimBox()">全削除</button> -->
-                        </div>
                     </div>
-					<div id="OCRSetting" class="setting leftSide">自動化設定
-						<br><input type="checkbox" id="EdgeDetect" checked="checked"/>エッジ検出
-						<input type="checkbox" id="withOCR"/>パート名OCR
-						<br><input type="checkbox" id="autoTrim"/>自動トリミング
-						<br><span>傾き補正:</span>
-						<input type="number" id="Tilt_degree" step="0.050" novalidate onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
-							<button onclick="lineDetectLSD()">エッジ検出</button>
-						<br><span>パート名:</span>
-						<input type="text" id="searchText"/>
-						<button onclick="startOCR()">OCR開始</button>
-					</div>
                 </div>
-            </div>
-            <div style="width: 26px;">&nbsp;</div>
-            <div id="topRightArea">
-                <div class="setting rightSide">
-                    <!-- <a report="">BUG報告、FAQなど</a> -->
-                    <span style="width: 10%; display: inline-block;">曲　　名:</span>
-                    <input type="text" id="titleText" class="titleText" value="" onchange="drawTitle()" oninput="drawTitle()"/>
-                    <br>
-                    <span style="width: 10%; display: inline-block;">段落間隔:</span>
-                    <input type="number" value="15" step="1" id="Para_interval" min="0" style="width: 40px"/>
-                    <span id="outputFileInfo"></span>
-                    <div id="log">
-                        <div id="statusText">status</div>
-                        <progress id="progressbar" value="0" max="1"></progress>
-                    </div>
+                <div id="OCRSetting" class="setting leftSide">自動化設定
+                    <br><input type="checkbox" id="EdgeDetect" checked="checked" />エッジ検出
+                    <input type="checkbox" id="autoTiltCorrect" checked="checked" />自動傾き補正
+                    <input type="checkbox" id="withOCR" />パート名OCR
+                    <br><input type="checkbox" id="autoTrim" />自動トリミング
+                    <br><span>傾き補正:</span>
+                    <input type="number" id="Tilt_degree" step="0.050" novalidate onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
+                    <button type="button" class="btn btn-inline" onclick="lineDetectLSD()">エッジ検出</button>
+                    <br><span>パート名:</span>
+                    <input type="text" id="searchText" />
+                    <button type="button" class="btn btn-inline" onclick="startOCR()">OCR開始</button>
                 </div>
             </div>
         </div>
-        <div id="canvasArea">
-            <div id="canvasArea-input">
-                <div id="result" style="padding: 3px;"></div>
-                <div id="input-bar">
-                    <input type="file" multiple id="InputFile">
-                    <button onclick="Load_Pre('')">＜</button>
-                    <button onclick="Load_Next('')">＞</button>
-                    <button onclick="Input_Clear('')">初期化</button>
-                    トリミング枠:
-                <button onclick="addTrimBox()">追加</button>
-                    <button onclick="removeTrimBox()">削除</button>
-                    <button style="width: 60px;" onclick="clearTrimBox()">全削除</button>
-                    <button style="width: 100px;" onclick="setRefeEdge()">相対位置保存</button>
-                    <button style="width: 120px;" onclick="doStaff()">後続ページ処理</button>
-                </div>
-                <div id="topSidebar">
-                    <input id='rangeInput_L' type='range' min=5 onchange="rangeChange(id)" oninput="rangeChange(id)" style='width: 354px'>
-                    <input id='rangeInput_R' type='range' min=0 onchange="rangeChange(id)" oninput="rangeChange(id)" style='width: 354px'>
-                </div>
-                <div style="display: flex; width: 708px;">
-                    <nav id="inputFile_nav">
-                        <a href="#" id="Tab_1" class="tab selected" style="z-index: 1;" onclick="selectTab(this)">Input Canvas</a>
-                    </nav>
-                    <a href="#" id="newTab" class="tab" style="z-index: 0; width: 100px; display: none" onclick="selectTab(this)">&nbsp;</a>
-                    <span id="inputFileInfo" style="margin: 0 0 0 auto;"></span>
-                </div>
-                <div id='inputDiv' class="canvasDiv">
-                    <canvas id='in'></canvas>
+        <div style="width: 26px;">&nbsp;</div>
+        <div id="topRightArea">
+            <div class="setting rightSide">
+                <!-- <a report="">BUG報告、FAQなど</a> -->
+                <span style="width: 10%; display: inline-block;">曲　　名:</span>
+                <input type="text" id="titleText" class="titleText" value="" onchange="drawTitle()" oninput="drawTitle()" />
+                <br>
+                <span style="width: 10%; display: inline-block;">段落間隔:</span>
+                <input type="number" value="15" step="1" id="Para_interval" min="0" style="width: 40px" />
+                <span id="outputFileInfo"></span>
+                <div id="log">
+                    <div id="statusText">status</div>
+                    <progress id="progressbar" value="0" max="1"></progress>
                 </div>
             </div>
-            <div style="width: 5px;">&nbsp;</div>
-            <div id="canvasArea-output">
-                <div id="outputTop" style="padding: 3px;"></div>
-                <div id="output-bar">
-                    <button onclick='doTrim()'>トリミング</button>
-                    <button onclick='cancel()'>段落削除</button>
-                    <button onclick="drawInit()">初期化</button>
-                    <button onclick="download()">画像出力</button>
-                    <br>
-                    <a id="hiddenLink" download="download.png">ダウンロードされない場合、下図を右クリックして保存してください。</a>
-                </div>
-                <nav>
-                    <div class="tab selected" onclick="selectTab(this)">Output
-                    Canvas</div>
-                    <!--<div class="tab" style="z-index: 2;" onclick="selectTab(this)">02.PNG</div> -->
-                    <!--<div class="tab" style="z-index: 1;" onclick="selectTab(this)">03.PNG</div> -->
+        </div>
+    </div>
+    <div id="canvasArea">
+        <div id="canvasArea-input">
+            <div id="result" style="padding: 3px;"></div>
+            <div id="input-bar">
+                <label class="btn" for="InputFile">ファイル選択<input type="file" multiple id="InputFile"></label>
+                <button type="button" class="btn" onclick="Load_Pre('')" style="margin-left: 2px;">＜</button>
+                <button type="button" class="btn" onclick="Load_Next('')">＞</button>
+                <button type="button" class="btn" onclick="Input_Clear('')">初期化</button> トリミング枠:
+                <button type="button" class="btn" onclick="addTrimBox()">追加</button>
+                <button type="button" class="btn" onclick="removeTrimBox()">削除</button>
+                <button type="button" class="btn" onclick="clearTrimBox()">全削除</button>
+                <button type="button" class="btn" onclick="setRefeEdge()">相対位置保存</button>
+                <button type="button" class="btn" onclick="doStaff()">後続ページ処理</button>
+            </div>
+
+            <div class="tabBar">
+                <nav id="inputFile_nav">
+                    <a href="#" id="Tab_1" class="tab selected" style="z-index: 1;" onclick="selectTab(this)">入力領域</a>
                 </nav>
-                <div id='outputDiv' class="canvasDiv">
-                    <canvas id='out'></canvas>
-                    <!--<canvas id='out_2' style="z-index: -1;display:none"></canvas> -->
-                    <!--<canvas id='out_3' style="z-index: -1;display:none"></canvas> -->
-                </div>
+                <a href="#" id="newTab" class="tab" style="z-index: 0; width: 100px; display: none" onclick="selectTab(this)">&nbsp;</a>
+                <span id="inputFileInfo" style="margin: 0 0 0 auto;"></span>
+            </div>
+
+            <div id="topSidebar">
+                <input id='rangeInput_L' type='range' min=5 onchange="rangeChange(id)" oninput="rangeChange(id)" style="border-right:none;">
+                <input id='rangeInput_R' type='range' min=0 onchange="rangeChange(id)" oninput="rangeChange(id)" style="border-left:none;">
+            </div>
+
+            <div id='inputDiv' class="canvasDiv">
+                <canvas id='in'></canvas>
             </div>
         </div>
-        <script src='https://unpkg.com/tesseract.js@v2.0.1/dist/tesseract.min.js'></script>
-        <script src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.3.200/pdf.min.js'></script>
-        <script src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.3.200/pdf.worker.js'></script>
-        <!--     <script src='file/tesseract/tesseract.min.js'></script> -->
-        <!--     <script src='file/tesseract/tesseract-core.wasm.js'></script> -->
-        <!--     <script src='file/tesseract/worker.min.js'></script> -->
-        <!--     <script src="file/opencv.js"></script> -->
-        <!--     <script src="https://docs.opencv.org/4.1.2/opencv.js"></script> -->
-        <script src="file/lsd.js"></script>
-        <script src="file/split.js"></script>
-    </body>
+        <div style="width: 5px;">&nbsp;</div>
+        <div id="canvasArea-output">
+            <div id="outputTop" style="padding: 3px;"></div>
+            <div id="output-bar">
+                <button type="button" class="btn" onclick='doTrim()'>トリミング</button>
+                <button type="button" class="btn" onclick='cancel()'>段落削除</button>
+                <button type="button" class="btn" onclick="drawInit()">初期化</button>
+                <button type="button" class="btn" onclick="download()">画像出力</button>
+                <br>
+                <a id="hiddenLink" download="download.png">ダウンロードされない場合、下図を右クリックして保存してください。</a>
+            </div>
+            <nav>
+                <div class="tab selected" onclick="selectTab(this)">出力領域</div>
+                <!--<div class="tab" style="z-index: 2;" onclick="selectTab(this)">02.PNG</div> -->
+                <!--<div class="tab" style="z-index: 1;" onclick="selectTab(this)">03.PNG</div> -->
+            </nav>
+            <div id='outputDiv' class="canvasDiv">
+                <canvas id='out'></canvas>
+                <!--<canvas id='out_2' style="z-index: -1;display:none"></canvas> -->
+                <!--<canvas id='out_3' style="z-index: -1;display:none"></canvas> -->
+            </div>
+        </div>
+    </div>
+    <script src='https://unpkg.com/tesseract.js@v2.0.1/dist/tesseract.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.3.200/pdf.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.3.200/pdf.worker.js'></script>
+    <!--     <script src='file/tesseract/tesseract.min.js'></script> -->
+    <!--     <script src='file/tesseract/tesseract-core.wasm.js'></script> -->
+    <!--     <script src='file/tesseract/worker.min.js'></script> -->
+    <!--     <script src="file/opencv.js"></script> -->
+    <!--     <script src="https://docs.opencv.org/4.1.2/opencv.js"></script> -->
+    <script src="file/lsd.js"></script>
+    <script src="file/split.js"></script>
+</body>
+
 </html>
