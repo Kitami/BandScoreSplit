@@ -228,7 +228,7 @@ class Edge {
 //export default class LSD {
 class LSD {
     constructor(
-        refineType = REFINE_NONE, scale = 0.8, sigmaScale = 0.6, quant = 2.0,
+        refineType = REFINE_NONE, scale = 1, sigmaScale = 0.6, quant = 2.0,
         angTh = 22.5, logEps = 0.0, densityTh = 0.7, nBins = 1024
     ) {
         this.refineType = refineType;
