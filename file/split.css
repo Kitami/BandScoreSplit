@@ -96,7 +96,7 @@ button {
 .btn-inline {
     display:inline-block; height:21.5px; margin:1px 0px; line-height: 2px;
 }
-label {
+label[for="InputFile"] {
     height:20px; display:table-cell; vertical-align:middle; padding:1px 6px 1px 6px; margin:2px; 
 }
 
