@@ -632,7 +632,7 @@ function result(res) {
         var isWord = w.text.match(/[a-z]/gi);
         if (isWord) {
             divId = "instList_" + index;
-            instList.push(fixWord(w.text))
+            instList.push(w.text);
             index++;
 
             var imgToView = VISIBLE_WIDTH / img.width;
