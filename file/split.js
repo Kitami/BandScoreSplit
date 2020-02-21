@@ -821,14 +821,15 @@ function blockAnalysis() {
 
 //傾き補正
 function tiltCorrection() {
-    var tiltAngle_Array = new Array();
+    var sumTiltAngle = 0,count = 0;
     for (var L of LinesArray) {
         if (L.length > 0.2 * VISIBLE_WIDTH && isHorizon(L.angle)) {
-            tiltAngle_Array.push(calcTiltAngle(L.angle));
+            sumTiltAngle += calcTiltAngle(L.angle);
+            count++;
             //drawLine(L.x1,L.y1,L.x2,L.y2);
         }
     }
-    var vAngle_radians = average(tiltAngle_Array);
+    var vAngle_radians = sumTiltAngle / count;
     var vAngle_degree = vAngle_radians * TO_DEG;
     if (Math.abs(vAngle_degree) < 0.4) {
         if (!tiltCorrected)
@@ -880,16 +881,6 @@ function notNullLength(arr) {
     arr.forEach(function (item) { if (item) notNullLength++; });
     return notNullLength;
 }
-var sum = function (arr) {
-    if (arr.length > 0)
-        return arr.reduce(function (prev, current, i, arr) {
-            return prev + current;
-        });
-    else return 0;
-};
-var average = function (arr, fn) {
-    return sum(arr, fn) / notNullLength(arr);
-};
 
 function topN(arr, N) {
     if (!N) N = 0.5;
