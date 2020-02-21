@@ -8,59 +8,70 @@
 </head>
 
 <body>
-    <span>Band Score Split v0.40 楽譜分割支援ツール</span>
+    <span>Band Score Split v0.45 楽譜分割支援ツール</span>
     <a href="https://github.com/Kitami/BandScoreSplit#using-guide" target=”_blank”>使い方</a>
-    <a href="https://translate.google.com/translate?sl=ja&tl=en&u=https://kitami.github.io/BandScoreSplit/main.html" target=”_blank”>English</a>
-    <div id="topArea">
-        <div id="topLeftArea">
-            <div style='display: flex;'>
-                <div class="setting leftSide">
-                    トリミング枠設定 <br>
-                    <span style="display: inline-block;">譜表左側余白:</span>
-                    <input type="number" id="LeftSpace" value="5" class="tboxSetting" oninput="rangeChange(id)" />
-                    <span style="display: inline-block;">右側:</span>
-                    <input type="number" id="RightSpace" value="5" class="tboxSetting" oninput="rangeChange(id)" />
-                    <br>
-                    <span style="display: inline-block;">縦方向Offset:</span>
-                    <input type="number" id="offset_Y" class="tboxSetting" value="0" oninput="offsetYChange(valueAsNumber)" />
-                    <span style="display: inline-block;">縦幅:</span>
-                    <input type="number" id="trim_H" class="tboxSetting" step="2" oninput="trimHeightChange(valueAsNumber)" />
-                    <br>
-                    <input type="checkbox" id="widthLock" /> 横幅固定
-                    <div style="display: inline-block; padding-top: 1px; margin-bottom: -1px;">
+    <a
+        href="https://translate.google.com/translate?sl=ja&tl=en&u=https://kitami.github.io/BandScoreSplit/main.html">English</a>
+    <Form name="F" novalidate>
+        <div id="topArea">
+            <div id="topLeftArea">
+                <div style='display: flex;'>
+                    <div class="setting leftSide">
+                        トリミング枠設定 <br>
+                        <span style="display: inline-block;">譜表左側余白:</span>
+                        <input type="number" id="LeftSp" name="LeftSp" value="5" class="tboxSetting"
+                            oninput="rangeChange(id)" />
+                        <span style="display: inline-block;">右側:</span>
+                        <input type="number" id="RightSp" name="RightSp" value="5" class="tboxSetting"
+                            oninput="rangeChange(id)" />
+                        <br>
+                        <span style="display: inline-block;">縦方向Offset:</span>
+                        <input type="number" id="OffsetY" name="OffsetY" class="tboxSetting" value="0"
+                            oninput="offsetYChange(valueAsNumber)" />
+                        <span style="display: inline-block;">縦幅:</span>
+                        <input type="number" id="TrimH" name="TrimH" class="tboxSetting" step="2"
+                            oninput="trimHeightChange(valueAsNumber)" />
+                        <br>
+                        <input type="checkbox" id="widthLock" name="WidthLock" /> 横幅固定
+                        <div style="display: inline-block; padding-top: 1px; margin-bottom: -1px;">
+                        </div>
+                    </div>
+                    <div id="OCRSetting" class="setting leftSide">自動化設定
+                        <br><input type="checkbox" id="EdgeDetect" name="EdgeDetect" checked="checked" />エッジ検出
+                        <input type="checkbox" id="AutoTiltCorrect" name="AutoTiltCorrect" checked="checked" />自動傾き補正
+                        <input type="checkbox" id="WithOCR" name="WithOCR" />パート名OCR
+                        <br><input type="checkbox" id="AutoTrim" name="AutoTrim" />自動トリミング
+                        <br><span>傾き補正:</span>
+                        <input type="number" id="TiltDeg" name="TiltDeg" step="0.050" novalidate
+                            onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
+                        <button type="button" class="btn btn-inline" onclick="lineDetectLSD()">エッジ検出</button>
+                        <br><span>パート名:</span>
+                        <input type="text" id="SearchPart" name="SearchPart" />
+                        <button type="button" class="btn btn-inline" onclick="startOCR()">OCR開始</button>
                     </div>
                 </div>
-                <div id="OCRSetting" class="setting leftSide">自動化設定
-                    <br><input type="checkbox" id="EdgeDetect" checked="checked" />エッジ検出
-                    <input type="checkbox" id="autoTiltCorrect" checked="checked" />自動傾き補正
-                    <input type="checkbox" id="withOCR" />パート名OCR
-                    <br><input type="checkbox" id="autoTrim" />自動トリミング
-                    <br><span>傾き補正:</span>
-                    <input type="number" id="Tilt_degree" step="0.050" novalidate onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
-                    <button type="button" class="btn btn-inline" onclick="lineDetectLSD()">エッジ検出</button>
-                    <br><span>パート名:</span>
-                    <input type="text" id="searchText" />
-                    <button type="button" class="btn btn-inline" onclick="startOCR()">OCR開始</button>
+            </div>
+            <div style="width: 26px;">&nbsp;</div>
+            <div id="topRightArea">
+                <div class="setting rightSide">
+                    <!-- <a report="">BUG報告、FAQなど</a> -->
+                    <span style="width: 10%; display: inline-block;">曲　　名:</span>
+                    <input type="text" id="titleText" name="TitleText" class="titleText" value="" onchange="drawTitle()"
+                        oninput="drawTitle()" />
+                    <br>
+                    <span style="width: 10%; display: inline-block;">段落間隔:</span>
+                    <input type="number" value="15" step="1" id="ParaInterval" name="ParaInterval" min="0"
+                        style="width: 40px" />
+                    <span id="outputFileInfo"></span>
+                    <div id="log">
+                        <div id="statusText">status</div>
+                        <progress id="progressbar" value="0" max="1"></progress>
+                    </div>
                 </div>
             </div>
         </div>
-        <div style="width: 26px;">&nbsp;</div>
-        <div id="topRightArea">
-            <div class="setting rightSide">
-                <!-- <a report="">BUG報告、FAQなど</a> -->
-                <span style="width: 10%; display: inline-block;">曲　　名:</span>
-                <input type="text" id="titleText" class="titleText" value="" onchange="drawTitle()" oninput="drawTitle()" />
-                <br>
-                <span style="width: 10%; display: inline-block;">段落間隔:</span>
-                <input type="number" value="15" step="1" id="Para_interval" min="0" style="width: 40px" />
-                <span id="outputFileInfo"></span>
-                <div id="log">
-                    <div id="statusText">status</div>
-                    <progress id="progressbar" value="0" max="1"></progress>
-                </div>
-            </div>
-        </div>
-    </div>
+    </Form>
+
     <div id="canvasArea">
         <div id="canvasArea-input">
             <div id="result" style="padding: 3px;"></div>
@@ -80,13 +91,16 @@
                 <nav id="inputFile_nav">
                     <a href="#" id="Tab_1" class="tab selected" style="z-index: 1;" onclick="selectTab(this)">入力領域</a>
                 </nav>
-                <a href="#" id="newTab" class="tab" style="z-index: 0; width: 100px; display: none" onclick="selectTab(this)">&nbsp;</a>
+                <a href="#" id="newTab" class="tab" style="z-index: 0; width: 100px; display: none"
+                    onclick="selectTab(this)">&nbsp;</a>
                 <span id="inputFileInfo" style="margin: 0 0 0 auto;"></span>
             </div>
 
             <div id="topSidebar">
-                <input id='rangeInput_L' type='range' min=5 onchange="rangeChange(id)" oninput="rangeChange(id)" style="border-right:none;">
-                <input id='rangeInput_R' type='range' min=0 onchange="rangeChange(id)" oninput="rangeChange(id)" style="border-left:none;">
+                <input id='rangeInput_L' type='range' min=5 onchange="rangeChange(id)" oninput="rangeChange(id)"
+                    style="border-right:none;">
+                <input id='rangeInput_R' type='range' min=0 onchange="rangeChange(id)" oninput="rangeChange(id)"
+                    style="border-left:none;">
             </div>
 
             <div id='inputDiv' class="canvasDiv">
