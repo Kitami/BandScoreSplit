@@ -779,6 +779,7 @@ Array.prototype.increase = function (i, e) {
         this[i] = e;
 }
 
+var edge_L,edge_LR,edge_T,edge_B;
 //譜表ブロック解析
 function blockAnalysis() {
 
@@ -798,10 +799,10 @@ function blockAnalysis() {
             }
         }
     }
-    var edge_L = findEdge(vMap_Array, 0, VISIBLE_WIDTH / 2);
-    var edge_R = findEdge(vMap_Array, VISIBLE_WIDTH, VISIBLE_WIDTH * 0.85);
-    var edge_T = findEdge(hMap_Array, 1, VISIBLE_HEIGHT / 2);
-    var edge_B = findEdge(hMap_Array, VISIBLE_HEIGHT, VISIBLE_HEIGHT / 2);
+    edge_L = findEdge(vMap_Array, 0, VISIBLE_WIDTH / 2);
+    edge_R = findEdge(vMap_Array, VISIBLE_WIDTH, VISIBLE_WIDTH * 0.85);
+    edge_T = findEdge(hMap_Array, 1, VISIBLE_HEIGHT / 2);
+    edge_B = findEdge(hMap_Array, VISIBLE_HEIGHT, VISIBLE_HEIGHT / 2);
 
     //検出した範囲でエッジBox作成
     rangeInput_L.value = edge_L;
