@@ -1,5 +1,9 @@
-//Band Score Split.js
-//Copyright © 2019~2020 kitami.hibiki. All rights reserved.
+//Band Score Split (c) 2019~2020 by kitami.hibiki.
+//Band Score Split is licensed under a
+//Creative Commons Attribution-ShareAlike 4.0 International License.
+//You should have received a copy of the license along with this
+//work. If not, see <http://creativecommons.org/licenses/by-sa/4.0/>.
+
 "use strict";
 const VISIBLE_WIDTH = 708; //画像表示サイズ幅
 const VISIBLE_HEIGHT = 1000; //画像表示サイズ幅
