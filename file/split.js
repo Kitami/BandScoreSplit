@@ -3,21 +3,18 @@
 //Creative Commons Attribution-ShareAlike 4.0 International License.
 //You should have received a copy of the license along with this
 //work. If not, see <http://creativecommons.org/licenses/by-sa/4.0/>.
-
 "use strict";
 const VISIBLE_WIDTH = 708; //画像表示サイズ幅
 const VISIBLE_HEIGHT = 1000; //画像表示サイズ幅
 const ASPECT_R = Math.SQRT2; //出力用紙アスペクト比
-var Guide_L = VISIBLE_WIDTH * 0.05; //左側ガイド線位置(初期値)
-var Guide_R = VISIBLE_WIDTH - Guide_L; //右側ガイド線位置(初期値)
 var trim_H = VISIBLE_HEIGHT * 0.1; //トリミング枠縦幅(初期値)
 var Top_margin = VISIBLE_HEIGHT * 0.05; //描画開始位置X（上部余白）
 var Title_h = 0;
 var selectingID = '';
 var tiltCorrected = false;
-var worker, g_L, g_R;
+var worker, Guide_L, Guide_R;
 
-//HTML Elements
+//HTMLElements
 const cvs = document.getElementById('in'); //inエリアcanvas
 const out = document.getElementById('out'); //outエリアcanvas
 const in_ctx = cvs.getContext('2d');
@@ -200,13 +197,13 @@ window.onload = function () {
     rangeInput_L.max = parseInt(VISIBLE_WIDTH / 2) - 7;
     rangeInput_R.min = parseInt(VISIBLE_WIDTH / 2) + 7;
     rangeInput_R.max = VISIBLE_WIDTH - 7;
-    rangeInput_L.value = Guide_L;
-    rangeInput_R.value = Guide_R;
+    rangeInput_L.value = VISIBLE_WIDTH * 0.05;
+    rangeInput_R.value = VISIBLE_WIDTH * 0.95;
     out.width = VISIBLE_WIDTH;
     out.height = VISIBLE_HEIGHT;
     F.TrimH.value = trim_H;
-    g_L = drawGuideLine('guide_left', 'v', Guide_L);
-    g_R = drawGuideLine('guide_right', 'v', Guide_R);
+    Guide_L = drawGuideLine('guide_left', 'v', VISIBLE_WIDTH * 0.05);
+    Guide_R = drawGuideLine('guide_right', 'v', VISIBLE_WIDTH * 0.95);
 }
 
 function drawDivBox(id, className, x, y, width, height) {
@@ -299,8 +296,8 @@ function addTrimBox() {
 }
 //トリミング領域描画
 function drawTrimBox(id, top) {
-    var L = parseFloat(g_L.style.left);
-    var R = parseFloat(g_R.style.left);
+    var L = parseFloat(Guide_L.style.left);
+    var R = parseFloat(Guide_R.style.left);
     var left = L - F.LeftSp.valueAsNumber;
     var width = R - L + F.LeftSp.valueAsNumber + F.RightSp.valueAsNumber;
     drawDivBox(id, 'trimBox', left, top, width, trim_H);
@@ -413,22 +410,22 @@ function changeTrimBox(func) {
 }
 //ガイド線移動
 function rangeChange(id) {
-    var L_before = parseFloat(g_L.style.left);
-    var R_before = parseFloat(g_R.style.left);
+    var L_before = parseFloat(Guide_L.style.left);
+    var R_before = parseFloat(Guide_R.style.left);
     var L = rangeInput_L.valueAsNumber;
     var R = rangeInput_R.valueAsNumber;
 
     if (id == 'rangeInput_L') {
-        g_L.style.left = L + 'px';
+        Guide_L.style.left = L + 'px';
         if (F.WidthLock.checked) {
             rangeInput_R.value = R + (L - L_before);
-            g_R.style.left = R + 'px';
+            Guide_R.style.left = R + 'px';
         }
     } else if (id == 'rangeInput_R') {
-        g_R.style.left = R + 'px';
+        Guide_R.style.left = R + 'px';
         if (F.WidthLock.checked) {
             rangeInput_L.value = L + (R - R_before);
-            g_L.style.left = L + 'px';
+            Guide_L.style.left = L + 'px';
         }
     }
     var width = parseFloat(R - L) + F.LeftSp.valueAsNumber + F.RightSp.valueAsNumber;
@@ -495,8 +492,7 @@ function clearTrimBox() {
 //ClassNameで要素削除
 function removeByClassName(ClassName) {
     var elemList = document.querySelectorAll('.' + ClassName);
-    for (var i = 0; i < elemList.length; i++) {
-        var elem = elemList[i];
+    for (var elem of elemList) {
         elem.parentNode.removeChild(elem);
     }
 }
@@ -526,7 +522,7 @@ function clearTab() {
 //tab選択
 function selectTab(elem) {
     return new Promise((resolve, reject) => {
-		var navElem = elem.parentNode;
+        var navElem = elem.parentNode;
         var eList = [].slice.call(TabList);
         seleTabIndex = eList.indexOf(elem);
 
@@ -726,7 +722,7 @@ function lineDetectLSD() {
         var angle = Math.atan2(L.y1 - L.y2, L.x1 - L.x2);
         var length = Math.sqrt(Math.pow(L.x2 - L.x1, 2) + Math.pow(L.y2 - L.y1, 2));
         LinesArray.push({
-            'x1': Math.trunc(L.x1),'y1': Math.trunc(L.y1),'x2': Math.trunc(L.x2),'y2': Math.trunc(L.y2),
+            'x1': Math.trunc(L.x1), 'y1': Math.trunc(L.y1), 'x2': Math.trunc(L.x2), 'y2': Math.trunc(L.y2),
             'angle': angle,
             'length': length
         });
@@ -783,8 +779,8 @@ Array.prototype.increase = function (i, e) {
         this[i] = e;
 }
 
-var edge_L,edge_LR,edge_T,edge_B;
 //譜表ブロック解析
+var edge_L,edge_R,edge_T,edge_B;
 function blockAnalysis() {
 
     //傾き補正実行判断
@@ -826,7 +822,7 @@ function blockAnalysis() {
 
 //傾き補正
 function tiltCorrection() {
-    var sumTiltAngle = 0,count = 0;
+    var sumTiltAngle = 0, count = 0;
     for (var L of LinesArray) {
         if (L.length > 0.2 * VISIBLE_WIDTH && isHorizon(L.angle)) {
             sumTiltAngle += calcTiltAngle(L.angle);
@@ -862,10 +858,6 @@ function rotatImage(angle) {
     else
         context.drawImage(img, -(img.width / 2), -(img.height / 2));
     context.restore();
-}
-
-function rotatImageByDegree(value) {
-    rotatImage(value * Math.PI / 180);
 }
 
 function maxIndex(a, start, end) {
