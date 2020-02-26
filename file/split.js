@@ -30,7 +30,7 @@ const OCRTextList = document.getElementsByClassName('OCRText');
 
 //File input
 var reader, file,
-    fileIndex = 0,
+    fileIndex = 0, viewingPage = 0,
     zindexNo = 100,
     fileType = '',
     fileName = '',
@@ -52,9 +52,6 @@ InputFile.addEventListener("change", function (evt) {
         }
         setTabZindex(TabList, 0);
         selectTab(TabList[0]);
-        reader.onload = function () {
-            Load_file(reader.result)
-        };
     }
 }, false);
 
@@ -64,13 +61,11 @@ async function Load_file(dataUrl) {
     clearOCRTextBox();
     if (fileType == 'pdf') {
         if (pdfName == fileName) {
-            openPage(pageNo);
+            if (pageNo != viewingPage)
+                openPage(pageNo);
         } else {
-            //console.log('Load Pdf');
             var typedarray = new Uint8Array(dataUrl); // pdf:arrayBuffer
             pdfjsLib.getDocument(typedarray).then(function (pdf) {
-                // do stuff
-                console.log('PDFJS load');
                 pdfName = fileName;
                 pdfDoc = pdf;
                 pdfjsLib.disableStream = true;
@@ -146,6 +141,7 @@ function openPage(num) {
             if (F.EdgeDetect.checked) { startAutoTrim(); }
         });
     });
+    viewingPage = num;
     return Promise.resolve(1);
 }
 
