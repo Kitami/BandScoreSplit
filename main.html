@@ -8,7 +8,7 @@
 </head>
 
 <body>
-    <span>Band Score Split v0.45 楽譜分割支援ツール</span>
+    <span>Band Score Split v0.50 楽譜分割支援ツール</span>
     <a href="https://github.com/Kitami/BandScoreSplit#using-guide" target=”_blank”>使い方</a>
     <a
         href="https://translate.google.com/translate?sl=ja&tl=en&u=https://kitami.github.io/BandScoreSplit/main.html">English</a>
@@ -32,7 +32,7 @@
                         <input type="number" id="TrimH" name="TrimH" class="tboxSetting" step="2"
                             oninput="trimHeightChange(valueAsNumber)" />
                         <br>
-                        <input type="checkbox" id="widthLock" name="WidthLock" /> 横幅固定
+                        <input type="checkbox" id="widthLock" name="widthLock" /> 横幅固定
                         <div style="display: inline-block; padding-top: 1px; margin-bottom: -1px;">
                         </div>
                     </div>
@@ -40,7 +40,7 @@
                         <br><input type="checkbox" id="EdgeDetect" name="EdgeDetect" checked="checked" />エッジ検出
                         <input type="checkbox" id="AutoTiltCorrect" name="AutoTiltCorrect" checked="checked" />自動傾き補正
                         <input type="checkbox" id="WithOCR" name="WithOCR" />パート名OCR
-                        <br><input type="checkbox" id="AutoTrim" name="AutoTrim" />自動トリミング
+                        <br><input type="checkbox" id="autoTrim" name="autoTrim" />自動トリミング
                         <br><span>傾き補正:</span>
                         <input type="number" id="TiltDeg" name="TiltDeg" step="0.050" novalidate
                             onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
@@ -76,10 +76,10 @@
         <div id="canvasArea-input">
             <div id="result" style="padding: 3px;"></div>
             <div id="input-bar">
-                <label class="btn" for="InputFile">ファイル選択<input type="file" multiple id="InputFile"></label>
-                <button type="button" class="btn" onclick="Load_Pre('')" style="margin-left: 2px;">＜</button>
-                <button type="button" class="btn" onclick="Load_Next('')">＞</button>
-                <button type="button" class="btn" onclick="Input_Clear('')">初期化</button> トリミング枠:
+                <label class="btn" for="inputFile">ファイル選択<input type="file" multiple id="inputFile"></label>
+                <button type="button" class="btn" onclick="loadPre()" style="margin-left: 2px;">＜</button>
+                <button type="button" class="btn" onclick="loadNext()">＞</button>
+                <button type="button" class="btn" onclick="inputClear()">初期化</button> トリミング枠:
                 <button type="button" class="btn" onclick="addTrimBox()">追加</button>
                 <button type="button" class="btn" onclick="removeTrimBox()">削除</button>
                 <button type="button" class="btn" onclick="clearTrimBox()">全削除</button>
@@ -88,7 +88,7 @@
             </div>
 
             <div class="tabBar">
-                <nav id="inputFile_nav">
+                <nav id="tabNav">
                     <a href="#" id="Tab_1" class="tab selected" style="z-index: 1;" onclick="selectTab(this)">入力領域</a>
                 </nav>
                 <a href="#" id="newTab" class="tab" style="z-index: 0; width: 100px; display: none"
@@ -97,9 +97,9 @@
             </div>
 
             <div id="topSidebar">
-                <input id='rangeInput_L' type='range' min=5 onchange="rangeChange(id)" oninput="rangeChange(id)"
+                <input id='rangeL' type='range' min=5 onchange="rangeChange(id)" oninput="rangeChange(id)"
                     style="border-right:none;">
-                <input id='rangeInput_R' type='range' min=0 onchange="rangeChange(id)" oninput="rangeChange(id)"
+                <input id='rangeR' type='range' min=0 onchange="rangeChange(id)" oninput="rangeChange(id)"
                     style="border-left:none;">
             </div>
 
