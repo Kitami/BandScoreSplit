@@ -67,6 +67,10 @@ async function loadFile(dataUrl) {
     //if (F.EdgeDetect.checked) { startEdgeDetect(); }
 }
 
+function setInputFileInfo(page,maxPage,w,h){
+    inputFileInfo.innerHTML = page + ' / ' + maxPage + ' 解像度: ' + w + 'x' + h;
+}
+
 function loadImage(dataUrl) {
     return new Promise((resolve, reject) => {
         img.src = dataUrl;
@@ -77,7 +81,7 @@ function loadImage(dataUrl) {
             inContext.fillRect(0, 0, inCanvas.width, inCanvas.height);
             inContext.drawImage(img, 0, 0, img.width, img.height);
             var fileNo = parseInt(fileIndex) + 1;
-            inputFileInfo.innerHTML = fileNo + ' / ' + file.length + ' 解像度: ' + img.width + 'x' + img.height;
+            setInputFileInfo(fileNo,file.length,img.width,img.height);
             if (F.EdgeDetect.checked) { startEdgeDetect(); }
             resolve(img);
         }
@@ -125,7 +129,7 @@ async function openPage(num) {
         var viewport = page.getViewport({ scale: scale });
         inCanvas.height = viewport.height;
         inCanvas.width = viewport.width;
-        inputFileInfo.innerHTML = viewingPage + ' / ' + pdfDoc.numPages + ' 解像度: ' + viewport.width + 'x' + viewport.height;
+        setInputFileInfo(num,pdfDoc.numPages,viewport.width,viewport.height);
 
         // Render PDF page into canvas context
         var renderContext = { canvasContext: inContext, viewport: viewport };
@@ -419,14 +423,12 @@ function rangeChangeFixWidth(id) {
     if (id == rangeL.id) {
         var L_before = parseFloat(guideL.style.left);
         rangeR.value = rangeR.valueAsNumber + (rangeL.valueAsNumber - L_before);
-        guideL.style.left = rangeL.value + 'px';
-        guideR.style.left = rangeR.value + 'px';
     } else if (id == rangeR.id) {
         var R_before = parseFloat(guideR.style.left);
         rangeL.value = rangeL.valueAsNumber + (rangeR.valueAsNumber - R_before);
-        guideR.style.left = rangeR.value + 'px';
-        guideL.style.left = rangeL.value + 'px';
     }
+    guideL.style.left = rangeL.value + 'px';
+    guideR.style.left = rangeR.value + 'px';
     var left = rangeL.valueAsNumber - F.LeftSp.valueAsNumber;
     //変更適用
     changeTrimBox(function (e) { e.style.left = left + 'px'; });
@@ -518,19 +520,19 @@ function selectTab(elem) {
         //前選択した要素の処理
         var selectedTab = navElem.getElementsByClassName("tab selected")[0];
 
+        //z-index設定
         if (selectedTab && selectedTab != elem) {
             selectedTab.classList.remove('selected');
-            //z-index設定
             setTabZindex(tabList, seleTabIndex);
             selectedTab.style.width = '100px';
         }
+
         //現在の要素を選択
         elem.classList.add('selected');
         elem.style.cssText = 'z-index: ' + tabList.length + ';';
         elem.style.width = '';
 
         //ファイル読み込み
-        var result;
         if (file[0] && navElem.id == 'tabNav') {
             fileIndex = elem.id.split('_')[1];
             fileName = file[fileIndex].name;
@@ -544,7 +546,7 @@ function selectTab(elem) {
             }
             reader.onload = function () {
                 loadFile(reader.result);
-                resolve(result);
+                resolve();
             };
         }
     })
@@ -681,18 +683,11 @@ const TO_RAD = Math.PI / 180; //計算用係数
 function getInputCanvas2() {
     var canvas = document.createElement('canvas');
     var ctx = canvas.getContext('2d');
-
-    if (tiltCorrected || fileType == 'pdf') {
-        var Ratio = VISIBLE_WIDTH / inCanvas.width;
-        canvas.width = inCanvas.width * Ratio;
-        canvas.height = inCanvas.height * Ratio;
-        ctx.drawImage(inCanvas, 0, 0, inCanvas.width, inCanvas.height, 0, 0, inCanvas.width * Ratio, inCanvas.height * Ratio);
-    } else {
-        var Ratio = VISIBLE_WIDTH / img.width;
-        canvas.width = img.width * Ratio;
-        canvas.height = img.height * Ratio;
-        ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, img.width * Ratio, img.height * Ratio);
-    }
+    var input = (tiltCorrected || fileType == 'pdf') ? inCanvas : img;
+    var Ratio = VISIBLE_WIDTH / input.width;
+    canvas.width = input.width * Ratio;
+    canvas.height = input.height * Ratio;
+    ctx.drawImage(input, 0, 0, input.width, input.height, 0, 0, input.width * Ratio, input.height * Ratio);
     return canvas;
 }
 
@@ -722,7 +717,7 @@ function lineDetectLSD() {
     //detector.drawSegments(outContext, lines);
 
     //ブロック解析
-    blockAnalysis();
+    return blockAnalysis();
 }
 
 const DIFF = 0.055; //傾き許容範囲-約3度
@@ -875,7 +870,7 @@ function topN(arr, N = 0.5) {
     var target = parseInt(arr_new.length * N);
     var temp = arr_new.sort(function (a, b) { return a < b ? 1 : -1 });
     return temp[target];
-};
+}
 
 function findEdge(a, start, end) {
     var calc_a = a.slice();
