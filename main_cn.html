@@ -49,7 +49,7 @@
                         <input type="number" id="TiltDeg" name="TiltDeg" step="0.050" novalidate
                             onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
                         <button type="button" class="btn btn-inline" onclick="lineDetectLSD()">邊緣検出</button>
-                        <br><span>Part名:</span>
+                        <br><span>Part查找:</span>
                         <input type="text" id="SearchPart" name="SearchPart" />
                         <button type="button" class="btn btn-inline" onclick="startOCR()">OCR開始</button>
                     </div>
@@ -88,7 +88,7 @@
                 <button type="button" class="btn" onclick="removeTrimBox()">刪除</button>
                 <button type="button" class="btn" onclick="clearTrimBox()">全刪除</button>
                 <button type="button" class="btn" onclick="setRefeEdge()">相対位置保存</button>
-                <button type="button" class="btn" onclick="doStaff()">自動処理</button>
+                <button type="button" class="btn" onclick="doStaff()">自動化處理</button>
             </div>
 
             <div class="tabBar">
