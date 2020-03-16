@@ -8,50 +8,51 @@
 </head>
 
 <body>
-    <span>Band Score Split v0.51 楽譜分割支援ツール</span>
-    <a href="https://github.com/Kitami/BandScoreSplit#using-guide" target=”_blank”>使い方</a>
-    言語:
+    <span>Band Score Split v0.51 score split support tool</span>
+    <a href="https://github.com/Kitami/BandScoreSplit#using-guide" target=”_blank”>How to use</a>
+    language:
     <select name="language" style="width: 100px;" onchange="location.href=value;">
-        <option selected value="main.html">日本語</option>
-        <option value="main_en.html">English</option>
+        <option value="main.html">日本語</option>
+        <option selected value="main_en.html">English</option>
         <option value="main_cn.html">正體中文</option>
     </select>
+
     <Form name="F" novalidate>
         <div id="topArea">
             <div id="topLeftArea">
                 <div style='display: flex;'>
                     <div class="setting leftSide">
-                        トリミング枠設定 <br>
-                        <span style="width:28%;display: inline-block;">譜表左側余白:</span>
+                        Trimming frame setting <br>
+                        <span style="display: inline-block;">Staff left margin:</span>
                         <input type="number" id="LeftSp" name="LeftSp" value="5" class="tboxSetting"
                             oninput="rangeChange(id)" />
-                        <span style="display: inline-block;">右側:</span>
+                        <span style="display: inline-block;">Right:</span>
                         <input type="number" id="RightSp" name="RightSp" value="5" class="tboxSetting"
                             oninput="rangeChange(id)" />
                         <br>
-                        <span style="width:28%;display: inline-block;">縦方向Offset:</span>
+                        <span style="display: inline-block;">Vertical Offset:</span>
                         <input type="number" id="OffsetY" name="OffsetY" class="tboxSetting" value="0"
                             oninput="offsetYChange(valueAsNumber)" />
-                        <span style="display: inline-block;">縦幅:</span>
+                        <span style="display: inline-block;">width:</span>
                         <input type="number" id="TrimH" name="TrimH" class="tboxSetting" step="2"
                             oninput="trimHeightChange(valueAsNumber)" />
                         <br>
-                        <input type="checkbox" id="widthLock" name="widthLock" /> 横幅固定
+                        <input type="checkbox" id="widthLock" name="widthLock" /> Fixed width
                         <div style="display: inline-block; padding-top: 1px; margin-bottom: -1px;">
                         </div>
                     </div>
-                    <div id="OCRSetting" class="setting leftSide">自動化設定
-                        <br><input type="checkbox" id="EdgeDetect" name="EdgeDetect" checked="checked" />エッジ検出
-                        <input type="checkbox" id="AutoTiltCorrect" name="AutoTiltCorrect" checked="checked" />自動傾き補正
-                        <input type="checkbox" id="WithOCR" name="WithOCR" />パート名OCR
-                        <br><input type="checkbox" id="autoTrim" name="autoTrim" />自動トリミング
-                        <br><span>傾き補正:</span>
-                        <input type="number" id="TiltDeg" name="TiltDeg" step="0.050" novalidate
+                    <div id="OCRSetting" class="setting leftSide">Automation settings
+                        <br><input type="checkbox" id="EdgeDetect" name="EdgeDetect" checked="checked" />Edge detect
+                        <input type="checkbox" id="AutoTiltCorrect" name="AutoTiltCorrect" checked="checked" />Tilt Fix
+                        <input type="checkbox" id="WithOCR" name="WithOCR" />PartName OCR
+                        <br><input type="checkbox" id="autoTrim" name="autoTrim" />Automatic Trim
+                        <br><span>Tilt Fix(degree):</span>
+                        <input style="width:100px" type="number" id="TiltDeg" name="TiltDeg" step="0.050" novalidate
                             onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
-                        <button type="button" class="btn btn-inline" onclick="lineDetectLSD()">エッジ検出</button>
-                        <br><span>パート名:</span>
-                        <input type="text" id="SearchPart" name="SearchPart" />
-                        <button type="button" class="btn btn-inline" onclick="startOCR()">OCR開始</button>
+                        <button type="button" class="btn btn-inline" onclick="lineDetectLSD()">Edge detect</button>
+                        <br><span>Part name:</span>
+                        <input style="width:100px" type="text" id="SearchPart" name="SearchPart" />
+                        <button type="button" class="btn btn-inline" onclick="startOCR()">OCR Start</button>
                     </div>
                 </div>
             </div>
@@ -59,11 +60,11 @@
             <div id="topRightArea">
                 <div class="setting rightSide">
                     <!-- <a report="">BUG報告、FAQなど</a> -->
-                    <span style="width: 10%; display: inline-block;">曲　　名:</span>
+                    <span style="width: 19%; display: inline-block;">Title:</span>
                     <input type="text" id="titleText" name="TitleText" class="titleText" value="" onchange="drawTitle()"
                         oninput="drawTitle()" />
                     <br>
-                    <span style="width: 10%; display: inline-block;">段落間隔:</span>
+                    <span style="width: 19%; display: inline-block;">Paragraph interval:</span>
                     <input type="number" value="15" step="1" id="ParaInterval" name="ParaInterval" min="0"
                         style="width: 40px" />
                     <span id="outputFileInfo"></span>
@@ -80,20 +81,20 @@
         <div id="canvasArea-input">
             <div id="result" style="padding: 3px;"></div>
             <div id="input-bar">
-                <label class="btn" for="inputFile">ファイル選択<input type="file" multiple id="inputFile"></label>
+                <label class="btn" for="inputFile">Select File<input type="file" multiple id="inputFile"></label>
                 <button type="button" class="btn" onclick="loadPre()" style="margin-left: 2px;">＜</button>
                 <button type="button" class="btn" onclick="loadNext()">＞</button>
-                <button type="button" class="btn" onclick="inputClear()">初期化</button> トリミング枠:
-                <button type="button" class="btn" onclick="addTrimBox()">追加</button>
-                <button type="button" class="btn" onclick="removeTrimBox()">削除</button>
-                <button type="button" class="btn" onclick="clearTrimBox()">全削除</button>
-                <button type="button" class="btn" onclick="setRefeEdge()">相対位置保存</button>
-                <button type="button" class="btn" onclick="doStaff()">後続ページ処理</button>
+                <button type="button" class="btn" onclick="inputClear()">Initialize</button> trimming frame:
+                <button type="button" class="btn" onclick="addTrimBox()">Add</button>
+                <button type="button" class="btn" onclick="removeTrimBox()">Delete</button>
+                <button type="button" class="btn" onclick="clearTrimBox()">Delete all</button>
+                <button type="button" class="btn" onclick="setRefeEdge()">Position save</button>
+                <button type="button" class="btn" onclick="doStaff()">Batch start</button>
             </div>
 
             <div class="tabBar">
                 <nav id="tabNav">
-                    <a href="#" id="Tab_1" class="tab selected" style="z-index: 1;" onclick="selectTab(this)">入力領域</a>
+                    <a href="#" id="Tab_1" class="tab selected" style="z-index: 1;" onclick="selectTab(this)">Input Canvas</a>
                 </nav>
                 <a href="#" id="newTab" class="tab" style="z-index: 0; width: 100px; display: none"
                     onclick="selectTab(this)">&nbsp;</a>
@@ -115,15 +116,15 @@
         <div id="canvasArea-output">
             <div id="outputTop" style="padding: 3px;"></div>
             <div id="output-bar">
-                <button type="button" class="btn" onclick='doTrim()'>トリミング</button>
-                <button type="button" class="btn" onclick='cancel()'>段落削除</button>
-                <button type="button" class="btn" onclick="drawInit()">初期化</button>
-                <button type="button" class="btn" onclick="download()">画像出力</button>
+                <button type="button" class="btn" onclick='doTrim()'>Trim</button>
+                <button type="button" class="btn" onclick='cancel()'>Paragraph delete</button>
+                <button type="button" class="btn" onclick="drawInit()">Initialize</button>
+                <button type="button" class="btn" onclick="download()">Image output</button>
                 <br>
-                <a id="hiddenLink" download="download.png">ダウンロードされない場合、下図を右クリックして保存してください。</a>
+                <a id="hiddenLink" download="download.png">If download not start, right click on the image can save it.</a>
             </div>
             <nav>
-                <div class="tab selected" onclick="selectTab(this)">出力領域</div>
+                <div class="tab selected" onclick="selectTab(this)">Output Canvas</div>
             </nav>
             <div id='outputDiv' class="canvasDiv">
                 <canvas id='out'></canvas>
