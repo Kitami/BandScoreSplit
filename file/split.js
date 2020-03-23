@@ -354,13 +354,13 @@ async function doTrim() {
             F.TitleText.value = '';
         }
         //入力部
-        var sx = parseFloat(elem.style.left) * toOrigin;
-        var sy = parseFloat(elem.style.top) * toOrigin;
-        var sWidth = parseFloat(elem.style.width) * toOrigin;
-        var sHeight = parseFloat(elem.style.height) * toOrigin;
+        var sx = parseInt(parseInt(elem.style.left) * toOrigin);
+        var sy = parseInt(parseInt(elem.style.top) * toOrigin);
+        var sWidth = parseInt(parseInt(elem.style.width) * toOrigin);
+        var sHeight = parseInt(parseInt(elem.style.height) * toOrigin);
         //出力部
-        var dx = (VISIBLE_WIDTH - parseFloat(elem.style.width)) / 2 * toOrigin;
-        var dy = getParaTop(paraNo) * toOrigin;
+        var dx = parseInt((VISIBLE_WIDTH - parseInt(elem.style.width)) / 2 * toOrigin);
+        var dy = parseInt(getParaTop(paraNo) * toOrigin);
         var dWidth = sWidth;
         var dHeight = sHeight;
         outContext.drawImage(inCanvas, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
