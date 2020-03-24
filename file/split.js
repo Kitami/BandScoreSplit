@@ -344,10 +344,9 @@ async function doTrim() {
     }
     var trimBoxList_now = document.querySelectorAll('.trimBox');
     var trimBoxListArray = Array.from(trimBoxList_now); // 配列に変換
-    trimBoxListArray.sort(function (a, b) { return parseInt(a.style.top) - parseInt(b.style.top); })
+    //trimBoxListArray.sort(function (a, b) { return parseInt(a.style.top) - parseInt(b.style.top); })
     for (var elem of trimBoxListArray) {
-        var paraNo = paraList.length;
-        var paraEnd = getParaTop(paraNo) + trimHeight;
+        var paraEnd = getParaTop(paraList.length) + trimHeight;
         if (paraEnd > VISIBLE_HEIGHT) {
             await download();
             drawInit();
@@ -360,7 +359,7 @@ async function doTrim() {
         var sHeight = parseInt(parseInt(elem.style.height) * toOrigin);
         //出力部
         var dx = parseInt((VISIBLE_WIDTH - parseInt(elem.style.width)) / 2 * toOrigin);
-        var dy = parseInt(getParaTop(paraNo) * toOrigin);
+        var dy = parseInt(getParaTop(paraList.length) * toOrigin);
         var dWidth = sWidth;
         var dHeight = sHeight;
         outContext.drawImage(inCanvas, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
