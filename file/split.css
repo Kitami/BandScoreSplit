@@ -93,6 +93,9 @@ button {
 .btn{
     background-color:white; border:solid 0.3px gray; font-weight:bold;
 }
+.btn6em{
+    width:6em;
+}
 .btn-inline {
     display:inline-block; height:21.5px; margin:1px 0px; line-height: 2px;
 }

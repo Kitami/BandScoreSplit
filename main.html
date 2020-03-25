@@ -46,12 +46,19 @@
                         <input type="checkbox" id="withOCR" name="withOCR" />パート名OCR
                         <br><input type="checkbox" id="autoTrim" name="autoTrim" />自動トリミング
                         <br><span>傾き補正:</span>
-                        <input type="number" id="TiltDeg" name="TiltDeg" step="0.050" novalidate
+                        <input style="width:150px" type="number" id="TiltDeg" name="TiltDeg" step="0.050" novalidate
                             onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
-                        <button type="button" class="btn btn-inline" onclick="lineDetectLSD()">エッジ検出</button>
+                        <button type="button" class="btn btn-inline btn6em" onclick="lineDetectLSD()">エッジ検出</button>
                         <br><span>パート名:</span>
-                        <input type="text" id="SearchPart" name="SearchPart" />
-                        <button type="button" class="btn btn-inline" onclick="startOCR()">OCR開始</button>
+                        <input style="width:150px" type="text" id="searchWord" name="searchWord" list="instNameList"/>
+                        <datalist id="instNameList">
+                            <option value="Key"></option>
+                            <option value="Gt"></option>
+                            <option value="Ba"></option>
+                            <option value="Dr"></option>
+                            <option value="Vo"></option>
+                        </datalist>
+                        <button type="button" class="btn btn-inline btn6em" onclick="searchInst()">検索</button>
                     </div>
                 </div>
             </div>

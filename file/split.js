@@ -57,14 +57,14 @@ inputFile.addEventListener("change", function (evt) {
 
 async function loadFile(dataUrl) {
     progressUpdate({ status: 'Loading' });
-    clearOCRTextBox();
+    OCRInit();
     if (fileType == 'pdf') {
         await loadPdf(dataUrl);
     } else {
         await loadImage(dataUrl);
     }
     progressUpdate({ status: 'done' });
-    //if (F.EdgeDetect.checked) { startEdgeDetect(); }
+    //if (F.EdgeDetect.checked) { startBatch(); }
 }
 
 function setInputFileInfo(page,maxPage,w,h){
@@ -82,7 +82,7 @@ function loadImage(dataUrl) {
             inContext.drawImage(img, 0, 0, img.width, img.height);
             var fileNo = parseInt(fileIndex) + 1;
             setInputFileInfo(fileNo,file.length,img.width,img.height);
-            if (F.EdgeDetect.checked) { startEdgeDetect(); }
+            if (F.EdgeDetect.checked) { startBatch(); }
             resolve(img);
         }
     })
@@ -145,7 +145,7 @@ async function openPage(num) {
             }
             getPdfCanvas();
             viewingPage = num;
-            if (F.EdgeDetect.checked) { startEdgeDetect(); }
+            if (F.EdgeDetect.checked) { startBatch(); }
         });
     });
 }
@@ -456,7 +456,7 @@ function trimHeightChange(val) {
 function inputClear() {
     clearTrimBox();
     inContext.clearRect(0, 0, inCanvas.width, inCanvas.height);
-    clearOCRTextBox();
+    OCRInit();
     clearTab();
     inputFileInfo.innerHTML = '';
     inputFile.value = '';
@@ -464,14 +464,7 @@ function inputClear() {
     pdfDoc = null;
     refeEdge = null;
 }
-//OCR関連初期化
-function clearOCRTextBox() {
-    resultArea.innerHTML = '';
-    F.TiltDeg.value = '';
-    removeByClassName('OCRText');
-    removeByClassName('edgeBox');
-    blockAnalyzeDone = OCRDone = tiltCorrected = false;
-}
+
 //トリミング枠全削除
 function clearTrimBox() {
     removeByClassName('trimBox');
@@ -562,13 +555,25 @@ function setTabZindex(TabElemList, selectTabNo) {
 
 //以下、OCR関連
 var language = "eng";
-var instList = [];
+var instList = []; //楽器リスト
 var checkedList = [];
 var LinesArray = [];
 const resultArea = document.getElementById('result');
 var refeEdge = null;
 var blockAnalyzeDone = false,
     OCRDone = false;
+
+//OCR関連初期化
+function OCRInit() {
+    resultArea.innerHTML = '';
+    F.TiltDeg.value = '';
+    removeByClassName('OCRText');
+    removeByClassName('edgeBox');
+    blockAnalyzeDone = OCRDone = tiltCorrected = false;
+    instList = [];
+    checkedList = [];
+}
+
 //楽器を選択
 function selectInst(elem) {
     var instNo = elem.value;
@@ -637,7 +642,7 @@ function result(res) {
             drawDivBox(divId, 'OCRText', x, y, width, hieght)
         }
     })
-
+    //checkbox設置
     if (instList.length > 0) {
         resultArea.innerHTML = '認識結果:';
         instList.forEach(
@@ -645,18 +650,30 @@ function result(res) {
                 var chkboxstr = '<input type="checkbox" oninput="selectInst(this)" value="' + index + '" id="ckbox_' + index + '">' +
                     '<label>' + value + '</label>';
                 resultArea.insertAdjacentHTML('beforeend', chkboxstr);
-
-                if (F.SearchPart.value) {
-                    if (value.includes(F.SearchPart.value)) {
-                        var e = document.getElementById('ckbox_' + index);
-                        e.checked = true;
-                        selectInst(e);
-                    }
                 }
-            }
         );
     }
     OCRDone = true;
+    if(F.searchWord.value){
+        searchInst();
+     }
+}
+
+//楽器を検索
+async function searchInst(){
+    if (!OCRDone) {
+        await startOCR();
+    }
+    var keyWord = F.searchWord.value;
+    if(keyWord){
+        instList.forEach(function (value, index) {
+            if (value.includes(keyWord)) {
+            var e = document.getElementById('ckbox_' + index);
+                        e.checked = true;
+                        selectInst(e);
+            }
+        });
+    }
 }
 
 var statusText = document.getElementById('statusText');
@@ -935,7 +952,7 @@ function dataURItoBlob(dataURI) {
     return new Blob([u8], { type: "img/png" });
 }
 
-async function startEdgeDetect() {
+async function startBatch() {
     progressUpdate({ status: 'start Batch processing' });
     //譜表領域検出
     if (!blockAnalyzeDone)
@@ -946,7 +963,7 @@ async function startEdgeDetect() {
     }
     //OCRチェック時
     if (F.withOCR.checked) {
-        startOCR();
+        await startOCR();
     }
     if (F.autoTrim.checked) {
         doTrim();

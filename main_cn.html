@@ -43,15 +43,22 @@
                     <div id="OCRSetting" class="setting leftSide">自動化設定
                         <br><input type="checkbox" id="EdgeDetect" name="EdgeDetect" checked="checked" />邊緣檢出
                         <input type="checkbox" id="AutoTiltCorrect" name="AutoTiltCorrect" checked="checked" />傾斜補正
-                        <input type="checkbox" id="withOCR" name="withOCR" />Part名OCR
+                        <input type="checkbox" id="withOCR" name="withOCR" />樂器名識別(OCR)
                         <br><input type="checkbox" id="autoTrim" name="autoTrim" />自動剪切
-                        <br><span>傾斜補正:</span>
-                        <input type="number" id="TiltDeg" name="TiltDeg" step="0.050" novalidate
+                        <br><span style="width:4.5em">傾斜補正:</span>
+                        <input style="width:150px" type="number" id="TiltDeg" name="TiltDeg" step="0.050" novalidate
                             onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
-                        <button type="button" class="btn btn-inline" onclick="lineDetectLSD()">邊緣検出</button>
-                        <br><span>Part查找:</span>
-                        <input type="text" id="SearchPart" name="SearchPart" />
-                        <button type="button" class="btn btn-inline" onclick="startOCR()">OCR開始</button>
+                        <button type="button" class="btn btn-inline btn6em" onclick="lineDetectLSD()">邊緣検出</button>
+                        <br><span style="width:4.5em">樂器名:</span>
+                        <input style="width:150px" type="text" id="searchWord" name="searchWord" list="instNameList"/>
+                        <datalist id="instNameList">
+                            <option value="Key"></option>
+                            <option value="Gt"></option>
+                            <option value="Ba"></option>
+                            <option value="Dr"></option>
+                            <option value="Vo"></option>
+                        </datalist>
+                        <button type="button" class="btn btn-inline btn6em" onclick="searchInst()">查找</button>
                     </div>
                 </div>
             </div>

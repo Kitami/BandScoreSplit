@@ -45,14 +45,21 @@
                         <br><input type="checkbox" id="EdgeDetect" name="EdgeDetect" checked="checked" />Edge detect
                         <input type="checkbox" id="AutoTiltCorrect" name="AutoTiltCorrect" checked="checked" />Tilt Fix
                         <input type="checkbox" id="withOCR" name="withOCR" />Part Name OCR
-                        <br><input type="checkbox" id="autoTrim" name="autoTrim" />Automatic Trim
+                        <br><input type="checkbox" id="autoTrim" name="autoTrim" />Auto Trim
                         <br><span>Tilt Fix(degree):</span>
                         <input style="width:100px" type="number" id="TiltDeg" name="TiltDeg" step="0.050" novalidate
                             onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
                         <button type="button" class="btn btn-inline" onclick="lineDetectLSD()">Edge detect</button>
-                        <br><span>Search Part:</span>
-                        <input style="width:100px" type="text" id="SearchPart" name="SearchPart" />
-                        <button type="button" class="btn btn-inline" onclick="startOCR()">Search(OCR)</button>
+                        <br><span>Part Name:</span>
+                        <input style="width:100px" type="text" id="searchWord" name="searchWord" list="instNameList"/>
+                        <datalist id="instNameList">
+                            <option value="Key"></option>
+                            <option value="Gt"></option>
+                            <option value="Ba"></option>
+                            <option value="Dr"></option>
+                            <option value="Vo"></option>
+                        </datalist>
+                        <button type="button" class="btn btn-inline" onclick="searchInst()">Search</button>
                     </div>
                 </div>
             </div>
