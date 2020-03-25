@@ -944,6 +944,10 @@ async function startEdgeDetect() {
         var offset = refeEdge.top - edge_T;
         offsetYChange(offset);
     }
+    //OCRチェック時
+    if (F.withOCR.checked) {
+        startOCR();
+    }
     if (F.autoTrim.checked) {
         doTrim();
     }

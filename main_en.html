@@ -44,15 +44,15 @@
                     <div id="OCRSetting" class="setting leftSide">Automation settings
                         <br><input type="checkbox" id="EdgeDetect" name="EdgeDetect" checked="checked" />Edge detect
                         <input type="checkbox" id="AutoTiltCorrect" name="AutoTiltCorrect" checked="checked" />Tilt Fix
-                        <input type="checkbox" id="WithOCR" name="WithOCR" />PartName OCR
+                        <input type="checkbox" id="withOCR" name="withOCR" />Part Name OCR
                         <br><input type="checkbox" id="autoTrim" name="autoTrim" />Automatic Trim
                         <br><span>Tilt Fix(degree):</span>
                         <input style="width:100px" type="number" id="TiltDeg" name="TiltDeg" step="0.050" novalidate
                             onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
                         <button type="button" class="btn btn-inline" onclick="lineDetectLSD()">Edge detect</button>
-                        <br><span>Part name:</span>
+                        <br><span>Search Part:</span>
                         <input style="width:100px" type="text" id="SearchPart" name="SearchPart" />
-                        <button type="button" class="btn btn-inline" onclick="startOCR()">OCR Start</button>
+                        <button type="button" class="btn btn-inline" onclick="startOCR()">Search(OCR)</button>
                     </div>
                 </div>
             </div>
@@ -124,7 +124,7 @@
                 <a id="hiddenLink" download="download.png">If download not start, right click on the image can save it.</a>
             </div>
             <nav>
-                <div class="tab selected" onclick="selectTab(this)">Output Canvas</div>
+                <div class="tab selected" onclick="selectTab(this)">Output Preview</div>
             </nav>
             <div id='outputDiv' class="canvasDiv">
                 <canvas id='out'></canvas>

@@ -43,7 +43,7 @@
                     <div id="OCRSetting" class="setting leftSide">自動化設定
                         <br><input type="checkbox" id="EdgeDetect" name="EdgeDetect" checked="checked" />エッジ検出
                         <input type="checkbox" id="AutoTiltCorrect" name="AutoTiltCorrect" checked="checked" />自動傾き補正
-                        <input type="checkbox" id="WithOCR" name="WithOCR" />パート名OCR
+                        <input type="checkbox" id="withOCR" name="withOCR" />パート名OCR
                         <br><input type="checkbox" id="autoTrim" name="autoTrim" />自動トリミング
                         <br><span>傾き補正:</span>
                         <input type="number" id="TiltDeg" name="TiltDeg" step="0.050" novalidate
@@ -93,7 +93,7 @@
 
             <div class="tabBar">
                 <nav id="tabNav">
-                    <a href="#" id="Tab_1" class="tab selected" style="z-index: 1;" onclick="selectTab(this)">入力領域</a>
+                    <a href="#" id="Tab_1" class="tab selected" style="z-index: 1;" onclick="selectTab(this)">入力画像</a>
                 </nav>
                 <a href="#" id="newTab" class="tab" style="z-index: 0; width: 100px; display: none"
                     onclick="selectTab(this)">&nbsp;</a>
@@ -123,7 +123,7 @@
                 <a id="hiddenLink" download="download.png">ダウンロードされない場合、下図を右クリックして保存してください。</a>
             </div>
             <nav>
-                <div class="tab selected" onclick="selectTab(this)">出力領域</div>
+                <div class="tab selected" onclick="selectTab(this)">出力画像プレビュー</div>
             </nav>
             <div id='outputDiv' class="canvasDiv">
                 <canvas id='out'></canvas>

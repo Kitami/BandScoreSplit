@@ -43,7 +43,7 @@
                     <div id="OCRSetting" class="setting leftSide">自動化設定
                         <br><input type="checkbox" id="EdgeDetect" name="EdgeDetect" checked="checked" />邊緣檢出
                         <input type="checkbox" id="AutoTiltCorrect" name="AutoTiltCorrect" checked="checked" />傾斜補正
-                        <input type="checkbox" id="WithOCR" name="WithOCR" />Part名OCR
+                        <input type="checkbox" id="withOCR" name="withOCR" />Part名OCR
                         <br><input type="checkbox" id="autoTrim" name="autoTrim" />自動剪切
                         <br><span>傾斜補正:</span>
                         <input type="number" id="TiltDeg" name="TiltDeg" step="0.050" novalidate
@@ -123,7 +123,7 @@
                 <a id="hiddenLink" download="download.png">如不能自動開始下載，請右鍵點擊下圖保存。</a>
             </div>
             <nav>
-                <div class="tab selected" onclick="selectTab(this)">輸出圖像</div>
+                <div class="tab selected" onclick="selectTab(this)">輸出預覽</div>
             </nav>
             <div id='outputDiv' class="canvasDiv">
                 <canvas id='out'></canvas>
