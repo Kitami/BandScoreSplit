@@ -599,7 +599,7 @@ function selectInst(elem) {
     var tboxId = 'trimBox_instNo_' + instNo;
 
     if (elem.checked && !checkedList.includes(instNo)) {
-        var y = parseInt(instElem.style.top) + parseInt(instElem.style.height) / 2 - trimHeight / 2
+        var y = parseInt(instElem.style.top) + parseInt(instElem.style.height) / 2 - trimHeight / 2 - F.OffsetY.valueAsNumber;
         drawTrimBox(tboxId, y)
         checkedList.push(instNo)
     }
