@@ -354,6 +354,7 @@ async function doTrim() {
     for (var elem of trimBoxListArray) {
         var paraEnd = getParaTop(paraList.length) + trimHeight;
         if (paraEnd > VISIBLE_HEIGHT) {
+            if(!F.autoTrim.checked) { alert('ページ末尾に到達した'); removeTrimBox(elem.id); return; }
             await download();
             drawInit();
             F.TitleText.value = '';
@@ -372,8 +373,8 @@ async function doTrim() {
         var a = { x: dx, y: dy, w: dWidth, h: dHeight };
         paraList.push(a);
     }
-    if (autoTriming && seleTabIndex + 1 == tabList.length) {
-        autoTriming = F.autoTrim.checked = false;
+    if (seleTabIndex + 1 == tabList.length) {
+        F.autoTrim.checked = false;
         progressUpdate({ status: 'Batch processing done' });
     }
 }

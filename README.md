@@ -40,18 +40,28 @@ BandScoreSplit是使用HTML5 Canvas構建的用於將樂譜（樂團樂譜等）
 
 ## Using Guide  
 1.Load an image or PDF file by selecting a file button.  
-2.adding a trim box, and adjust the position and height (you can use OCR button to locate it accurately)  
-3.cilck trim button or "Batch start" button, The results will be displayed in the output-area and will be downloaded automatically when one page is done.  
+2.adding a trim box, and adjust the position and height.(can also use Part name OCR locate it)  
+3.The results will be displayed in the output-area.  
+
+batch processing  
+4.check "Auto NextPage" and click "Batch start" button.  
+5.batch processing will be start, the same things will be do on others page (trim position will automatically adjustment by relative position to the staff border top, or use the OCR result), images will be download automatically when one page is done.  
 
 使い方:  
 1.ファイル選択で画像ファイルを読み込ませる  
-2.トリミング枠を追加して、位置と縦幅を調整する (OCRを実行すると結果は位置特定に使える)  
-3.トリミングボタン、または「後続ページ処理」ボタンを押す、結果は右側のエリアに表示されて、1ページが使い終わったら自動的ダウンロードされる  
+2.トリミング枠を追加して、位置と縦幅を調整する (楽器名のOCR結果も位置特定に使える)  
+3.結果は右側のエリアに表示される  
+自動化処理  
+4.「自動次の画像へ」にチェックを入れ、「処理開始」ボタンをクリックする  
+5.バッチ処理が開始され、同じことが他のページで行われ（トリミング枠位置は、譜表上部エッジとの相対位置によって自動的に調整されるか、楽器名OCRチェック時はOCR結果を使用する）、1ページが完了すると、画像が自動的にダウンロードされる  
 
 使用方法:  
 1.選擇一個或多個圖像文件  
-2.按下「追加」按鈕用來追加剪切框，調節左上角的參數以及按住拖動剪切框到想要剪切的譜表的位置 (Part名OCR可以用來確定剪切框縱軸位置)    
-3.按下「剪切」按鈕、或者「自動化處理」按鈕，剪切結果會在右側輸出圖像區域表示、輸出圖像區域使用到末尾的時候會自動保存圖片，自動化處理時會自動切換到輸入圖像的下一頁進行相同的操作（會根據到譜表上側的邊緣相對位置來剪切，而不是絕對位置，所以掃描的樂譜即使有輕微偏移也可以正確輸出圖像）  
+2.按下「追加」按鈕用來追加剪切框，調節左上角的參數以及按住拖動剪切框到想要剪切的譜表的位置 (Part名OCR可以用來確定剪切框縱軸位置)  
+3.剪切結果會在右側輸出圖像區域表示  
+自動化處理  
+4.選中「自動下一頁」，然後點擊「處理開始」按鈕  
+5.將開始批處理，會對其他圖像執行相同的操作（剪切框位置將根據到譜表頂部的相對位置自動調整，或使用OCR結果），一頁完成後圖像將自動下載  
 
 ## Questions  
 質問  
