@@ -8,7 +8,7 @@
 </head>
 
 <body>
-    <span>Band Score Split v0.51 楽譜分割支援ツール</span>
+    <span>Band Score Split v0.60 楽譜分割支援ツール</span>
     <a href="https://github.com/Kitami/BandScoreSplit#using-guide" target=”_blank”>使い方</a>
     言語:
     <select name="language" style="width: 100px;" onchange="location.href=value;">
@@ -35,22 +35,20 @@
                         <span style="display: inline-block;">縦幅:</span>
                         <input type="number" id="TrimH" name="TrimH" class="tboxSetting" step="2"
                             oninput="trimHeightChange(valueAsNumber)" />
-                        <br>
-                        <input type="checkbox" id="widthLock" name="widthLock" /> 横幅固定
+                        <br><input type="checkbox" id="widthLock" name="widthLock" /> 横幅固定
+                        <input type="checkbox" id="autoReTrim" name="autoReTrim"  checked="checked" onchange="if(checked)F.autoTrim.checked=false;" />即時反映
                         <div style="display: inline-block; padding-top: 1px; margin-bottom: -1px;">
                         </div>
                     </div>
                     <div id="OCRSetting" class="setting leftSide">自動化設定
-                        <br><input type="checkbox" id="EdgeDetect" name="EdgeDetect" checked="checked" />エッジ検出
-                        <input type="checkbox" id="AutoTiltCorrect" name="AutoTiltCorrect" checked="checked" />自動傾き補正
-                        <input type="checkbox" id="withOCR" name="withOCR" />パート名OCR
-                        <br><input type="checkbox" id="autoTrim" name="autoTrim" />自動トリミング
-                        <br><span>傾き補正:</span>
-                        <input style="width:150px" type="number" id="TiltDeg" name="TiltDeg" step="0.050" novalidate
+                        <br><input type="checkbox" id="EdgeDetect" name="EdgeDetect" checked="checked" /><span>エッジ検出</span>
+                        <!-- <button type="button" class="btn btn-inline btn6em" onclick="lineDetectLSD()">エッジ検出</button> -->
+                        <br><input type="checkbox" id="AutoTiltCorrect" name="AutoTiltCorrect" checked="checked" /><span>傾き補正</span>
+                        <input style="width:120px" type="number" id="TiltDeg" name="TiltDeg" step="0.050" novalidate
                             onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
-                        <button type="button" class="btn btn-inline btn6em" onclick="lineDetectLSD()">エッジ検出</button>
-                        <br><span>パート名:</span>
-                        <input style="width:150px" type="text" id="searchWord" name="searchWord" list="instNameList"/>
+                        <br><input type="checkbox" id="withOCR" name="withOCR" /><span>楽器名OCR</span>
+                        <input style="width:120px" type="text" id="searchWord" name="searchWord" onchange="if(value)F.withOCR.checked=true;" list="instNameList"/>
+                        <button type="button" class="btn btn-inline" onclick="searchInst();">実行</button>
                         <datalist id="instNameList">
                             <option value="Key"></option>
                             <option value="Gt"></option>
@@ -58,7 +56,9 @@
                             <option value="Dr"></option>
                             <option value="Vo"></option>
                         </datalist>
-                        <button type="button" class="btn btn-inline btn6em" onclick="searchInst()">検索</button>
+                        <br><input type="checkbox" id="autoTrim" name="autoTrim" onchange="if(checked)F.autoReTrim.checked=false;" /><span>自動トリミング</span>
+                        <br><input type="checkbox" id="autoNextPage" name="autoNextPage" /><span>自動次の画像へ</span>
+                        <button type="button" class="btn btn-inline" onclick="startBatch()">処理開始</button>
                     </div>
                 </div>
             </div>
@@ -94,8 +94,6 @@
                 <button type="button" class="btn" onclick="addTrimBox()">追加</button>
                 <button type="button" class="btn" onclick="removeTrimBox()">削除</button>
                 <button type="button" class="btn" onclick="clearTrimBox()">全削除</button>
-                <button type="button" class="btn" onclick="setRefeEdge()">相対位置保存</button>
-                <button type="button" class="btn" onclick="doStaff()">後続ページ処理</button>
             </div>
 
             <div class="tabBar">
@@ -122,6 +120,7 @@
         <div id="canvasArea-output">
             <div id="outputTop" style="padding: 3px;"></div>
             <div id="output-bar">
+                <button type="button" class="btn" onclick="reTrim()">反映</button>
                 <button type="button" class="btn" onclick='doTrim()'>トリミング</button>
                 <button type="button" class="btn" onclick='cancel()'>段落削除</button>
                 <button type="button" class="btn" onclick="drawInit()">初期化</button>

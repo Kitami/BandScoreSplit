@@ -184,6 +184,9 @@ function loadPre() {
 }
 
 function loadNext() {
+    if(seleTabIndex+1==tabList.length){
+        F.autoNextPage.checked=false;
+    }
     if (tabList.length > 0 && seleTabIndex + 1 < tabList.length) {
         return selectTab(tabList[seleTabIndex + 1]);
     }
@@ -270,6 +273,8 @@ function move(e) {
         move_start_y = touchObject.pageY;
     else
         move_start_y = e.clientY;
+    
+    if(F.autoReTrim.checked) {reTrim();}
 }
 
 function stopMove(e) {
@@ -286,6 +291,7 @@ function stopMove(e) {
 function addTrimBox() {
     var n = trimBoxList.length + 1;
     drawTrimBox('trimBox_' + n, inputDiv.scrollTop);
+    if(F.autoReTrim.checked) {reTrim();}
 }
 //トリミング領域描画
 function drawTrimBox(id, top) {
@@ -371,6 +377,13 @@ async function doTrim() {
         progressUpdate({ status: 'Batch processing done' });
     }
 }
+
+//反映ボタン
+function reTrim(){
+    drawInit();
+    doTrim();
+}
+
 //1段落削除
 function cancel() {
     if (paraList.length > 0) {
@@ -395,6 +408,7 @@ function getParaTop(n) {
 //全trimboxに対する操作
 function changeTrimBox(func) {
     for (var elem of trimBoxList) { func(elem); }
+    if(F.autoReTrim.checked) {reTrim();}
 }
 //ガイド線移動
 function rangeChange(id) {
@@ -953,26 +967,31 @@ function dataURItoBlob(dataURI) {
 }
 
 async function startBatch() {
-    progressUpdate({ status: 'start Batch processing' });
+    progressUpdate({ status: 'Batch processing' });
     //譜表領域検出
     if (!blockAnalyzeDone)
         await lineDetectLSD();
-    if (refeEdge) {
-        var offset = refeEdge.top - edge_T;
-        offsetYChange(offset);
-    }
-    //OCRチェック時
+
+    //楽器名OCR選択時
     if (F.withOCR.checked) {
         await startOCR();
     }
+    //相対位置方式選択時
+    else if (refeEdge) {
+        var offset = refeEdge.top - edge_T;
+        offsetYChange(offset);
+    } else {
+        setRefeEdge();
+    }
+
     if (F.autoTrim.checked) {
         doTrim();
     }
     //next page
-    if (autoTriming && F.autoTrim.checked) {
+    if (F.autoNextPage.checked) {
         await loadNext();
     }
-    progressUpdate({ status: 'done' });
+    progressUpdate({ status: 'Batch done' });
 }
 
 async function startOCR() {
@@ -998,13 +1017,4 @@ async function startOCR() {
     });
     const { data } = await worker.recognize(input);
     result(data);
-}
-
-var autoTriming = false;
-
-async function doStaff() {
-    F.autoTrim.checked = autoTriming = true;
-    doTrim();
-    setRefeEdge();
-    await loadNext();
 }

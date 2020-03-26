@@ -8,7 +8,7 @@
 </head>
 
 <body>
-    <span>Band Score Split v0.51 score split support tool</span>
+    <span>Band Score Split v0.60 score split support tool</span>
     <a href="https://github.com/Kitami/BandScoreSplit#using-guide" target=”_blank”>How to use</a>
     language:
     <select name="language" style="width: 100px;" onchange="location.href=value;">
@@ -38,20 +38,18 @@
                             oninput="trimHeightChange(valueAsNumber)" />
                         <br>
                         <input type="checkbox" id="widthLock" name="widthLock" /> Fixed width
+                        <input type="checkbox" id="autoReTrim" name="autoReTrim"  checked="checked" onchange="if(checked)F.autoTrim.checked=false;" /> instant Apply
                         <div style="display: inline-block; padding-top: 1px; margin-bottom: -1px;">
                         </div>
                     </div>
                     <div id="OCRSetting" class="setting leftSide">Automation settings
-                        <br><input type="checkbox" id="EdgeDetect" name="EdgeDetect" checked="checked" />Edge detect
-                        <input type="checkbox" id="AutoTiltCorrect" name="AutoTiltCorrect" checked="checked" />Tilt Fix
-                        <input type="checkbox" id="withOCR" name="withOCR" />Part Name OCR
-                        <br><input type="checkbox" id="autoTrim" name="autoTrim" />Auto Trim
-                        <br><span>Tilt Fix(degree):</span>
+                        <br><input type="checkbox" id="EdgeDetect" name="EdgeDetect" checked="checked" /><span>Edge detect</span>
+                        <br><input type="checkbox" id="AutoTiltCorrect" name="AutoTiltCorrect" checked="checked" /><span>Tilt Fix</span>
                         <input style="width:100px" type="number" id="TiltDeg" name="TiltDeg" step="0.050" novalidate
                             onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
-                        <button type="button" class="btn btn-inline" onclick="lineDetectLSD()">Edge detect</button>
-                        <br><span>Part Name:</span>
-                        <input style="width:100px" type="text" id="searchWord" name="searchWord" list="instNameList"/>
+                        <br><input type="checkbox" id="withOCR" name="withOCR" /><span>Part Name OCR</span>
+                        <input style="width:100px" type="text" id="searchWord" name="searchWord" onchange="if(value)F.withOCR.checked=true;" list="instNameList"/>
+                        <button type="button" class="btn btn-inline" onclick="searchInst()">Search</button>
                         <datalist id="instNameList">
                             <option value="Key"></option>
                             <option value="Gt"></option>
@@ -59,7 +57,11 @@
                             <option value="Dr"></option>
                             <option value="Vo"></option>
                         </datalist>
-                        <button type="button" class="btn btn-inline" onclick="searchInst()">Search</button>
+                        
+                        <br><input type="checkbox" id="autoTrim" name="autoTrim" onchange="if(checked)F.autoReTrim.checked=false;" /><span>Auto Trim</span>
+                        <br><input type="checkbox" id="autoNextPage" name="autoNextPage" /><span>Auto NextPage</span>
+
+                        <button type="button" class="btn btn-inline" onclick="startBatch()">Batch start</button>
                     </div>
                 </div>
             </div>
@@ -95,8 +97,6 @@
                 <button type="button" class="btn" onclick="addTrimBox()">Add</button>
                 <button type="button" class="btn" onclick="removeTrimBox()">Delete</button>
                 <button type="button" class="btn" onclick="clearTrimBox()">Delete all</button>
-                <button type="button" class="btn" onclick="setRefeEdge()">Position save</button>
-                <button type="button" class="btn" onclick="doStaff()">Batch start</button>
             </div>
 
             <div class="tabBar">
