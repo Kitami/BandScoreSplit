@@ -435,10 +435,10 @@ function rangeChange(id) {
 //ガイド線移動-幅固定時
 function rangeChangeFixWidth(id) {
     if (id == rangeL.id) {
-        var L_before = parseFloat(guideL.style.left);
+        var L_before = parseInt(guideL.style.left);
         rangeR.value = rangeR.valueAsNumber + (rangeL.valueAsNumber - L_before);
     } else if (id == rangeR.id) {
-        var R_before = parseFloat(guideR.style.left);
+        var R_before = parseInt(guideR.style.left);
         rangeL.value = rangeL.valueAsNumber + (rangeR.valueAsNumber - R_before);
     }
     guideL.style.left = rangeL.value + 'px';
@@ -451,21 +451,21 @@ function rangeChangeFixWidth(id) {
 var offsetTemp = 0;
 function offsetYChange(val) {
     changeTrimBox(function (e) {
-        var topBefore = parseFloat(e.style.top) + offsetTemp;
-        var topAfter = topBefore - parseFloat(val);
+        var topBefore = parseInt(e.style.top) + offsetTemp;
+        var topAfter = topBefore - parseInt(val);
         e.style.top = topAfter + 'px';
     });
-    F.OffsetY.value = offsetTemp = parseFloat(val);
+    F.OffsetY.value = offsetTemp = parseInt(val);
 }
 //トリミング枠縦幅変更
 function trimHeightChange(val) {
-    var heightChange = parseFloat(val - trimHeight) / 2;
+    var heightChange = parseInt(val - trimHeight) / 2;
     changeTrimBox(function (e) {
-        var topVal = parseFloat(e.style.top);
-        e.style.height = parseFloat(val) + 'px';
+        var topVal = parseInt(e.style.top);
+        e.style.height = parseInt(val) + 'px';
         e.style.top = topVal - heightChange + 'px';
     });
-    trimHeight = parseFloat(val);
+    trimHeight = parseInt(val);
 }
 //入力領域クリア
 function inputClear() {
@@ -484,6 +484,9 @@ function inputClear() {
 function clearTrimBox() {
     removeByClassName('trimBox');
     F.OffsetY.value = offsetTemp = 0;
+    if(OCRDone) {
+        for(var i in instList) { document.getElementById('ckbox_' + i).checked = false; }
+    }
 }
 //ClassNameで要素削除
 function removeByClassName(ClassName) {
@@ -669,9 +672,7 @@ function result(res) {
         );
     }
     OCRDone = true;
-    if(F.searchWord.value){
-        searchInst();
-     }
+    if(F.searchWord.value){ searchInst(); }
 }
 
 //楽器を検索
@@ -787,11 +788,12 @@ function drawLine(x1, y1, x2, y2) {
     outContext.stroke();
     outContext.closePath();
 }
-Array.prototype.increase = function (i, e) {
-    if (this[i])
-        this[i] += e;
+
+function increase(array,i,e) {
+    if (array[i])
+        array[i] += e;
     else
-        this[i] = e;
+        array[i] = e;
 }
 
 //譜表ブロック解析
@@ -807,9 +809,9 @@ function blockAnalysis() {
     for (var L of LinesArray) {
         if (L.length > 0.02 * VISIBLE_WIDTH) {
             if (isHorizon(L.angle)) {
-                hMap_Array.increase(L.y1, L.length); //横線合計長さ集計
+                increase(hMap_Array, L.y1, L.length); //横線合計長さ集計
             } else if (isVertical(L.angle)) {
-                vMap_Array.increase(L.x1, L.length); //縦線合計長さ集計
+                increase(vMap_Array, L.x1, L.length); //縦線合計長さ集計
             }
         }
     }
