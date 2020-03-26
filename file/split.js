@@ -977,6 +977,7 @@ async function startBatch() {
 
     //楽器名OCR選択時
     if (F.withOCR.checked) {
+		clearTrimBox();
         await startOCR();
     }
     //相対位置方式選択時
@@ -985,8 +986,7 @@ async function startBatch() {
         offsetYChange(offset);
     } else {
         setRefeEdge();
-    }
-
+    }autoTrim
     if (F.autoTrim.checked) {
         doTrim();
     }
