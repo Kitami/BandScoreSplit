@@ -7,7 +7,7 @@ var trimHeight = VISIBLE_HEIGHT * 0.1; //トリミング枠縦幅(初期値)
 var topMargin = VISIBLE_HEIGHT * 0.05; //描画開始位置X（上部余白）
 var titleHeight = 0;
 var selectingID = '';
-var tiltCorrected = false;
+var tiltCorrected = false,autoTrimFlg=false;
 var worker, guideL, guideR;
 
 //HTMLElement
@@ -185,7 +185,7 @@ function loadPre() {
 
 function loadNext() {
     if(seleTabIndex+1==tabList.length){
-        F.autoNextPage.checked=false;
+        autoTrimFlg=false;
     }
     if (tabList.length > 0 && seleTabIndex + 1 < tabList.length) {
         return selectTab(tabList[seleTabIndex + 1]);
@@ -206,7 +206,7 @@ window.onload = function () {
     F.TrimH.value = trimHeight;
     guideL = drawGuideLine('guide_left', L_before);
     guideR = drawGuideLine('guide_right', R_before);
-	drawInit();
+    drawInit();
 }
 
 function drawDivBox(id = '', className = '', x, y, width, height) {
@@ -341,13 +341,13 @@ function drawTitle() {
         var textHeight = textWidth / t.length;
         var x = (outCanvas.width - textWidth) / 2;
         var y = topMargin * toOrigin;
-		outContext.fillStyle = 'white';
+        outContext.fillStyle = 'white';
         outContext.fillRect(0, 0, outCanvas.width, clearHeight);
-		outContext.fillStyle = 'black';
+        outContext.fillStyle = 'black';
         outContext.fillText(t, x, y);
         titleHeight = textHeight / toOrigin;
     } else if (titleHeight > 0) {
-		outContext.fillStyle = 'white';
+        outContext.fillStyle = 'white';
         outContext.fillRect(0, 0, outCanvas.width, clearHeight);
         titleHeight = 0;
     }
@@ -366,7 +366,7 @@ async function doTrim() {
     for (var elem of trimBoxListArray) {
         var paraEnd = getParaTop(paraList.length) + trimHeight;
         if (paraEnd > VISIBLE_HEIGHT) {
-            if(!F.autoTrim.checked) { alert('ページ末尾に到達した'); removeTrimBox(elem.id); return; }
+            if(!autoTrimFlg) { alert('ページ末尾に到達した'); removeTrimBox(elem.id); return; }
             await download();
             drawInit();
             F.TitleText.value = '';
@@ -386,7 +386,7 @@ async function doTrim() {
         paraList.push(a);
     }
     if (seleTabIndex + 1 == tabList.length) {
-        F.autoTrim.checked = false;
+        autoTrimFlg = false;
         progressUpdate({ status: 'Trim done' });
     }
 }
@@ -972,14 +972,20 @@ function dataURItoBlob(dataURI) {
     return new Blob([u8], { type: "img/png" });
 }
 
+//自動処理開始
+function startAutoTrim() {
+    autoTrimFlg=true;
+    F.autoReTrim.checked=false;
+    startBatch();
+}
 async function startBatch() {
-    progressUpdate({ status: 'Batch processing' });
+    progressUpdate({ status: 'batch processing' });
     //譜表領域検出
     if (!blockAnalyzeDone)
         await lineDetectLSD();
 
     //楽器名OCR選択時
-    if (F.withOCR.checked) {
+    if (F.withOCR.checked && !OCRDone) {
         clearTrimBox();
         await startOCR();
     }
@@ -989,15 +995,13 @@ async function startBatch() {
         offsetYChange(offset);
     } else {
         setRefeEdge();
-    }autoTrim
-    if (F.autoTrim.checked) {
-        doTrim();
     }
-    //next page
-    if (F.autoNextPage.checked) {
+    //自動処理時
+    if (autoTrimFlg) {
+        await doTrim();
         await loadNext();
     }
-    progressUpdate({ status: 'Batch done' });
+    progressUpdate({ status: 'batch processing done' });
 }
 
 async function startOCR() {
