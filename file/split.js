@@ -881,6 +881,10 @@ function rotatImage(angle) {
     context.restore();
 }
 
+function rotatImageByDegree(value) {
+	rotatImage(value*Math.PI/180);
+}
+
 function maxIndex(a, start, end) {
     var index = 0,
         value = -1;
