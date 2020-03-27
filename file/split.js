@@ -193,20 +193,21 @@ function loadNext() {
     return Promise.resolve(1);
 }
 
+var L_before,R_before;
 window.onload = function () {
     rangeL.min = 7;
     rangeL.max = parseInt(VISIBLE_WIDTH / 2) - 7;
     rangeR.min = parseInt(VISIBLE_WIDTH / 2) + 7;
     rangeR.max = VISIBLE_WIDTH - 7;
-    rangeL.value = VISIBLE_WIDTH * 0.05;
-    rangeR.value = VISIBLE_WIDTH * 0.95;
+    L_before=rangeL.value = parseInt(VISIBLE_WIDTH * 0.05);
+    R_before=rangeR.value = parseInt(VISIBLE_WIDTH * 0.95);
     outCanvas.width = VISIBLE_WIDTH;
     outCanvas.height = VISIBLE_HEIGHT;
     F.TrimH.value = trimHeight;
-    guideL = drawGuideLine('guide_left', VISIBLE_WIDTH * 0.05);
-    guideR = drawGuideLine('guide_right', VISIBLE_WIDTH * 0.95);
+    guideL = drawGuideLine('guide_left', L_before);
+    guideR = drawGuideLine('guide_right', R_before);
+	drawInit();
 }
-var L_before = VISIBLE_WIDTH * 0.05, R_before = VISIBLE_WIDTH * 0.95;
 
 function drawDivBox(id = '', className = '', x, y, width, height) {
     var elem = document.createElement('div');
@@ -295,8 +296,8 @@ function addTrimBox() {
 }
 //トリミング領域描画
 function drawTrimBox(id, top) {
-    var guideLPos = parseFloat(guideL.style.left);
-    var guideRPos = parseFloat(guideR.style.left);
+    var guideLPos = parseInt(guideL.style.left);
+    var guideRPos = parseInt(guideR.style.left);
     var left = guideLPos - F.LeftSp.valueAsNumber;
     var width = guideRPos - guideLPos + F.LeftSp.valueAsNumber + F.RightSp.valueAsNumber;
     drawDivBox(id, 'trimBox', left, top, width, trimHeight);
@@ -319,6 +320,15 @@ function removeTrimBox(elemID) {
             selectingID = '';
     }
 }
+//出力領域初期化
+function drawInit() {
+    paraList = [];
+    outCanvas.width = (inputFile.value) ? inCanvas.width : VISIBLE_WIDTH;
+    outCanvas.height =(inputFile.value) ? inCanvas.width * ASPECT_R : VISIBLE_HEIGHT;
+    // 背景
+    outContext.fillStyle = 'white';
+    outContext.fillRect(0, 0, outCanvas.width, outCanvas.height);
+}
 //タイトル書込み
 function drawTitle() {
     var t = F.TitleText.value;
@@ -327,16 +337,18 @@ function drawTitle() {
     if (t.length > 0) {
         var font_size = outCanvas.width / 25;
         outContext.font = font_size + "px serif";
-        outContext.fillStyle = 'black';
         var textWidth = outContext.measureText(t).width;
         var textHeight = textWidth / t.length;
         var x = (outCanvas.width - textWidth) / 2;
         var y = topMargin * toOrigin;
-        outContext.clearRect(0, 0, outCanvas.width, clearHeight);
+		outContext.fillStyle = 'white';
+        outContext.fillRect(0, 0, outCanvas.width, clearHeight);
+		outContext.fillStyle = 'black';
         outContext.fillText(t, x, y);
         titleHeight = textHeight / toOrigin;
     } else if (titleHeight > 0) {
-        outContext.clearRect(0, 0, outCanvas.width, clearHeight);
+		outContext.fillStyle = 'white';
+        outContext.fillRect(0, 0, outCanvas.width, clearHeight);
         titleHeight = 0;
     }
 }
@@ -375,16 +387,16 @@ async function doTrim() {
     }
     if (seleTabIndex + 1 == tabList.length) {
         F.autoTrim.checked = false;
-        progressUpdate({ status: 'Batch processing done' });
+        progressUpdate({ status: 'Trim done' });
     }
 }
-
 //反映ボタン
 function reTrim(){
-    drawInit();
-    doTrim();
+    if(inputFile.value){
+        drawInit();
+        doTrim();
+    }
 }
-
 //1段落削除
 function cancel() {
     if (paraList.length > 0) {
@@ -392,15 +404,6 @@ function cancel() {
         outContext.fillStyle = 'white';
         outContext.fillRect(a.x, a.y, a.w, a.h);
     }
-}
-//出力領域初期化
-function drawInit() {
-    paraList = [];
-    outCanvas.width = inCanvas.width;
-    outCanvas.height = inCanvas.width * ASPECT_R;
-    // 背景
-    outContext.fillStyle = 'white'; //DEBUG用 '#f1f1f1'
-    outContext.fillRect(0, 0, outCanvas.width, outCanvas.height);
 }
 //n段目から描画位置Topを計算
 function getParaTop(n) {
@@ -421,7 +424,7 @@ function rangeChange(id) {
         } else if (id == rangeR.id) {
             guideR.style.left = rangeR.value + 'px';
         }
-        var width = parseFloat(rangeR.value - rangeL.value) + F.LeftSp.valueAsNumber + F.RightSp.valueAsNumber;
+        var width = parseInt(rangeR.value - rangeL.value) + F.LeftSp.valueAsNumber + F.RightSp.valueAsNumber;
         var left = rangeL.valueAsNumber - F.LeftSp.valueAsNumber;
         var change;
         if (id == rangeR.id || id == F.RightSp.id) //右端変更時
@@ -612,10 +615,10 @@ function selectInst(elem) {
 //参照用外枠情報取得
 function setRefeEdge() {
     var edgeElem = document.getElementById("edgeBox");
-    var top = parseFloat(edgeElem.style.top);
-    var left = parseFloat(edgeElem.style.left);
-    var width = parseFloat(edgeElem.style.width);
-    var height = parseFloat(edgeElem.style.height);
+    var top = parseInt(edgeElem.style.top);
+    var left = parseInt(edgeElem.style.left);
+    var width = parseInt(edgeElem.style.width);
+    var height = parseInt(edgeElem.style.height);
     refeEdge = { top: top, left: left, width: width, height: height };
     //位置保存
     console.log(refeEdge);
@@ -977,7 +980,7 @@ async function startBatch() {
 
     //楽器名OCR選択時
     if (F.withOCR.checked) {
-		clearTrimBox();
+        clearTrimBox();
         await startOCR();
     }
     //相対位置方式選択時
