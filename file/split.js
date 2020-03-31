@@ -906,10 +906,10 @@ function tiltCorrection() {
  function rotatCanvas(canvas,angle,src) {
     var context = canvas.getContext('2d');
     context.save();
-	if(canvas==inCanvas)
+    if(canvas==inCanvas)
         context.translate(src.width / 2, src.height / 2);
-	else
-		context.translate(canvas.width / 2, canvas.height / 2);
+    else
+        context.translate(canvas.width / 2, canvas.height / 2);
     context.rotate(angle);
     context.drawImage(src, -(src.width / 2), -(src.height / 2));
     context.restore();
