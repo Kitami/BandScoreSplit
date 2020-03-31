@@ -654,7 +654,7 @@ function rightAngleRotat(canvas){
     newCanvas.height = canvas.width;
     var ctx = newCanvas.getContext('2d');
     var sy=(canvas.height-canvas.width)/2;
-    ctx.drawImage(tmpCanvas, 0, sy, newCanvas.width, canvas.height, 0, 0, newCanvas.width, canvas.height);
+    ctx.drawImage(tmpCanvas, 0, sy, newCanvas.width, newCanvas.height, 0, 0, newCanvas.width, newCanvas.height);
     //document.body.appendChild(newCanvas);
     return newCanvas;
 }
@@ -908,7 +908,7 @@ function tiltCorrection() {
     context.save();
     context.translate(canvas.width / 2, canvas.height / 2);
     context.rotate(angle);
-    context.drawImage(src, -(canvas.width / 2), -(canvas.height / 2));
+    context.drawImage(src, -(src.width / 2), -(src.height / 2));
     context.restore();
 }
 
