@@ -478,7 +478,7 @@ function inputClear() {
     clearTab();
     inputFileInfo.innerHTML = '';
     inputFile.value = '';
-    pdfName = '';
+    fileType = pdfName = '';
     pdfDoc = null;
     refeEdge = null;
 }
@@ -909,8 +909,7 @@ function rotatImage(angle) {
     if (fileType == 'pdf')
         rotatCanvas(inCanvas,angle,pdfCanvas);
     else
-        rotatCanvas(inCanvas,angle,pdfCanvas);
-    context.restore();
+        rotatCanvas(inCanvas,angle,img);
 }
 
 function rotatImageByDegree(value) {
