@@ -9,6 +9,7 @@ var titleHeight = 0;
 var selectingID = '';
 var tiltCorrected = false,autoTrimFlg=false;
 var worker, guideL, guideR;
+var source;
 
 //HTMLElement
 const inCanvas = document.getElementById('in'); //inエリアcanvas
@@ -82,6 +83,7 @@ function loadImage(dataUrl) {
             inContext.drawImage(img, 0, 0, img.width, img.height);
             var fileNo = parseInt(fileIndex) + 1;
             setInputFileInfo(fileNo,file.length,img.width,img.height);
+            source = img;
             if (F.EdgeDetect.checked) { startBatch(); }
             resolve(img);
         }
@@ -92,7 +94,7 @@ var pageNo = 1, viewingPage = 1,
     pdfName = '', pdfDoc = null,
     pageRendering = false,
     pageNumPending = null,
-    pdfCanvas,
+    //pdfCanvas,
     scale = 2;
 pdfjsLib.GlobalWorkerOptions.workerSrc = '//cdnjs.cloudflare.com/ajax/libs/pdf.js/2.3.200/pdf.worker.js';
 
@@ -143,7 +145,7 @@ async function openPage(num) {
                 renderPage(pageNumPending);
                 pageNumPending = null;
             }
-            getPdfCanvas();
+            source = getPdfCanvas();
             viewingPage = num;
             if (F.EdgeDetect.checked) { startBatch(); }
         });
@@ -156,7 +158,8 @@ function getPdfCanvas() {
     canvas.width = inCanvas.width;
     canvas.height = inCanvas.height;
     ctx.drawImage(inCanvas, 0, 0);
-    pdfCanvas = canvas;
+    //pdfCanvas = canvas;
+    return canvas;
 }
 
 function addPdfTabs(TabNo, Pags) {
@@ -650,7 +653,7 @@ function rightAngleRotat(canvas){
     newCanvas.width = canvas.height;
     newCanvas.height = canvas.width;
     var ctx = newCanvas.getContext('2d');
-    var sy=(canvas.width-canvas.height)/2;
+    var sy=(canvas.height-canvas.width)/2;
     ctx.drawImage(tmpCanvas, 0, sy, newCanvas.width, canvas.height, 0, 0, newCanvas.width, canvas.height);
     //document.body.appendChild(newCanvas);
     return newCanvas;
@@ -672,21 +675,25 @@ function result(res) {
             instList.push(w.text);
             index++;
 
-            var imgToView = VISIBLE_WIDTH / img.width;
+            var imgToView = VISIBLE_WIDTH / source.width;
             var x = (b.x0) * imgToView;
             var y = (b.y0) * imgToView;
             var width = (b.x1 - b.x0) * imgToView;
-            var hieght = (b.y1 - b.y0) * imgToView;
+            var height = (b.y1 - b.y0) * imgToView;
 
+            //90度回転文字時
+            if (F.verticalText.checked){
+                x = (b.y0) * imgToView;
+                y = (source.height - b.x1) * imgToView;
+                width =  (b.y1 - b.y0) * imgToView;
+                height = (b.x1 - b.x0) * imgToView;
+            } 
+            
             if (F.LeftSp.valueAsNumber < width) {
                 F.LeftSp.value = width;
             }
-            //90度回転文字時
-            if (F.verticalText.checked){
-                drawDivBox(divId, 'OCRText', y, x, hieght, width);
-            } else {
-                drawDivBox(divId, 'OCRText', x, y, width, hieght);
-            }
+            
+            drawDivBox(divId, 'OCRText', x, y, width, height);
         }
     })
     //checkbox設置
@@ -896,20 +903,17 @@ function tiltCorrection() {
  * @param {number} angle - 回転する角度[Rad]
  * @param {object} source - 描画する画像ソース
  */
- function rotatCanvas(canvas,angle,source) {
+ function rotatCanvas(canvas,angle,src) {
     var context = canvas.getContext('2d');
     context.save();
     context.translate(canvas.width / 2, canvas.height / 2);
     context.rotate(angle);
-    context.drawImage(source, -(source.width / 2), -(source.height / 2));
+    context.drawImage(src, -(canvas.width / 2), -(canvas.height / 2));
     context.restore();
 }
 
 function rotatImage(angle) {
-    if (fileType == 'pdf')
-        rotatCanvas(inCanvas,angle,pdfCanvas);
-    else
-        rotatCanvas(inCanvas,angle,img);
+    rotatCanvas(inCanvas,angle,source);
 }
 
 function rotatImageByDegree(value) {
@@ -1020,7 +1024,7 @@ async function startBatch() {
         await lineDetectLSD();
 
     //楽器名OCR選択時
-    if (F.withOCR.checked && !OCRDone) {
+    if (F.withOCR.checked ) {
         clearTrimBox();
         await startOCR();
     }
