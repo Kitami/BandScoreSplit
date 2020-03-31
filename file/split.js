@@ -631,8 +631,29 @@ function getInputCanvas() {
     canvas.width = useWidth;
     canvas.height = img.height;
     ctx.drawImage(img, 0, 0, useWidth, img.height, 0, 0, useWidth, img.height);
-    //document.getElementById('outputDiv').appendChild(canvas);
+    //90度回転文字時
+    if(F.verticalText.checked){
+        canvas=rightAngleRotat(canvas);
+    }
+    //document.body.appendChild(canvas);
     return canvas;
+}
+
+function rightAngleRotat(canvas){
+    //canvas rotation
+    var tmpCanvas = document.createElement('canvas');
+    tmpCanvas.width = canvas.height;
+    tmpCanvas.height = canvas.height;
+    rotatCanvas(tmpCanvas,90*Math.PI/180,canvas);
+    //margin remove
+    var newCanvas = document.createElement('canvas');
+    newCanvas.width = canvas.height;
+    newCanvas.height = canvas.width;
+    var ctx = newCanvas.getContext('2d');
+    var sy=(canvas.width-canvas.height)/2;
+    ctx.drawImage(tmpCanvas, 0, sy, newCanvas.width, canvas.height, 0, 0, newCanvas.width, canvas.height);
+    //document.body.appendChild(newCanvas);
+    return newCanvas;
 }
 
 function result(res) {
@@ -660,7 +681,12 @@ function result(res) {
             if (F.LeftSp.valueAsNumber < width) {
                 F.LeftSp.value = width;
             }
-            drawDivBox(divId, 'OCRText', x, y, width, hieght)
+            //90度回転文字時
+            if (F.verticalText.checked){
+                drawDivBox(divId, 'OCRText', y, x, hieght, width);
+            } else {
+                drawDivBox(divId, 'OCRText', x, y, width, hieght);
+            }
         }
     })
     //checkbox設置
@@ -865,24 +891,30 @@ function tiltCorrection() {
 }
 
 /**
- * 画像を回転
+ * Canvasを回転
  * @param {object} canvas - canvasオブジェクト
  * @param {number} angle - 回転する角度[Rad]
+ * @param {object} source - 描画する画像ソース
  */
-function rotatImage(angle) {
-    var context = inCanvas.getContext('2d');
+ function rotatCanvas(canvas,angle,source) {
+    var context = canvas.getContext('2d');
     context.save();
-    context.translate(inCanvas.width / 2, inCanvas.height / 2);
+    context.translate(canvas.width / 2, canvas.height / 2);
     context.rotate(angle);
+    context.drawImage(source, -(source.width / 2), -(source.height / 2));
+    context.restore();
+}
+
+function rotatImage(angle) {
     if (fileType == 'pdf')
-        context.drawImage(pdfCanvas, -(pdfCanvas.width / 2), -(pdfCanvas.height / 2));
+        rotatCanvas(inCanvas,angle,pdfCanvas);
     else
-        context.drawImage(img, -(img.width / 2), -(img.height / 2));
+        rotatCanvas(inCanvas,angle,pdfCanvas);
     context.restore();
 }
 
 function rotatImageByDegree(value) {
-	rotatImage(value*Math.PI/180);
+    rotatImage(value*Math.PI/180);
 }
 
 function maxIndex(a, start, end) {
