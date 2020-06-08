@@ -47,7 +47,7 @@
                         <input style="width:120px" type="number" id="TiltDeg" name="TiltDeg" step="0.050" novalidate
                             onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
                         <br><input type="checkbox" id="withOCR" name="withOCR" /><span>楽器名OCR</span>
-                        <input style="width:120px" type="text" id="searchWord" name="searchWord" onchange="if(value)F.withOCR.checked=true;" list="instNameList"/>
+                        <input style="width:120px" type="text" id="searchWord" name="searchWord" list="instNameList"/>
                         <button type="button" class="btn btn-inline" onclick="searchInst();">検索</button>
                         <datalist id="instNameList">
                             <option value="Key"></option>
