@@ -536,7 +536,9 @@ function clearTab() {
 
 //tab選択
 function selectTab(fileId) {
-	FileList.options[fileId].selected = true;
+	if(FileList.options[fileId]) 
+		FileList.options[fileId].selected = true;
+
     return new Promise((resolve, reject) => {
         //ファイル読み込み
 			if (file[0]) {
