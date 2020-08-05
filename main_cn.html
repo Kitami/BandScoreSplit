@@ -8,7 +8,7 @@
 </head>
 
 <body>
-    <span>Band Score Split v0.60 樂譜分割支援工具</span>
+    <span>Band Score Split v0.70 樂譜分割支援工具</span>
     <a href="https://github.com/Kitami/BandScoreSplit#using-guide" target=”_blank”>使用方法</a>
     語言:
     <select name="language" style="width: 100px;" onchange="location.href=value;">
@@ -85,25 +85,18 @@
     <div id="canvasArea">
         <div id="canvasArea-input">
             <div id="result" style="padding: 3px;"></div>
-            <div id="input-bar">
-                <label class="btn" for="inputFile">文件選択<input type="file" multiple id="inputFile"></label>
-                <button type="button" class="btn" onclick="loadPre()" style="margin-left: 2px;">＜</button>
-                <button type="button" class="btn" onclick="loadNext()">＞</button>
-                <button type="button" class="btn" onclick="inputClear()">初期化</button>剪切框:
-                <button type="button" class="btn" onclick="addTrimBox()">追加</button>
-                <button type="button" class="btn" onclick="removeTrimBox()">刪除</button>
-                <button type="button" class="btn" onclick="clearTrimBox()">全刪除</button>
+            <div id="inputBar">
+                <label id="inputFileLabel" for="inputFile">文件選択<input type="file" multiple id="inputFile"></label>
+                <select id="inputFileList" onchange="selectTab(value)" value=0 ></select>
+                <span id="inputFileNo"></span>
+                <button type="button" onclick="loadPre()">↑</button> 
+                <button type="button" onclick="loadNext()">↓</button> 
+                <button type="button" onclick="inputClear()">初期化</button>
+                <button type="button" onclick="addTrimBox()">剪切框追加</button>
+                <button type="button" onclick="removeTrimBox()">削除</button>
+                <button type="button" onclick="clearTrimBox()">全削除</button>
             </div>
-
-            <div class="tabBar">
-                <nav id="tabNav">
-                    <a href="#" id="Tab_1" class="tab selected" style="z-index: 1;" onclick="selectTab(this)">輸入圖像</a>
-                </nav>
-                <a href="#" id="newTab" class="tab" style="z-index: 0; width: 100px; display: none"
-                    onclick="selectTab(this)">&nbsp;</a>
-                <span id="inputFileInfo" style="margin: 0 0 0 auto;"></span>
-            </div>
-
+            <span>輸入圖像</span> <span id="inputFileInfo"></span>
             <div id="topSidebar">
                 <input id='rangeL' type='range' min=5 onchange="rangeChange(id)" oninput="rangeChange(id)"
                     style="border-right:none;">
@@ -125,25 +118,21 @@
                 <button type="button" class="btn" onclick="drawInit()">初期化</button>
                 <button type="button" class="btn" onclick="download()">画像保存</button>
                 <br>
-                <a id="hiddenLink" download="download.png">如不能自動開始下載，請右鍵點擊下圖保存。</a>
+                
             </div>
-            <nav>
-                <div class="tab selected" onclick="selectTab(this)">輸出預覽</div>
-            </nav>
+             <span>輸出預覽</span>
+             <a id="hiddenLink" download="download.png">(如不能自動開始下載，請右鍵點擊下圖保存。)</a>
             <div id='outputDiv' class="canvasDiv">
                 <canvas id='out'></canvas>
             </div>
         </div>
     </div>
-    <script src='https://unpkg.com/tesseract.js@v2.0.1/dist/tesseract.min.js'></script>
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.3.200/pdf.min.js'></script>
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.3.200/pdf.worker.js'></script>
-    <!--     <script src='file/tesseract/tesseract.min.js'></script> -->
-    <!--     <script src='file/tesseract/tesseract-core.wasm.js'></script> -->
-    <!--     <script src='file/tesseract/worker.min.js'></script> -->
-    <!--     <script src="file/opencv.js"></script> -->
-    <!--     <script src="https://docs.opencv.org/4.1.2/opencv.js"></script> -->
-    <script src="file/lsd.js"></script>
-    <script src="file/split.js"></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.3.200/pdf.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.3.200/pdf.worker.js'></script>
+<script src='file/tesseract/tesseract.min.js'></script>
+<script src='file/tesseract/tesseract-core.wasm.js'></script>
+<script src='file/tesseract/worker.min.js'></script> 
+<script src="file/lsd.js"></script>
+<script src="file/split.js"></script>
 </body>
 </html>

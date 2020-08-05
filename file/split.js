@@ -10,6 +10,7 @@ var selectingID = '';
 var tiltCorrected = false,autoTrimFlg=false;
 var worker, guideL, guideR;
 var source;
+var maxLength = 0; 
 
 //HTMLElement
 const inCanvas = document.getElementById('in'); //inエリアcanvas
@@ -20,10 +21,10 @@ const rangeL = document.getElementById('rangeL');
 const rangeR = document.getElementById('rangeR');
 const inputFile = document.getElementById("inputFile");
 const tabNav = document.getElementById('tabNav');
-const tabList = tabNav.children;
 const inputDiv = document.getElementById('inputDiv');
 const inputFileInfo = document.getElementById('inputFileInfo');
 const F = document.F;
+const FileList = document.getElementById('inputFileList');
 
 //HTMLCollection
 const trimBoxList = document.getElementsByClassName('trimBox');
@@ -42,17 +43,14 @@ inputFile.addEventListener("change", function (evt) {
         file = evt.target.files;
         fileIndex = 0;
         reader = new FileReader();
-        zindexNo = file.length;
         clearTab();
         for (var i = 0; i < file.length; i++) {
             fileName = file[i].name;
             fileType = getExt(fileName);
-            if (i > 0) addTab();
-            var tabElem = tabList[i];
-            tabElem.innerHTML = fileName;
+			maxLength++;
+			addPage(fileIndex,fileName);
         }
-        setTabZindex(tabList, 0);
-        selectTab(tabList[0]);
+        selectTab(0);
     }
 }, false);
 
@@ -70,6 +68,11 @@ async function loadFile(dataUrl) {
 
 function setInputFileInfo(page,maxPage,w,h){
     inputFileInfo.innerHTML = page + ' / ' + maxPage + ' 解像度: ' + w + 'x' + h;
+}
+
+function addPage(fileId,name) {
+	var optHtml = '<option value='+fileId+'>'+name+'</option>';
+	FileList.innerHTML += optHtml;
 }
 
 function loadImage(dataUrl) {
@@ -162,36 +165,42 @@ function getPdfCanvas() {
     return canvas;
 }
 
-function addPdfTabs(TabNo, Pags) {
-    var firstPage = tabList[TabNo];
-    firstPage.id += "_1";
+function addPdfTabs(fileNo, Pags) {
+    var firstPage = FileList.childNodes[fileNo];
+	firstPage.value += "_1";
     firstPage.innerHTML += "_1";
 
     for (var i = 1; i < Pags; i++) {
-        var N = i + 1;
-        var tabID = "tab_" + fileIndex + "_" + N;
-        var newPageTab = addTab();
-        newPageTab.innerHTML = fileName + "_" + N;
-        newPageTab.id = tabID;
+		var fileNo = fileIndex,pageNo = i+1;
+        var fileId = fileNo+"_"+pageNo;
+		var pageName = fileName+"_"+pageNo;
+		addPage(fileId,pageName);
+		maxLength++;
     }
-    setTabZindex(tabList, 0);
-    selectTab(tabList[0]);
+    selectTab(0);
 }
 
 var seleTabIndex = 0;
 
+//前ページ
 function loadPre() {
-    if (tabList.length > 0 && seleTabIndex - 1 >= 0) {
-        selectTab(tabList[seleTabIndex - 1]);
+	var FileNodeList = FileList.childNodes;
+    if (maxLength > 0 && seleTabIndex - 1 >= 0) {
+		var fileId = FileNodeList[seleTabIndex - 1].value;
+		seleTabIndex--;
+        selectTab(fileId);
     }
 }
-
+//次ページ
 function loadNext() {
-    if(seleTabIndex+1==tabList.length){
+	var FileNodeList = FileList.childNodes;
+	if(seleTabIndex+1== maxLength){
         autoTrimFlg=false;
     }
-    if (tabList.length > 0 && seleTabIndex + 1 < tabList.length) {
-        return selectTab(tabList[seleTabIndex + 1]);
+    if (maxLength > 0 && seleTabIndex + 1 < maxLength) {
+		var fileId = FileNodeList[seleTabIndex + 1].value;
+		seleTabIndex++;
+		return selectTab(fileId);
     }
     return Promise.resolve(1);
 }
@@ -388,7 +397,7 @@ async function doTrim() {
         var a = { x: dx, y: dy, w: dWidth, h: dHeight };
         paraList.push(a);
     }
-    if (seleTabIndex + 1 == tabList.length) {
+    if (seleTabIndex + 1 == maxLength) {
         autoTrimFlg = false;
         progressUpdate({ status: 'Trim done' });
     }
@@ -521,41 +530,22 @@ function addTab(Container) {
 }
 //tab全削除
 function clearTab() {
-    tabNav.innerHTML = '';
-    addTab();
+    FileList.innerHTML = '';
     fileIndex = 0;
 }
 
 //tab選択
-function selectTab(elem) {
+function selectTab(fileId) {
     return new Promise((resolve, reject) => {
-        var navElem = elem.parentNode;
-        var eList = [].slice.call(tabList);
-        seleTabIndex = eList.indexOf(elem);
-
-        //前選択した要素の処理
-        var selectedTab = navElem.getElementsByClassName("tab selected")[0];
-
-        //z-index設定
-        if (selectedTab && selectedTab != elem) {
-            selectedTab.classList.remove('selected');
-            setTabZindex(tabList, seleTabIndex);
-            selectedTab.style.width = '100px';
-        }
-
-        //現在の要素を選択
-        elem.classList.add('selected');
-        elem.style.cssText = 'z-index: ' + tabList.length + ';';
-        elem.style.width = '';
-
         //ファイル読み込み
-        if (file[0] && navElem.id == 'tabNav') {
-            fileIndex = elem.id.split('_')[1];
+			if (file[0]) {
+			fileId = ''+fileId;
+			fileIndex = parseInt(fileId.split('_')[0]);
             fileName = file[fileIndex].name;
             fileType = getExt(fileName);
 
             if (fileType == 'pdf') {
-                pageNo = elem.id.split('_').length > 2 ? parseInt(elem.id.split('_')[2]) : 1;
+                pageNo = fileId.split('_').length > 1 ? parseInt(fileId.split('_')[1]) : 1;
                 reader.readAsArrayBuffer(file[fileIndex]);
             } else {
                 reader.readAsDataURL(file[fileIndex]);
@@ -566,15 +556,6 @@ function selectTab(elem) {
             };
         }
     })
-}
-
-function setTabZindex(TabElemList, selectTabNo) {
-    for (var i = 0; i < TabElemList.length; i++) {
-        var tabElem = TabElemList[i];
-        var zindexVal = TabElemList.length - Math.abs(selectTabNo - i);
-        tabElem.style.cssText += 'z-index: ' + zindexVal + ';';
-        if (i != selectTabNo) tabElem.style.cssText += 'text-indent: 1000px;';
-    }
 }
 
 //以下、OCR関連
@@ -629,11 +610,24 @@ function setRefeEdge() {
 
 function getInputCanvas() {
     var canvas = document.createElement('canvas');
-    var ctx = canvas.getContext('2d');
-    var useWidth = img.width * rangeL.valueAsNumber / VISIBLE_WIDTH;
-    canvas.width = useWidth;
-    canvas.height = img.height;
-    ctx.drawImage(img, 0, 0, useWidth, img.height, 0, 0, useWidth, img.height);
+	var ctx = canvas.getContext('2d');
+
+	var useWidth = img.width * rangeL.valueAsNumber / VISIBLE_WIDTH;
+	var useHeight = img.height;
+
+	if (fileType == 'pdf') {
+		useWidth = source.width * rangeL.valueAsNumber / VISIBLE_WIDTH;
+		useHeight = source.height;
+	}
+
+	canvas.width = useWidth;
+	canvas.height = useHeight;
+	
+	if (fileType == 'pdf')
+		ctx.drawImage(source, 0, 0, useWidth, useHeight, 0, 0, useWidth, useHeight);
+	else
+		ctx.drawImage(img, 0, 0, useWidth, useHeight, 0, 0, useWidth, useHeight);
+	
     //90度回転文字時
     if(F.verticalText.checked){
         canvas=rightAngleRotat(canvas);
@@ -1049,16 +1043,16 @@ async function startBatch() {
 async function startOCR() {
     if (!worker) {
         //CDN worker
-        worker = new Tesseract.createWorker({
+		worker = new Tesseract.createWorker({
             logger: progressUpdate
-        });
+		});
         //Local worker
-        /*      worker = new Tesseract.createWorker({
-                    workerPath: './file/tesseract/worker.min.js',
-                    langPath: './file/traineddata/',
-                    corePath: './file/tesseract/tesseract-core.wasm.js',
-                    logger: progressUpdate
-                });*/
+/*		worker = new Tesseract.createWorker({
+			workerPath: './file/tesseract/worker.min.js',
+			langPath: './file/traineddata/',
+			corePath: './file/tesseract/tesseract-core.wasm.js',
+			logger: progressUpdate
+		});*/
     }
     var input = getInputCanvas();
     await worker.load();

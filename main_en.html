@@ -8,7 +8,7 @@
 </head>
 
 <body>
-    <span>Band Score Split v0.60 score split support tool</span>
+    <span>Band Score Split v0.70 score split support tool</span>
     <a href="https://github.com/Kitami/BandScoreSplit#using-guide" target=”_blank”>How to use</a>
     language:
     <select name="language" style="width: 100px;" onchange="location.href=value;">
@@ -86,25 +86,20 @@
     <div id="canvasArea">
         <div id="canvasArea-input">
             <div id="result" style="padding: 3px;"></div>
-            <div id="input-bar">
-                <label class="btn" for="inputFile">Select File<input type="file" multiple id="inputFile"></label>
-                <button type="button" class="btn" onclick="loadPre()" style="margin-left: 2px;">＜</button>
-                <button type="button" class="btn" onclick="loadNext()">＞</button>
-                <button type="button" class="btn" onclick="inputClear()">Initialize</button> trimming frame:
-                <button type="button" class="btn" onclick="addTrimBox()">Add</button>
-                <button type="button" class="btn" onclick="removeTrimBox()">Delete</button>
-                <button type="button" class="btn" onclick="clearTrimBox()">Delete all</button>
+
+            <div id="inputBar">
+                <label id="inputFileLabel" for="inputFile">Select File<input type="file" multiple id="inputFile"></label>
+                <select id="inputFileList" onchange="selectTab(value)" value=0 ></select>
+                <span id="inputFileNo"></span>
+                <button type="button" onclick="loadPre()">↑</button> 
+                <button type="button" onclick="loadNext()">↓</button> 
+                <button type="button" onclick="inputClear()">Initialize</button>
+                <button type="button" onclick="addTrimBox()">Trim frame Add</button>
+                <button type="button" onclick="removeTrimBox()">Delete</button>
+                <button type="button" onclick="clearTrimBox()">Delete all</button>
             </div>
 
-            <div class="tabBar">
-                <nav id="tabNav">
-                    <a href="#" id="Tab_1" class="tab selected" style="z-index: 1;" onclick="selectTab(this)">Input Canvas</a>
-                </nav>
-                <a href="#" id="newTab" class="tab" style="z-index: 0; width: 100px; display: none"
-                    onclick="selectTab(this)">&nbsp;</a>
-                <span id="inputFileInfo" style="margin: 0 0 0 auto;"></span>
-            </div>
-
+            <span>Input Canvas</span> <span id="inputFileInfo"></span>
             <div id="topSidebar">
                 <input id='rangeL' type='range' min=5 onchange="rangeChange(id)" oninput="rangeChange(id)"
                     style="border-right:none;">
@@ -125,25 +120,23 @@
                 <button type="button" class="btn" onclick="drawInit()">Initialize</button>
                 <button type="button" class="btn" onclick="download()">Image output</button>
                 <br>
-                <a id="hiddenLink" download="download.png">If download not start, right click on the image can save it.</a>
+                
             </div>
-            <nav>
-                <div class="tab selected" onclick="selectTab(this)">Output Preview</div>
-            </nav>
+
+            <span>Output Preview</span>
+            <a id="hiddenLink" download="download.png">(If download not start, right click on the image can save it.)</a>
             <div id='outputDiv' class="canvasDiv">
                 <canvas id='out'></canvas>
             </div>
         </div>
     </div>
-    <script src='https://unpkg.com/tesseract.js@v2.0.1/dist/tesseract.min.js'></script>
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.3.200/pdf.min.js'></script>
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.3.200/pdf.worker.js'></script>
-    <!--     <script src='file/tesseract/tesseract.min.js'></script> -->
-    <!--     <script src='file/tesseract/tesseract-core.wasm.js'></script> -->
-    <!--     <script src='file/tesseract/worker.min.js'></script> -->
-    <!--     <script src="file/opencv.js"></script> -->
-    <!--     <script src="https://docs.opencv.org/4.1.2/opencv.js"></script> -->
-    <script src="file/lsd.js"></script>
-    <script src="file/split.js"></script>
+<!--<script src='https://unpkg.com/tesseract.js@v2.0.1/dist/tesseract.min.js'></script>-->
+<script src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.3.200/pdf.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.3.200/pdf.worker.js'></script>
+<script src='file/tesseract/tesseract.min.js'></script>
+<script src='file/tesseract/tesseract-core.wasm.js'></script>
+<script src='file/tesseract/worker.min.js'></script> 
+<script src="file/lsd.js"></script>
+<script src="file/split.js"></script>
 </body>
 </html>
