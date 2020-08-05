@@ -531,7 +531,7 @@ function addTab(Container) {
 //tab全削除
 function clearTab() {
     FileList.innerHTML = '';
-    fileIndex = 0;
+    seleTabIndex = fileIndex = 0;
 }
 
 //tab選択
