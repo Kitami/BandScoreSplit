@@ -48,7 +48,7 @@ inputFile.addEventListener("change", function (evt) {
             fileName = file[i].name;
             fileType = getExt(fileName);
 			maxLength++;
-			addPage(fileIndex,fileName);
+			addPage(i,fileName);
         }
         selectTab(0);
     }
@@ -536,6 +536,7 @@ function clearTab() {
 
 //tab選択
 function selectTab(fileId) {
+	FileList.options[fileId].selected = true;
     return new Promise((resolve, reject) => {
         //ファイル読み込み
 			if (file[0]) {
