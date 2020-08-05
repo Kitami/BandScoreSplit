@@ -1,9 +1,4 @@
 # BandScoreSplit  
-
-2020.8.4日追記：
-現在OCRモジュールは何らかの原因うまく動作していないから、自動トリミングモードは使えません、修正方法を研究中...  
-Sorry,OCR module is not working now,I'm fixing the bug.
-
 BandScoreSplit is a tool for dividing band scores(Or orchestra score, etc.) into parts scores. that is built with HTML5 Canvas. only use for image(JPG,PNG) or PDF files. Files will not be sent to the server, all processing is completed locally. (OCR function needs to go through HTTP server, or use the Online demo)  
 
 BandScoreSplitは画像形式のバンドスコア(またはオーケストラスコアなど)をパート譜に抽出するためのツールです。HTML5のCanvasを使用して構築したものです。処理できるのは画像（JPG,PNG）とPDF。処理するファイルはサーバーに転送されることはありません、全部処理はローカルで完結します。(OCR機能を使用するにはHTTPサーバ経由か、下方のOnline demoのリンクから使用してください)  
