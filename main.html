@@ -8,7 +8,7 @@
 </head>
 
 <body>
-    <span>Band Score Split v0.70 楽譜分割支援ツール</span>
+    <span>Band Score Split v0.80 楽譜分割支援ツール</span>
     <a href="https://github.com/Kitami/BandScoreSplit#using-guide" target=”_blank”>使い方</a>
     言語:
     <select name="language" style="width: 100px;" onchange="location.href=value;">
@@ -36,7 +36,7 @@
                         <input type="number" id="TrimH" name="TrimH" class="tboxSetting" step="2"
                             oninput="trimHeightChange(valueAsNumber)" />
                         <br><input type="checkbox" id="widthLock" name="widthLock" /> 横幅固定
-                        <input type="checkbox" id="autoReTrim" name="autoReTrim"  checked="checked" onchange="if(checked)F.autoTrim.checked=false;" />即時反映
+                        <input type="checkbox" id="autoReTrim" name="autoReTrim"  checked="checked" onchange="if(checked) autoTrimFlg=false;" />即時反映
                         <div style="display: inline-block; padding-top: 1px; margin-bottom: -1px;">
                         </div>
                     </div>
@@ -47,7 +47,7 @@
                         <input style="width:120px" type="number" id="TiltDeg" name="TiltDeg" step="0.050" novalidate
                             onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
                         <br><input type="checkbox" id="withOCR" name="withOCR" /><span>楽器名OCR</span>
-                        <input style="width:120px" type="text" id="searchWord" name="searchWord" list="instNameList"/>
+                        <input style="width:120px" type="text" id="searchWord" name="searchWord" list="instNameList" onchange="if(this.value){F.withOCR.checked=true;}"/>
                         <button type="button" class="btn btn-inline" onclick="searchInst()">検索</button>
                         <datalist id="instNameList">
                             <option value="Key"></option>
@@ -58,6 +58,7 @@
                         </datalist>
                         <br><input type="checkbox" id="verticalText" name="verticalText" onchange="OCRDone=false;" /><span>縦書き文字</span>
                         <button type="button" class="btn btn-inline" onclick="startAutoTrim()">処理開始</button>
+                        <button type="button" class="btn btn-inline" onclick="stopAutoTrim()">停止</button>
                     </div>
                 </div>
             </div>
@@ -115,7 +116,7 @@
             <div id="output-bar">
                 <button onclick="reTrim()">反映</button>
                 <button onclick='doTrim()'>トリミング</button>
-                <button onclick='cancel()'>段落削除</button>
+                <button onclick='cancel()'>1段階戻る</button>
                 <button onclick="drawInit()">初期化</button>
                 <button onclick="download()">画像出力</button>
                 <br>

@@ -8,7 +8,7 @@
 </head>
 
 <body>
-    <span>Band Score Split v0.70 score split support tool</span>
+    <span>Band Score Split v0.80 score split support tool</span>
     <a href="https://github.com/Kitami/BandScoreSplit#using-guide" target=”_blank”>How to use</a>
     language:
     <select name="language" style="width: 100px;" onchange="location.href=value;">
@@ -47,7 +47,7 @@
                         <br><input type="checkbox" id="AutoTiltCorrect" name="AutoTiltCorrect" checked="checked" /><span>Tilt Fix</span>
                         <input style="width:100px" type="number" id="TiltDeg" name="TiltDeg" step="0.050" novalidate
                             onchange="rotatImageByDegree(value)" oninput="rotatImageByDegree(value)"></input>
-                        <br><input type="checkbox" id="withOCR" name="withOCR" /><span>Part Name OCR</span>
+                        <br><input type="checkbox" id="withOCR" name="withOCR"/><span>Part Name OCR</span>
                         <input style="width:100px" type="text" id="searchWord" name="searchWord" onchange="if(value)F.withOCR.checked=true;" list="instNameList"/>
                         <button type="button" class="btn btn-inline" onclick="searchInst()">Search</button>
                         <datalist id="instNameList">
@@ -57,8 +57,9 @@
                             <option value="Dr"></option>
                             <option value="Vo"></option>
                         </datalist>
-                        <br><input type="checkbox" id="verticalText" name="verticalText"  onchange="OCRDone=false;" /><span>Vertical Text</span>
+                        <br><input type="checkbox" id="verticalText" name="verticalText" onchange="OCRDone=false;"/><span>Vertical Text</span>
                         <button type="button" class="btn btn-inline" onclick="startAutoTrim()">Batch start</button>
+                        <button type="button" class="btn btn-inline" onclick="stopAutoTrim()">Stop</button>
                     </div>
                 </div>
             </div>

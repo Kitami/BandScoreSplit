@@ -1017,8 +1017,16 @@ function startAutoTrim() {
     F.autoReTrim.checked=false;
     startBatch();
 }
+//自動処理停止
+function stopAutoTrim() {
+    autoTrimFlg=false;
+}
 async function startBatch() {
     progressUpdate({ status: 'batch processing' });
+	if(!file){
+		progressUpdate({ status: 'No input file.' });
+		return;
+	}
     //譜表領域検出
     if (!blockAnalyzeDone)
         await lineDetectLSD();
