@@ -101,8 +101,13 @@ button {
     display:inline-block; height:21.5px; margin:1px 0px; line-height: 2px;
 }
 #inputFileLabel {
-	vertical-align:middle; border: 1px solid gray; border-radius: 1.5px; 
-	padding: 3.5px; margin:2px;background-color: rgb(239,239,239); 
+    vertical-align: middle;
+    border: 1px solid gray;
+    border-radius: 1.5px;
+    padding: 1px;
+    margin: 2px;
+    background-color: white;
+    font-weight: bold;
 }
 #inputFileLabel:active{
 	border: 1.5px solid rgb(0,100,200); margin: 1.5px;
