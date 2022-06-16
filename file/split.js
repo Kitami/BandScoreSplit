@@ -385,12 +385,12 @@ async function doTrim() {
         trimBoxIdArray.push(elem.id);
     }
     
-    do while (trimBoxTopArray.length > 0){
+    do {
         var minTop = Math.min(trimBoxTopArray);
         var minIndex = trimBoxTopArray.indexOf(minTop);
         trimBoxSortedId.push(trimBoxIdArray[minIndex]);
         trimBoxTopArray.splice(minIndex,1);
-    }
+    } while (trimBoxTopArray.length > 0);
 
     for (var elemId of trimBoxSortedId) {
         var elem = document.getElementById(elemId);
