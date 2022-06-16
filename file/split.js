@@ -374,20 +374,42 @@ async function doTrim() {
     }
     var trimBoxList_now = document.querySelectorAll('.trimBox');
     var trimBoxListArray = Array.from(trimBoxList_now); // 配列に変換
-    //trimBoxListArray.sort(function (a, b) { return parseInt(a.style.top) - parseInt(b.style.top); })
+
+　　//trimbox sort	
+    var trimBoxIdArray = [];
+    var trimBoxTopArray = [];
+    var trimBoxSortedId = [];
+
     for (var elem of trimBoxListArray) {
+        trimBoxTopArray.push(parseInt(elem.style.top));
+        trimBoxIdArray.push(elem.id);
+    }
+    
+    do while (trimBoxTopArray.length > 0){
+        var minTop = Math.min(trimBoxTopArray);
+        var minIndex = trimBoxTopArray.indexOf(minTop);
+        trimBoxSortedId.push(trimBoxIdArray[minIndex]);
+        trimBoxTopArray.splice(minIndex,1);
+    }
+
+    for (var elemId of trimBoxSortedId) {
+        var elem = document.getElementById(elemId);
         var paraEnd = getParaTop(paraList.length) + trimHeight;
+
+	//ページ末尾処理
         if (paraEnd > VISIBLE_HEIGHT) {
             if(!autoTrimFlg) { alert('ページ末尾に到達した'); removeTrimBox(elem.id); return; }
             await download();
             drawInit();
             F.TitleText.value = '';
         }
+
         //入力部
         var sx = parseInt(parseInt(elem.style.left) * toOrigin);
         var sy = parseInt(parseInt(elem.style.top) * toOrigin);
         var sWidth = parseInt(parseInt(elem.style.width) * toOrigin);
         var sHeight = parseInt(parseInt(elem.style.height) * toOrigin);
+
         //出力部
         var dx = parseInt((VISIBLE_WIDTH - parseInt(elem.style.width)) / 2 * toOrigin);
         var dy = parseInt(getParaTop(paraList.length) * toOrigin);
