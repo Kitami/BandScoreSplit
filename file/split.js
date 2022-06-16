@@ -386,7 +386,7 @@ async function doTrim() {
     }
     
     do {
-        var minTop = Math.min(trimBoxTopArray);
+        var minTop = Math.min(...trimBoxTopArray);
         var minIndex = trimBoxTopArray.indexOf(minTop);
         trimBoxSortedId.push(trimBoxIdArray[minIndex]);
         trimBoxTopArray.splice(minIndex,1);
