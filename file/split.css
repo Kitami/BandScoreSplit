@@ -84,8 +84,11 @@ select {
 #OCRSetting span {
     display:inline-block;font-size:13px; width:8.5em;
 }
+.canvasTopBar {
+    height:22px; 
+}
 #inputBar {
-    height:22px; overflow:hidden; display:table;width: 100%;
+    overflow:hidden; display:table;width: 100%;
 }
 button {
 		margin:0px 1px; height:25px; font-weight:bold; background-color: white;
