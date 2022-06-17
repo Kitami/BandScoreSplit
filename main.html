@@ -86,7 +86,7 @@
     <div id="canvasArea">
         <div id="canvasArea-input">
             <div id="result" style="padding: 3px;"></div>
-            <div id="inputBar">
+            <div id="inputBar" class="canvasTopBar">
                 <label id="inputFileLabel" for="inputFile">ﾌｧｲﾙ選択<input type="file" multiple id="inputFile"></label>
                 <select id="inputFileList" onchange="selectTab(value)" value=0 ></select>
                 <span id="inputFileNo"></span>
@@ -113,7 +113,7 @@
         <div style="width: 5px;">&nbsp;</div>
         <div id="canvasArea-output">
             <div id="outputTop" style="padding: 3px;"></div>
-            <div id="output-bar">
+            <div id="output-bar" class="canvasTopBar">
                 <button onclick="reTrim()">反映</button>
                 <button onclick='doTrim()'>トリミング</button>
                 <button onclick='cancel()'>1段階戻る</button>
@@ -121,7 +121,6 @@
                 <button onclick="download()">画像出力</button>
                 <br>
             </div>
-
             <span>出力画像</span>
             <a id="hiddenLink" download="download.png">(ダウンロードされない場合、下図を右クリックして保存してください。)</a>
             <div id='outputDiv' class="canvasDiv">
