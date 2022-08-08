@@ -340,6 +340,7 @@ function drawInit() {
     // 背景
     outContext.fillStyle = 'white';
     outContext.fillRect(0, 0, outCanvas.width, outCanvas.height);
+    nowTop = 0;
 }
 //タイトル書込み
 function drawTitle() {
@@ -366,6 +367,9 @@ function drawTitle() {
 }
 //画像トリミング
 var paraList = [];
+var nowTop = 0;
+var dWidthDefult = VISIBLE_HEIGHT * 0.9;
+
 async function doTrim() {
     var toOrigin = inCanvas.width / VISIBLE_WIDTH; //画面位置to出力位置変換係数
     if (paraList.length == 0) {
@@ -411,13 +415,22 @@ async function doTrim() {
         var sHeight = parseInt(parseInt(elem.style.height) * toOrigin);
 
         //出力部
-        var dx = parseInt((VISIBLE_WIDTH - parseInt(elem.style.width)) / 2 * toOrigin);
-        var dy = parseInt(getParaTop(paraList.length) * toOrigin);
-        var dWidth = sWidth;
-        var dHeight = sHeight;
+       
+		var dy = getParaTop(paraList.length,nowTop);
+		var toDefult = 1;
+		
+		if(paraList.length == 0){
+			dWidthDefult = sWidth;
+			toDefult = dWidthDefult / sWidth;
+		}
+		var dWidth = dWidthDefult;
+		var dHeight = sHeight * toDefult;
+		var dx = parseInt((VISIBLE_WIDTH * toOrigin - dWidth) / 2);
+		
         outContext.drawImage(inCanvas, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
         var a = { x: dx, y: dy, w: dWidth, h: dHeight };
-        paraList.push(a);
+		paraList.push(a);
+		nowTop = dy + dHeight;
 	} while (trimBoxTopArray.length > 0);
 	
     if (seleTabIndex + 1 == maxLength) {
@@ -437,12 +450,17 @@ function cancel() {
     if (paraList.length > 0) {
         var a = paraList.pop();
         outContext.fillStyle = 'white';
-        outContext.fillRect(a.x, a.y, a.w, a.h);
+		outContext.fillRect(a.x, a.y, a.w, a.h);
+		nowTop -= a.y;
     }
 }
 //n段目から描画位置Topを計算
-function getParaTop(n) {
-    return topMargin + titleHeight + n * F.ParaInterval.valueAsNumber + n * trimHeight;
+function getParaTop(n,nowTop) {
+	if(n == 0){
+		nowTop = 0;
+		dWidthDefult = VISIBLE_HEIGHT * 0.9;
+	}
+	return nowTop + F.ParaInterval.valueAsNumber;
 }
 //全trimboxに対する操作
 function changeTrimBox(func) {
@@ -515,7 +533,8 @@ function inputClear() {
     inputFile.value = '';
     fileType = pdfName = '';
     pdfDoc = null;
-    refeEdge = null;
+	refeEdge = null;
+	nowTop = 0;
 }
 
 //トリミング枠全削除
