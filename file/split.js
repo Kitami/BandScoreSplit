@@ -378,21 +378,21 @@ async function doTrim() {
 　　//trimbox sort	
     var trimBoxIdArray = [];
     var trimBoxTopArray = [];
-    var trimBoxSortedId = [];
+	var trimBoxTopArrayRead = [];
 
     for (var elem of trimBoxListArray) {
         trimBoxTopArray.push(parseInt(elem.style.top));
+		trimBoxTopArrayRead.push(parseInt(elem.style.top));
         trimBoxIdArray.push(elem.id);
     }
     
     do {
         var minTop = Math.min(...trimBoxTopArray);
-        var minIndex = trimBoxTopArray.indexOf(minTop);
-        trimBoxSortedId.push(trimBoxIdArray[minIndex]);
-        trimBoxTopArray.splice(minIndex,1);
-    } while (trimBoxTopArray.length > 0);
+        var minIndex = trimBoxTopArrayRead.indexOf(minTop);
+		var minDeleteIndex = trimBoxTopArray.indexOf(minTop);
+        trimBoxTopArray.splice(minDeleteIndex,1);
+		var elemId = trimBoxIdArray[minIndex];
 
-    for (var elemId of trimBoxSortedId) {
         var elem = document.getElementById(elemId);
         var paraEnd = getParaTop(paraList.length) + trimHeight;
 
@@ -418,7 +418,8 @@ async function doTrim() {
         outContext.drawImage(inCanvas, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
         var a = { x: dx, y: dy, w: dWidth, h: dHeight };
         paraList.push(a);
-    }
+	} while (trimBoxTopArray.length > 0);
+	
     if (seleTabIndex + 1 == maxLength) {
         autoTrimFlg = false;
         progressUpdate({ status: 'Trim done' });
