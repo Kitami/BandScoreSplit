@@ -451,7 +451,7 @@ function cancel() {
         var a = paraList.pop();
         outContext.fillStyle = 'white';
 		outContext.fillRect(a.x, a.y, a.w, a.h);
-		nowTop -= a.y;
+		nowTop = nowTop - a.h;
     }
 }
 //n段目から描画位置Topを計算
