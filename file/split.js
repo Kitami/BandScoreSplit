@@ -415,17 +415,10 @@ async function doTrim() {
         var sHeight = parseInt(parseInt(elem.style.height) * toOrigin);
 
         //出力部
-       
-		var dy = getParaTop(paraList.length,nowTop);
-		var toDefult = 1;
-		
-		if(paraList.length == 0){
-			dWidthDefult = sWidth;
-			toDefult = dWidthDefult / sWidth;
-		}
-		var dWidth = dWidthDefult;
-		var dHeight = sHeight * toDefult;
-		var dx = parseInt((VISIBLE_WIDTH * toOrigin - dWidth) / 2);
+	var dWidth = sWidth;
+	var dHeight = sHeight;
+	var dy = getParaTop(paraList.length,nowTop);
+	var dx = parseInt((VISIBLE_WIDTH * toOrigin - dWidth) / 2);
 		
         outContext.drawImage(inCanvas, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
         var a = { x: dx, y: dy, w: dWidth, h: dHeight };
