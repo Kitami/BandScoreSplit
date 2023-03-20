@@ -5,6 +5,9 @@ BandScoreSplitは画像形式のバンドスコア(またはオーケストラ�
 
 BandScoreSplit是使用HTML5 Canvas構建的用於將樂譜（樂團樂譜等）劃分為單獨樂器的樂譜的工具，僅用於圖像（JPG，PNG）或PDF文件，文件不會發送到服務器，所有處理在本地完成。(OCR功能需要構建網頁伺服器，或使用下方的線上鏡像)  
 
+## Tutorial:  
+https://www.youtube.com/watch?v=J3RbeaMzhDM
+
 ## Online demo:  
 + English https://kitami.github.io/BandScoreSplit/main_en.html  
 + 日本語版 https://kitami.github.io/BandScoreSplit/main.html  
