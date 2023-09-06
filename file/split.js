@@ -545,24 +545,7 @@ function removeByClassName(ClassName) {
         elem.parentNode.removeChild(elem);
     }
 }
-//tab関連要素
-const tabCSS = document.getElementById('tabCSS');
-const newTab = document.getElementById('newTab');
 
-//tab追加
-function addTab(Container) {
-    var tab = newTab.cloneNode(true);
-
-    if (!Container)
-        Container = tabNav;
-
-    var tabCount = Container.children.length;
-    tab.id = 'tab_' + tabCount;
-    tab.style.cssText = 'width: 100px;';
-
-    Container.appendChild(tab);
-    return tab;
-}
 //tab全削除
 function clearTab() {
     FileList.innerHTML = '';
