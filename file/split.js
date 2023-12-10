@@ -401,7 +401,7 @@ async function doTrim() {
         var paraEnd = getParaTop(paraList.length) + trimHeight;
 
 	//ページ末尾処理
-        if (paraEnd > VISIBLE_HEIGHT) {
+        if (paraList.length > 1 && paraEnd > VISIBLE_HEIGHT) {
             if(!autoTrimFlg) { alert('ページ末尾に到達した'); removeTrimBox(elem.id); return; }
             await download();
             drawInit();
