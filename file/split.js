@@ -4,7 +4,7 @@ const VISIBLE_WIDTH = 708; //画像表示サイズ幅
 const VISIBLE_HEIGHT = 1000; //画像表示サイズ幅
 const ASPECT_R = Math.SQRT2; //出力用紙アスペクト比
 var trimHeight = VISIBLE_HEIGHT * 0.1; //トリミング枠縦幅(初期値)
-var topMargin = VISIBLE_HEIGHT * 0.05; //描画開始位置X（上部余白）
+var topMargin = VISIBLE_HEIGHT * 0.10; //描画開始位置X（上部余白）
 var titleHeight = 0;
 var selectingID = '';
 var tiltCorrected = false,autoTrimFlg=false;
