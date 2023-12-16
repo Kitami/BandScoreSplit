@@ -8,8 +8,6 @@ import math
 
 class Main:
     edge_Left, edge_Right, edge_Top, edge_Bottom = 0, 0, 0, 0
-    VISIBLE_WIDTH = 800  # 這是一個示例值，請替換為實際值
-    VISIBLE_HEIGHT = 600  # 這是一個示例值，請替換為實際值
     TO_DEG = 180 / math.pi
     DIFF = 0.055  # 傾斜許容範圍 - 約3度
     HORIZON = math.pi
@@ -29,10 +27,10 @@ class Main:
         window_height = int(screen_height * 0.92)
 
         # Set window size
-        self.master.geometry(f"{window_width}x{window_height}+0+0")  # Width x Height + X offset + Y offset
+        self.master.geometry(f"{window_width}x{window_height}+0+0")  # width x height + X offset + Y offset
 
         # Frame for Buttons
-        self.button_frame = tk.Frame(self.master, padx=5, pady=5, bg="white")
+        self.button_frame = tk.Frame(self.master)
         self.button_frame.pack(side=tk.TOP, anchor=tk.W)
 
         # Load Image Button
@@ -52,15 +50,20 @@ class Main:
         self.clear_button.pack(side=tk.LEFT)
 
         # Rotate Image Button
-        self.rotate_button = tk.Button(self.button_frame, text="自動糾偏", command=self.rotate_image)
+        self.rotate_button = tk.Button(self.button_frame, text="檢測邊框", command=self.block_analysis)
         self.rotate_button.pack(side=tk.LEFT)
+        
+        # Add LSD Button
+        self.lsd_button = tk.Button(self.button_frame, text="LSD 檢測", command=self.detect_lines)
+        self.lsd_button.pack(side=tk.LEFT)
         
         # Entry for tilt angle
         self.tilt_angle_var = tk.StringVar()
         self.tilt_angle_var.set("0")  # 初期値を 0 に設定
         self.tilt_angle_entry = tk.Entry(self.button_frame, textvariable=self.tilt_angle_var, width=8)
         self.tilt_angle_entry.pack(side=tk.RIGHT, padx=5)
-        self.tilt_angle_var.trace_add("write", self.on_tilt_var_changed)
+        self.tilt_angle_var.trace_add("write", self.rotate_image)
+        self.tilt_angle_entry.bind("<Return>", self.rotate_image)
 
         # Label for displaying page number
         self.page_label = tk.Label(self.button_frame, text="1/1")
@@ -82,14 +85,14 @@ class Main:
         # Bind mouse wheel event to scrollbar
         self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
         
-        # Add LSD Button
-        self.lsd_button = tk.Button(self.button_frame, text="LSD 檢測", command=self.detect_lines)
-        self.lsd_button.pack(side=tk.LEFT)
-        
         self.image_index = 0
         self.images = []
+        self.image = None
+        self.edit_image = None
         self.image_path = ""
         self.angle = 0
+        self.aspect_ratio = 1
+        self.bounding_box = None
         
     # Bind arrow keys to tilt entry
         self.tilt_angle_entry.bind("<Up>", self.increase_tilt)
@@ -107,52 +110,43 @@ class Main:
         self.tilt_angle_var.set(new_value)
         self.rotate_image()
 
-    def on_tilt_var_changed(self, *args):
-        # Callback function for tilt_angle_var change
-        try:
-            tilt_angle = float(self.tilt_angle_var.get())
-            self.rotate_image(tilt_angle)
-        except ValueError:
-            pass  # Ignore non-numeric input
-
     def _on_mousewheel(self, event):
         # Respond to mouse wheel event
         delta = -event.delta // 120  # Normalize the delta value
         self.canvas.yview_scroll(delta, "units")
         
     def load_images(self):
-        file_paths = filedialog.askopenfilenames(title="選擇圖片文件", filetypes=[("圖片文件", "*.png;*.jpg;*.jpeg")])
+        file_paths = filedialog.askopenfilenames(title="select files")
         if file_paths:
             self.images = [Image.open(file_path) for file_path in file_paths]
             self.image_index = 0
             self.display_image()
-            
-            # 自動檢測傾斜角度
-            # self.block_analysis()
 
     def display_image(self):
         image = self.images[self.image_index]
+        self.image = image
 
-        # Check if image width exceeds canvas width limit
         canvas_width_limit = self.master.winfo_width() // 2
         if image.width > canvas_width_limit:
             # Resize image to fit canvas width limit
-            aspect_ratio = image.width / canvas_width_limit
+            self.aspect_ratio = image.width / canvas_width_limit
             new_width = canvas_width_limit
-            new_height = int(image.height / aspect_ratio)
-            image = image.resize((new_width, new_height), Image.ANTIALIAS)
+            new_height = int(image.height / self.aspect_ratio)
+            image = image.resize((new_width, new_height))
 
         photo = ImageTk.PhotoImage(image=image)
 
         self.canvas.config(scrollregion=(0, 0, photo.width(), photo.height()))
-        self.canvas.create_image(0, 0, anchor=tk.NW, image=photo)
+        self.canvas_image = self.canvas.create_image(0, 0, anchor=tk.NW, image=photo)
         self.canvas.image = photo
 
         # Update page number label
         total_pages = len(self.images)
         self.page_label.config(text=f"{self.image_index + 1}/{total_pages}")
-
         self.lines = []  # 添加全局變量 lines
+
+        # 解析圖片
+        self.block_analysis()
         
     def detect_lines(self):
         if not self.images:
@@ -167,9 +161,6 @@ class Main:
             x1, y1, x2, y2 = map(int, line.flatten())
             cv2.line(lines_image, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
-        lines_pil = Image.fromarray(cv2.cvtColor(lines_image, cv2.COLOR_BGR2RGB))
-        self.display_image_with_lines(lines_pil)
-
     def display_image_with_lines(self, image):
         # Resize the image to fit the canvas while maintaining aspect ratio
         canvas_width = self.canvas.winfo_width()
@@ -183,9 +174,16 @@ class Main:
         self.canvas.create_image(0, 0, anchor=tk.NW, image=photo)
         self.canvas.image = photo
         
-    def draw_div_box(self, left, top, width, height):
-        # 繪製邊緣框
-        self.canvas.create_rectangle(left, top, left + width, top + height, outline="red", width=2)
+    # 繪製邊緣框
+    def draw_edge_box(self):
+        left = self.edge_Left / self.aspect_ratio
+        top = self.edge_Top / self.aspect_ratio
+        right = self.edge_Right / self.aspect_ratio
+        bottom = self.edge_Bottom / self.aspect_ratio
+        
+        # 如果是第一次創建，使用 create_rectangle 創建並保存 ID
+        if self.bounding_box is None:
+            self.bounding_box = self.canvas.create_rectangle(left, top, right, bottom, outline="red", width=2)
 
     def prev_image(self):
         if self.image_index > 0:
@@ -203,17 +201,28 @@ class Main:
         self.image_path = ""
         self.canvas.delete("all")
         self.page_label.config(text="1/1")
+        self.bounding_box = None
 
-    def rotate_image(self):
-        original_image = self.images[self.image_index]
-        angle = -float(self.tilt_angle_var.get())  # 讀取文本框的值並轉換為浮點數
-        pil_image = original_image.rotate(angle, resample=Image.BICUBIC)
-        rotated_image = ImageTk.PhotoImage(pil_image)
-        self.canvas.delete("all")
-        self.canvas.create_image(0, 0, anchor=tk.NW, image=rotated_image)
-        self.canvas.image = rotated_image
+    def rotate_image(self, event=None):
+        try:
+            angle = -float(self.tilt_angle_var.get())
+            pil_image = self.image.rotate(angle, resample=Image.BICUBIC)
+            new_width = self.image.width / self.aspect_ratio
+            new_height = self.image.height / self.aspect_ratio
+            resized_image = pil_image.resize((int(new_width), int(new_height)))
+            rotated_image = ImageTk.PhotoImage(resized_image)
 
-            
+            # 更新畫布上的現有圖像
+            self.canvas.itemconfig(self.canvas_image, image=rotated_image)
+            self.canvas.image = rotated_image
+
+            # 更新畫布上的邊界框
+            if self.bounding_box is not None:
+                self.draw_edge_box()
+                
+        except ValueError:
+            print("無效的角度值")
+
     @staticmethod
     def is_horizontal(angle):
         a = abs(angle)
@@ -241,12 +250,24 @@ class Main:
         arr_new = [item for item in arr if item]
         target = int(len(arr_new) * N)
         temp = sorted(arr_new, reverse=True)
-        return temp[target]
+        
+        try:
+            return temp[target]
+        except IndexError:
+            print("IndexError occurred!")
+            return None
 
     @staticmethod
     def find_edge(a, start, end):
+        start = int(start)
+        end = int(end)
         calc_a = a[:]
         index = 0
+
+        # 確保 start 和 end 在合理的範圍內
+        start = max(0, min(start, len(calc_a)))
+        end = max(0, min(end, len(calc_a)))
+
         if start < end:
             for i in range(len(calc_a)):
                 if calc_a[i] and i > end:
@@ -255,53 +276,75 @@ class Main:
             for i in range(len(calc_a)):
                 if calc_a[i] and i < end:
                     calc_a[i] = 0
+
         threshold = Main.top_n(calc_a, 0.5)
         increase = 1 if start < end else -1
+
+        # 進行索引的有效性檢查
         for i in range(start, end, increase):
-            if calc_a[i] and calc_a[i] >= threshold:
+            if 0 <= i < len(calc_a) and calc_a[i] and calc_a[i] >= threshold:
                 index = i
                 break
+
         return index
+
+    def increase(self, array, i, e):
+        # 确保数组足够长
+        if len(array) <= i:
+            # 将数组扩展到足够的长度，你可以根据需要调整
+            array.extend([0] * (i - len(array) + 1))
+            
+        if array[i]:
+            array[i] += e
+        else:
+            array[i] = e
 
     def block_analysis(self):
         h_map_array = []
         v_map_array = []
+        sum_tilt_angle = 0
+        count = 0
+        
         self.detect_lines()
 
         for line in self.lines:
             x1, y1, x2, y2 = map(int, line.flatten())
             angle = math.atan2(y1 - y2, x1 - x2)
             length = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
-            count = 0
 
-            if length > 0.02 * self.VISIBLE_WIDTH:
+            if length > 0.02 * self.image.width:
                 if self.is_horizontal(angle):
                     self.increase(h_map_array, y1, length)
                     sum_tilt_angle += self.calc_tilt_angle(angle)
                     count += 1
                 elif self.is_vertical(angle):
                     self.increase(v_map_array, x1, length)
-         
-        #糾正傾斜           
+        
+        # 糾正傾斜
         if count > 0:
             v_angle_radians = sum_tilt_angle / count
-            v_angle_degree = v_angle_radians * self.TO_DEG
+            v_angle_degree = -v_angle_radians * self.TO_DEG
+            print("v_angle_degree:", v_angle_degree)
 
             # 更新文本輸入框的值
-            self.tilt_angle_var.set(-v_angle_degree)
-            self.rotate_image(-v_angle_radians)
+            v_angle_degree = "{:.4f}".format(v_angle_degree)
+            self.tilt_angle_var.set(str(v_angle_degree))
+            self.rotate_image()
 
-        self.edge_Left = self.find_edge(v_map_array, 0, self.VISIBLE_WIDTH / 2)
-        self.edge_Right = self.find_edge(v_map_array, self.VISIBLE_WIDTH, self.VISIBLE_WIDTH * 0.85)
-        self.edge_Top = self.find_edge(h_map_array, 1, self.VISIBLE_HEIGHT / 2)
-        self.edge_Bottom = self.find_edge(h_map_array, self.VISIBLE_HEIGHT, self.VISIBLE_HEIGHT / 2)
+        self.edge_Left = self.find_edge(v_map_array, 0, self.image.width / 2)
+        self.edge_Right = self.find_edge(v_map_array, self.image.width, self.image.width * 0.85)
+        self.edge_Top = self.find_edge(h_map_array, 1, self.image.height / 2)
+        self.edge_Bottom = self.find_edge(h_map_array, self.image.height, self.image.height / 2)
 
-        # 在檢測到的範圍內創建邊緣框
-        edge_w = self.edge_Right - self.edge_Left
-        edge_h = self.edge_Bottom - self.edge_Top
+        # 調試輸出
+        print("edge_Left:", self.edge_Left)
+        print("edge_Right:", self.edge_Right)
+        print("edge_Top:", self.edge_Top)
+        print("edge_Bottom:", self.edge_Bottom)
 
         # 繪製邊緣框
-        self.draw_div_box(self.edge_Left, self.edge_Top, edge_w, edge_h)
+        self.draw_edge_box()
+
 
 if __name__ == "__main__":
     root = tk.Tk()
